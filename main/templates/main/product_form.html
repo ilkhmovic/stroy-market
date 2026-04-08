@@ -1,0 +1,57 @@
+{% extends 'main/base.html' %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{% url 'seller_dashboard' %}" class="text-gray-400 hover:text-gray-700 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-xl font-extrabold text-gray-900">Mahsulot qo'shish</h1>
+            <p class="text-sm text-gray-500">Do'koningizga yangi mahsulot qo'shing</p>
+        </div>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Mahsulot nomi *</label>
+            <input type="text" name="name" required placeholder="Masalan: Portland sement M400" value="{{ form.name.value|default:'' }}"
+                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Toifa</label>
+            <select name="category" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm bg-white">
+                <option value="">— Toifani tanlang —</option>
+                {% for cat in form.category.field.queryset %}
+                <option value="{{ cat.id }}" {% if form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Tavsif</label>
+            <textarea name="description" rows="3" placeholder="Mahsulot haqida qo'shimcha ma'lumot..."
+                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm resize-none">{{ form.description.value|default:'' }}</textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Narxi (so'm) *</label>
+                <input type="number" name="price" required min="0" step="1" placeholder="0"
+                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Soni (dona) *</label>
+                <input type="number" name="stock" required min="0" placeholder="0"
+                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
+            </div>
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Rasm (ixtiyoriy)</label>
+            <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+            Mahsulotni qo'shish
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+
+<div class="mb-4">
+    <a href="{% url 'marketplace' %}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Bozorga qaytish
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+    <!-- Product Image -->
+    <div class="flex items-center justify-center">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full max-h-96 object-contain rounded-xl bg-gray-50 p-4">
+        {% else %}
+            <div class="w-full h-72 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                <svg class="h-28 w-28 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                </svg>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Product Info -->
+    <div class="flex flex-col">
+        {% if product.category %}
+        <span class="inline-block text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1 rounded-full mb-3 self-start">
+            {{ product.category.name }}
+        </span>
+        {% endif %}
+
+        <h1 class="text-2xl font-extrabold text-gray-900 mb-2">{{ product.name }}</h1>
+
+        <!-- Price -->
+        <div class="flex items-baseline gap-2 mb-4">
+            <span class="text-4xl font-extrabold text-blue-700">{{ product.price|floatformat:0 }}</span>
+            <span class="text-lg text-gray-500">so'm</span>
+        </div>
+
+        <!-- Stock -->
+        {% if product.stock > 0 %}
+        <div class="flex items-center gap-2 mb-4">
+            <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+            <span class="text-sm font-medium text-green-600">Mavjud: {{ product.stock }} dona</span>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-2 mb-4">
+            <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+            <span class="text-sm font-medium text-red-600">Tugagan</span>
+        </div>
+        {% endif %}
+
+        <!-- Description -->
+        {% if product.description %}
+        <div class="mb-5">
+            <h3 class="text-sm font-bold text-gray-700 mb-1">Mahsulot haqida</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">{{ product.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Store info -->
+        <div class="bg-gray-50 rounded-xl p-4 mb-5">
+            <p class="text-xs text-gray-400 mb-1">Sotuvchi</p>
+            <div class="flex items-center gap-3">
+                {% if product.store.logo %}
+                    <img src="{{ product.store.logo.url }}" class="w-10 h-10 rounded-lg object-cover">
+                {% else %}
+                    <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                        {{ product.store.name|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p class="font-bold text-gray-800 text-sm">{{ product.store.name }}</p>
+                    {% if product.store.address %}<p class="text-xs text-gray-500">{{ product.store.address }}</p>{% endif %}
+                    {% if product.store.phone %}<p class="text-xs text-gray-500">{{ product.store.phone }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Add to Cart Button -->
+        {% if user.is_authenticated %}
+            {% if not user.is_seller %}
+                {% if product.stock > 0 %}
+                <a href="{% url 'add_to_cart' product.pk %}" class="w-full text-center bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Savatga qo'shish
+                </a>
+                {% else %}
+                <button disabled class="w-full bg-gray-100 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed">
+                    Tugagan
+                </button>
+                {% endif %}
+            {% else %}
+                <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded-xl px-4 py-3">
+                    Sotuvchilar tovar sotib ola olmaydi.
+                </div>
+            {% endif %}
+        {% else %}
+        <a href="{% url 'login' %}" class="w-full text-center bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition">
+            Xarid qilish uchun kiring
+        </a>
+        {% endif %}
+
+        <p class="text-xs text-gray-400 mt-3 text-center">Qo'shilgan: {{ product.created_at|date:"d.m.Y" }}</p>
+    </div>
+</div>
+
+<!-- Reviews Section -->
+<div class="mt-16">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-2">Mijozlar fikri</p>
+            <h2 class="text-4xl font-black text-gray-900">Sharhlar va Reyting</h2>
+        </div>
+        <div class="flex items-center gap-6 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+            <div class="text-center border-r border-gray-100 pr-6">
+                <p class="text-3xl font-black text-gray-900 leading-none mb-1">{{ product.avg_rating }}</p>
+                <p class="text-[10px] text-gray-400 font-bold uppercase">O'rtacha</p>
+            </div>
+            <div class="flex flex-col">
+                <div class="flex text-yellow-400 text-sm mb-1">
+                    {% for i in "12345" %}
+                        <svg class="w-4 h-4 {% if forloop.counter <= product.avg_rating %}fill-current{% else %}text-gray-200{% endif %}" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                    {% endfor %}
+                </div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ product.review_count }} TA SHARH</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Carousel Container -->
+    {% if product.reviews.all %}
+    <div class="relative group mt-8">
+        <!-- Navigation Buttons -->
+        <button id="prevReview" class="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-2xl shadow-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:scale-110 transition-all duration-300 opacity-0 group-hover:opacity-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button id="nextReview" class="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white rounded-2xl shadow-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:scale-110 transition-all duration-300 opacity-0 group-hover:opacity-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <!-- Carousel Wrapper -->
+        <div class="overflow-hidden px-2">
+            <div id="reviewTrack" class="flex gap-6 transition-transform duration-500 ease-out">
+                {% for review in product.reviews.all %}
+                <div class="min-w-full md:min-w-[calc(50%-12px)] flex-shrink-0">
+                    <div class="h-full bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 flex flex-col">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-lg">
+                                    {{ review.user.username|first|upper }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-900">{{ review.user.get_full_name|default:review.user.username }}</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ review.created_at|date:"d.m.Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="flex text-yellow-400">
+                                {% for i in "12345" %}
+                                    <svg class="w-4 h-4 {% if forloop.counter <= review.rating %}fill-current{% else %}text-gray-200{% endif %}" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="text-gray-600 leading-relaxed font-medium mb-4 flex-grow italic">"{{ review.comment }}"</p>
+
+                        {% if review.seller_reply %}
+                        <div class="mt-4 pt-4 border-t border-gray-50">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-6 h-6 rounded-lg bg-blue-900 flex items-center justify-center text-white">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                </div>
+                                <p class="text-[10px] font-black text-blue-900 uppercase tracking-widest">Sotuvchi javobi</p>
+                            </div>
+                            <p class="text-xs text-gray-500 italic bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                "{{ review.seller_reply }}"
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const track = document.getElementById('reviewTrack');
+            const prevBtn = document.getElementById('prevReview');
+            const nextBtn = document.getElementById('nextReview');
+            const items = track.children;
+            let index = 0;
+
+            function updateCarousel() {
+                const step = window.innerWidth >= 768 ? 50 : 100;
+                const maxIndex = window.innerWidth >= 768 ? Math.ceil(items.length / 2) - 1 : items.length - 1;
+                
+                if (index < 0) index = 0;
+                if (index > maxIndex) index = maxIndex;
+
+                const gap = 24; // gap-6 is 1.5rem = 24px
+                const offset = index * (track.offsetWidth + gap) / (window.innerWidth >= 768 ? 2 : 1);
+                track.style.transform = `translateX(-${index * (window.innerWidth >= 768 ? 51.5 : 100)}%)`;
+                
+                prevBtn.style.opacity = index === 0 ? '0.3' : '1';
+                prevBtn.style.pointerEvents = index === 0 ? 'none' : 'auto';
+                nextBtn.style.opacity = index === maxIndex ? '0.3' : '1';
+                nextBtn.style.pointerEvents = index === maxIndex ? 'none' : 'auto';
+            }
+
+            nextBtn.addEventListener('click', () => { index++; updateCarousel(); });
+            prevBtn.addEventListener('click', () => { index--; updateCarousel(); });
+            window.addEventListener('resize', updateCarousel);
+            updateCarousel();
+        });
+    </script>
+    {% else %}
+    <div class="text-center py-20 bg-gray-50 rounded-[3rem] border border-dashed border-gray-200">
+        <svg class="w-16 h-16 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <p class="text-lg font-bold text-gray-400">Hozircha sharhlar yo'q</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Related Products -->
+{% if related %}
+<div class="mt-20">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-2">Sizga yoqishi mumkin</p>
+            <h2 class="text-3xl font-black text-gray-900">O'xshash mahsulotlar</h2>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {% for p in related %}
+        <a href="{% url 'product_detail' p.pk %}" class="group relative bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-500 hover:-translate-y-2">
+            <div class="aspect-square rounded-2xl overflow-hidden mb-4 bg-gray-50 relative">
+                {% if p.image %}
+                    <img src="{{ p.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-blue-100">
+                        <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+                    </div>
+                {% endif %}
+                <!-- Overlay hint -->
+                <div class="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/5 transition-colors duration-500"></div>
+            </div>
+            
+            <div class="space-y-1">
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{{ p.category.name|default:"Material" }}</p>
+                <h3 class="text-sm font-black text-gray-900 line-clamp-1 group-hover:text-blue-600 transition">{{ p.name }}</h3>
+                <div class="flex items-center justify-between pt-2">
+                    <p class="text-base font-black text-blue-900">{{ p.price|floatformat:0 }} <span class="text-[10px]">SO'M</span></p>
+                    <div class="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

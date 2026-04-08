@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+{% block title %}Savat{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-extrabold text-gray-900">Savat</h1>
+    <a href="{% url 'marketplace' %}" class="text-sm text-blue-600 hover:underline">← Xaridni davom ettirish</a>
+</div>
+
+{% if items %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Cart Items -->
+    <div class="lg:col-span-2 space-y-4">
+        {% for item in items %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex gap-4 items-center">
+            <!-- Image -->
+            <a href="{% url 'product_detail' item.product.pk %}">
+                {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0">
+                {% else %}
+                    <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex-shrink-0 flex items-center justify-center">
+                        <svg class="h-8 w-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+                    </div>
+                {% endif %}
+            </a>
+
+            <!-- Info -->
+            <div class="flex-grow">
+                <a href="{% url 'product_detail' item.product.pk %}" class="font-bold text-gray-800 hover:text-blue-600 transition text-sm">{{ item.product.name }}</a>
+                <p class="text-xs text-gray-400 mt-0.5">{{ item.product.store.name }}</p>
+                <p class="text-blue-700 font-bold text-sm mt-1">{{ item.product.price|floatformat:0 }} so'm / dona</p>
+            </div>
+
+            <!-- Quantity + Remove -->
+            <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                <form method="POST" action="{% url 'update_cart' item.pk %}" class="flex items-center gap-2">
+                    {% csrf_token %}
+                    <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                        <button type="button" onclick="let i=this.nextElementSibling; if(i.value>1){i.value=parseInt(i.value)-1; this.form.submit()}" class="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-base">−</button>
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}"
+                            class="w-12 text-center text-sm font-semibold border-x border-gray-200 py-1 focus:outline-none" onchange="this.form.submit()">
+                        <button type="button" onclick="let i=this.previousElementSibling; if(parseInt(i.value)<{{ item.product.stock }}){i.value=parseInt(i.value)+1; this.form.submit()}" class="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-base">+</button>
+                    </div>
+                </form>
+                <p class="text-sm font-extrabold text-gray-800">{{ item.get_total_price|floatformat:0 }} so'm</p>
+                <a href="{% url 'remove_from_cart' item.pk %}" class="text-xs text-red-500 hover:underline">O'chirish</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Order Summary -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-20">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Buyurtma xulosasi</h2>
+
+            <div class="space-y-2 text-sm text-gray-600 mb-4">
+                <div class="flex justify-between">
+                    <span>Mahsulotlar ({{ cart.total_items }} dona)</span>
+                    <span class="font-semibold">{{ cart.get_total_price|floatformat:0 }} so'm</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Yetkazib berish</span>
+                    <span class="text-green-600 font-semibold">Bepul</span>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 my-4">
+
+            <div class="flex justify-between text-base font-extrabold text-gray-900 mb-5">
+                <span>Jami</span>
+                <span class="text-blue-700 text-xl">{{ cart.get_total_price|floatformat:0 }} so'm</span>
+            </div>
+
+            <a href="{% url 'checkout' %}" class="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition text-sm">
+                Buyurtma berish
+            </a>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 text-center py-24">
+    <svg class="h-20 w-20 mx-auto text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+    </svg>
+    <h2 class="text-xl font-bold text-gray-400 mb-2">Savat bo'sh</h2>
+    <p class="text-sm text-gray-400 mb-5">Bozordan mahsulotlar qo'shing</p>
+    <a href="{% url 'marketplace' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition text-sm">
+        Bozorga o'tish
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'main/base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+    <h2 class="text-2xl font-bold text-center mb-2 text-gray-900">Ro'yxatdan o'tish</h2>
+    <p class="text-center text-gray-500 text-sm mb-6">Akkaunt turini tanlang va ma'lumotlaringizni kiriting</p>
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">{{ field.label }}</label>
+            {% if field.name == 'role' %}
+                <div class="grid grid-cols-2 gap-3">
+                    {% for choice in field %}
+                    <label class="flex items-center gap-2 border rounded-lg p-3 cursor-pointer hover:bg-blue-50 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50">
+                        {{ choice.tag }}
+                        <span class="text-sm text-gray-700">{{ choice.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ field }}
+            {% endif %}
+            {% if field.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ field.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition mt-2">
+            Ro'yxatdan o'tish
+        </button>
+    </form>
+    <p class="text-center mt-4 text-sm text-gray-600">Allaqachon akkauntingiz bormi? <a href="{% url 'login' %}" class="text-blue-600 ml-1 hover:underline">Kirish</a></p>
+</div>
+<style>
+    input[type="text"], input[type="email"], input[type="password"] {
+        width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+        outline: none; font-size: 0.875rem;
+    }
+    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+        border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    input[type="radio"] { accent-color: #2563eb; }
+</style>
+{% endblock %}

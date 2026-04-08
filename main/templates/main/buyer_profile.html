@@ -1,0 +1,86 @@
+{% extends 'main/base.html' %}
+{% block title %}Mening profilim{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left: Avatar & Info -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" class="w-24 h-24 rounded-full object-cover mx-auto mb-3 border-4 border-blue-100">
+            {% else %}
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mx-auto mb-3 text-4xl font-extrabold text-white">
+                    {{ user.username|first|upper }}
+                </div>
+            {% endif %}
+            <h2 class="text-lg font-bold text-gray-900">{{ user.get_full_name|default:user.username }}</h2>
+            <span class="inline-block mt-1 text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Xaridor</span>
+            <div class="mt-4 text-sm text-gray-500 space-y-1 text-left">
+                <div class="flex items-center gap-2"><svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> {{ user.email|default:"Email kiritilmagan" }}</div>
+                <div class="flex items-center gap-2"><svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg> {{ user.phone|default:"Telefon kiritilmagan" }}</div>
+                <div class="flex items-start gap-2"><svg class="h-4 w-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> {{ user.address|default:"Manzil kiritilmagan" }}</div>
+            </div>
+        </div>
+
+        <!-- Cart Summary -->
+        {% if cart %}
+        <a href="{% url 'cart' %}" class="block mt-4 bg-blue-600 text-white rounded-2xl p-4 shadow hover:bg-blue-700 transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-semibold opacity-80">Savatdagi mahsulotlar</p>
+                    <p class="text-2xl font-extrabold mt-0.5">{{ cart.total_items }} dona</p>
+                </div>
+                <svg class="h-10 w-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <p class="text-sm font-bold mt-2">Jami: {{ cart.get_total_price|floatformat:0 }} so'm →</p>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Right: Edit Form -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-5">Shaxsiy ma'lumotlarni tahrirlash</h3>
+            <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Ism</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="Ismingiz"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Familiya</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="Familiyangiz"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" placeholder="email@example.com"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telefon raqam</label>
+                    <input type="text" name="phone" value="{{ user.phone }}" placeholder="+998 90 000 00 00"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Manzil</label>
+                    <textarea name="address" rows="3" placeholder="Yashash manzilingiz..."
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ user.address }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Profil rasmi</label>
+                    <input type="file" name="avatar" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition">
+                    Saqlash
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

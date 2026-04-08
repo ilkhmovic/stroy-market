@@ -1,0 +1,38 @@
+# Django
+*.py[cod]
+__pycache__/
+*.so
+.python-version
+
+# Environment variables
+.env
+.env.example
+!.env.example
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Database
+db.sqlite3
+
+# Media & Static
+media/
+staticfiles/
+static_cdn/
+
+# Logs
+*.log
+output.log
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

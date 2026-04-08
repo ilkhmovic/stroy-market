@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-extrabold text-gray-900">{{ store.name }}</h1>
+        <p class="text-gray-500 text-sm mt-0.5">Sotuvchi kabineti</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'add_product' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold">
+            + Mahsulot qo'shish
+        </a>
+    </div>
+</div>
+
+<!-- Store Info Card -->
+<div class="bg-gradient-to-r from-blue-700 to-blue-900 text-white rounded-xl p-5 mb-6 shadow">
+    <p class="text-sm opacity-80 mb-1">Do'kon tavsifi</p>
+    <p class="text-base">{{ store.description|default:"Tavsif qo'shilmagan." }}</p>
+    <p class="text-xs mt-2 opacity-60">Yaratilgan: {{ store.created_at|date:"d.m.Y" }}</p>
+</div>
+
+<!-- Stats & Quick Actions -->
+<div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+        <p class="text-4xl font-black text-blue-900 leading-none mb-2">{{ products.count }}</p>
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Jami mahsulotlar</p>
+    </div>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+        <p class="text-4xl font-black text-green-600 leading-none mb-2">{{ products|length }}</p>
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Aktiv mahsulotlar</p>
+    </div>
+    <a href="{% url 'seller_orders' %}" class="bg-blue-600 rounded-2xl p-6 shadow-lg shadow-blue-100 flex flex-col items-center justify-center text-center group hover:scale-105 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white mb-2 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        <p class="text-xs font-bold text-white uppercase tracking-widest">Buyurtmalar</p>
+    </a>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center relative">
+        <p class="text-4xl font-black {% if user.unread_notifications_count %}text-red-500{% else %}text-gray-300{% endif %} leading-none mb-2">{{ user.unread_notifications_count }}</p>
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Yangi xabarlar</p>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">Mahsulotlarim</h2>
+    </div>
+    {% if products %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                <tr>
+                    <th class="px-5 py-3 text-left">#</th>
+                    <th class="px-5 py-3 text-left">Mahsulot</th>
+                    <th class="px-5 py-3 text-left">Toifa</th>
+                    <th class="px-5 py-3 text-right">Narxi</th>
+                    <th class="px-5 py-3 text-right">Soni</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for product in products %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-5 py-3 text-gray-400">{{ forloop.counter }}</td>
+                    <td class="px-5 py-3 font-semibold text-gray-800">
+                        <div class="flex items-center gap-3">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" class="w-10 h-10 rounded-lg object-cover">
+                            {% else %}
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                                </svg>
+                            </div>
+                            {% endif %}
+                            {{ product.name }}
+                        </div>
+                    </td>
+                    <td class="px-5 py-3 text-gray-500">{{ product.category.name|default:"—" }}</td>
+                    <td class="px-5 py-3 text-right font-bold text-blue-700">{{ product.price|floatformat:0 }} so'm</td>
+                    <td class="px-5 py-3 text-right {% if product.stock == 0 %}text-red-500{% else %}text-green-600{% endif %} font-semibold">{{ product.stock }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-14 text-gray-400">
+        <p class="text-base font-semibold">Hali mahsulot qo'shilmagan</p>
+        <a href="{% url 'add_product' %}" class="inline-block mt-3 text-blue-600 hover:underline text-sm">Birinchi mahsulotni qo'shish →</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

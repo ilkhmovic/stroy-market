@@ -1,0 +1,92 @@
+{% extends 'main/base.html' %}
+{% block title %}Mijozlar Sharhlari{% endblock %}
+{% block content %}
+
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-black text-gray-900">Mijozlar Sharhlari</h1>
+        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Sizning mahsulotlaringizga kelgan fikrlar</p>
+    </div>
+    <a href="{% url 'seller_dashboard' %}" class="px-5 py-2.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7"/></svg>
+        Panelga qaytish
+    </a>
+</div>
+
+{% if reviews %}
+<div class="grid grid-cols-1 gap-6">
+    {% for review in reviews %}
+    <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Product Identity -->
+            <div class="md:w-48 flex-shrink-0">
+                <div class="aspect-square bg-gray-50 rounded-3xl overflow-hidden mb-3 border border-gray-100">
+                    {% if review.product.image %}
+                    <img src="{{ review.product.image.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-blue-200">
+                        <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Mahsulot</p>
+                <a href="{% url 'product_detail' review.product.pk %}" class="text-xs font-black text-gray-900 hover:text-blue-600 transition line-clamp-2">
+                    {{ review.product.name }}
+                </a>
+            </div>
+
+            <!-- Review Content -->
+            <div class="flex-grow">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="font-bold text-gray-900">{{ review.user.username }}</span>
+                            <div class="flex text-yellow-400">
+                                {% for i in "12345" %}
+                                <svg class="w-3 h-3 {% if forloop.counter <= review.rating %}fill-current{% else %}text-gray-200{% endif %}" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ review.created_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-3xl p-6 mb-6">
+                    <p class="text-gray-700 font-medium leading-relaxed italic">"{{ review.comment }}"</p>
+                </div>
+
+                <!-- Reply Area -->
+                {% if review.seller_reply %}
+                <div class="pl-8 border-l-2 border-blue-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <p class="text-[10px] text-blue-600 font-black uppercase tracking-widest">Sizning javobingiz</p>
+                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">— {{ review.replied_at|date:"d.m.Y" }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 font-medium bg-white p-4 rounded-2xl border border-gray-100">{{ review.seller_reply }}</p>
+                </div>
+                {% else %}
+                <form action="{% url 'add_review_reply' review.pk %}" method="POST">
+                    {% csrf_token %}
+                    <div class="flex gap-3">
+                        <textarea name="reply_text" required rows="2" class="flex-grow bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all font-medium placeholder:text-gray-300 shadow-inner" placeholder="Xaridorga minnatdorchilik bildiring yoki savoliga javob bering..."></textarea>
+                        <button type="submit" class="self-end px-6 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-100">
+                            Javob berish
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-24 bg-white rounded-[3rem] border border-gray-100">
+    <div class="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gray-200">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    </div>
+    <p class="text-lg font-bold text-gray-400 uppercase tracking-widest">Sharhlar mavjud emas</p>
+</div>
+{% endif %}
+
+{% endblock %}

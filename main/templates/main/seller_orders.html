@@ -1,0 +1,89 @@
+{% extends 'main/base.html' %}
+{% block content %}
+
+<div class="mb-8">
+    <a href="{% url 'seller_dashboard' %}" class="text-sm text-blue-600 hover:underline flex items-center gap-1 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Dashboardga qaytish
+    </a>
+    <h1 class="text-3xl font-black text-gray-900">Mahsulotlaringiz Buyurtmalari</h1>
+    <p class="text-gray-500">Mijozlar tomonidan do'koningizdan sotib olingan barcha mahsulotlar ro'yxati.</p>
+</div>
+
+<div class="space-y-6">
+    {% for item in items %}
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow">
+        <!-- Product Image -->
+        <div class="w-full md:w-32 h-32 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-50">
+            {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" class="w-full h-full object-cover">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-300">
+                    <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div class="flex-grow flex flex-col justify-between">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div>
+                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">Order #{{ item.order.id }}</span>
+                    <h3 class="text-xl font-bold text-gray-900">{{ item.product_name }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Sotib oluvchi: <span class="font-semibold text-gray-700">{{ item.order.user.username }}</span> ({{ item.order.user.phone|default:"Tel ko'rsatilmadi" }})
+                    </p>
+                </div>
+                <div class="text-left md:text-right">
+                    <p class="text-sm text-gray-400 font-medium">Soni x Narxi</p>
+                    <p class="text-lg font-black text-gray-900">{{ item.quantity }} x {{ item.price|floatformat:0 }} so'm</p>
+                    <p class="text-2xl font-black text-blue-600 mt-1">{{ item.get_total_price|floatformat:0 }} so'm</p>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span class="text-xs text-gray-500 font-medium">{{ item.order.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span class="text-xs text-gray-500 font-medium line-clamp-1">{{ item.order.address }}</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <form action="{% url 'update_order_item_status' item.pk %}" method="POST" class="flex items-center gap-2">
+                        {% csrf_token %}
+                        <select name="status" class="text-[10px] font-bold uppercase tracking-widest bg-gray-50 border border-gray-100 rounded-full px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            {% for code, label in item.STATUS_CHOICES %}
+                                <option value="{{ code }}" {% if item.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-sm">
+                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% if item.order.note %}
+            <div class="mt-3 p-3 bg-gray-50 rounded-2xl text-xs text-gray-600 italic">
+                "{{ item.order.note }}"
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        <p class="text-lg font-bold text-gray-900">Buyurtmalar hali mavjud emas</p>
+        <p class="text-sm text-gray-400 mt-1">Mijozlar mahsulotingizni sotib olishganda bu yerda paydo bo'ladi.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
