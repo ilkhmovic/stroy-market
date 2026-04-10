@@ -1,13 +1,52 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
+import os
+from uuid import uuid4
+
+from django.utils.deconstruct import deconstructible
+
+@deconstructible
+class PathAndRename(object):
+    def __init__(self, sub_path):
+        self.path = sub_path
+
+    def __call__(self, instance, filename):
+        ext = filename.split('.')[-1]
+        if hasattr(instance, 'name'):
+            name = instance.name
+        elif hasattr(instance, 'username'):
+            name = instance.username
+        else:
+            name = uuid4().hex
+        
+        # clean name for filename
+        name = "".join([c for c in name if c.isalnum() or c in (' ', '.', '_')]).strip().replace(' ', '_')
+        filename = f'{name}_{uuid4().hex[:8]}.{ext}'
+        return os.path.join(self.path, filename)
+
+path_and_rename = PathAndRename
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Brend nomi")
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+class Region(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Viloyat nomi")
+
+    def __str__(self):
+        return self.name
 
 class User(AbstractUser):
     is_seller = models.BooleanField(default=False, verbose_name="Sotuvchi")
     is_buyer = models.BooleanField(default=True, verbose_name="Sotib oluvchi")
     phone = models.CharField(max_length=20, blank=True, verbose_name="Telefon raqam")
     address = models.TextField(blank=True, verbose_name="Manzil")
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Rasm")
+    avatar = models.ImageField(upload_to=path_and_rename('avatars/'), blank=True, null=True, verbose_name="Rasm")
+    stir_pinfl = models.CharField(max_length=14, blank=True, verbose_name="STIR/PINFL")
 
     @property
     def unread_notifications_count(self):
@@ -17,9 +56,22 @@ class Store(models.Model):
     owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='store')
     name = models.CharField(max_length=200, verbose_name="Do'kon nomi")
     description = models.TextField(blank=True, verbose_name="Tarif")
-    logo = models.ImageField(upload_to='store_logos/', blank=True, null=True, verbose_name="Logo")
+    logo = models.ImageField(upload_to=path_and_rename('store_logos/'), blank=True, null=True, verbose_name="Logo")
     phone = models.CharField(max_length=20, blank=True, verbose_name="Telefon")
     address = models.TextField(blank=True, verbose_name="Manzil")
+    region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, related_name='stores_at', verbose_name="Do'kon joylashuvi")
+    status = models.CharField(
+        max_length=20, 
+        choices=[
+            ('pending', 'Kutilmoqda'), 
+            ('active', 'Faol'), 
+            ('rejected', 'Rad etildi'),
+            ('suspended', 'Vaqtinchalik to\'xtatilgan')
+        ], 
+        default='pending',
+        verbose_name="Holati"
+    )
+    delivery_regions = models.ManyToManyField(Region, blank=True, related_name='stores', verbose_name="Yetkazib berish hududlari")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -38,11 +90,13 @@ class Category(models.Model):
 class Product(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='products', verbose_name="Do'kon")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Toifa")
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Brend")
     name = models.CharField(max_length=255, verbose_name="Mahsulot nomi")
     description = models.TextField(blank=True, verbose_name="Tarif")
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Narxi")
     stock = models.IntegerField(default=0, verbose_name="Soni")
-    image = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name="Rasm")
+    image = models.ImageField(upload_to=path_and_rename('products/'), blank=True, null=True, verbose_name="Rasm")
+    is_top = models.BooleanField(default=False, verbose_name="Top mahsulot")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -111,6 +165,14 @@ class Order(models.Model):
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(
+        max_length=10, 
+        choices=[('card', 'Karta'), ('cash', 'Naqd')], 
+        default='card',
+        verbose_name="To'lov turi"
+    )
+    buyer_confirmed = models.BooleanField(default=False, verbose_name="Xaridor tasdiqladi")
+    penalty_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Jarima summasi")
     address = models.TextField(verbose_name="Yetkazib berish manzili")
     note = models.TextField(blank=True, verbose_name="Izoh")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -140,6 +202,18 @@ class Order(models.Model):
     def get_total_price(self):
         return sum(item.get_total_price() for item in self.items.all())
 
+    def get_potential_penalty(self):
+        total = self.get_total_price()
+        if total < 1000000:
+            return 100000
+        else:
+            return total * 0.1
+
+    def apply_penalty(self):
+        if self.payment_method == 'cash' and self.status == 'cancelled':
+            self.penalty_amount = self.get_potential_penalty()
+            self.save(update_fields=['penalty_amount'])
+
     def __str__(self):
         return f"Buyurtma #{self.pk} — {self.user.username}"
 
@@ -156,6 +230,7 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2)
     quantity = models.IntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    buyer_confirmed = models.BooleanField(default=False, verbose_name="Xaridor tasdiqladi")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -170,6 +245,7 @@ class OrderItem(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
+    target_url = models.CharField(max_length=255, blank=True, null=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

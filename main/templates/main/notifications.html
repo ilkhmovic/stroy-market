@@ -1,0 +1,56 @@
+{% extends 'main/base.html' %}
+{% block title %}Xabarlar - ArzonMaterial{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black text-gray-900 italic">Xabarlar</h1>
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Barcha bildirishnomalar ro'yxati</p>
+        </div>
+        <div class="px-4 py-2 bg-blue-50 rounded-2xl border border-blue-100">
+            <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">{{ notifications.count }} ta jami</p>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        {% for notif in notifications %}
+        <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden group hover:shadow-2xl transition-all duration-300 {% if not notif.is_read %}border-l-8 border-l-blue-600{% endif %}">
+            <div class="p-8 flex items-start gap-6">
+                <div class="w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center 
+                    {% if not notif.is_read %}bg-blue-600 text-white shadow-xl shadow-blue-200 animate-pulse{% else %}bg-gray-50 text-gray-400{% endif %}">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex items-start justify-between gap-4 mb-2">
+                        <p class="text-lg {% if not notif.is_read %}font-black text-gray-900{% else %}text-gray-600{% endif %} leading-relaxed">
+                            {{ notif.message }}
+                        </p>
+                        {% if not notif.is_read %}
+                        <span class="px-3 py-1 bg-blue-900 text-white text-[9px] font-black uppercase tracking-widest rounded-full shadow-lg">YANGI</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ notif.created_at|timesince }} avval
+                        </p>
+                        {% if not notif.is_read %}
+                        <a href="{% url 'mark_notification_read' notif.pk %}" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-800 transition">O'qildi deb belgilash</a>
+                        {% elif notif.target_url %}
+                        <a href="{{ notif.target_url }}" class="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 transition">O'tish →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="py-32 text-center bg-white rounded-[3rem] border border-dashed border-gray-200 shadow-sm">
+            <svg class="w-20 h-20 text-gray-100 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <h3 class="text-xl font-bold text-gray-400">Hozircha xabarlar yo'q</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

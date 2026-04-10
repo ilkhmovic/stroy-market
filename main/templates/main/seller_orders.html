@@ -54,19 +54,35 @@
                         <span class="text-xs text-gray-500 font-medium line-clamp-1">{{ item.order.address }}</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <form action="{% url 'update_order_item_status' item.pk %}" method="POST" class="flex items-center gap-2">
-                        {% csrf_token %}
-                        <select name="status" class="text-[10px] font-bold uppercase tracking-widest bg-gray-50 border border-gray-100 rounded-full px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            {% for code, label in item.STATUS_CHOICES %}
-                                <option value="{{ code }}" {% if item.status == code %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-sm">
-                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        </button>
-                    </form>
-                </div>
+                    <div class="flex flex-col gap-1 items-end">
+                        <div class="flex items-center gap-2">
+                            {% if item.buyer_confirmed %}
+                                <span class="flex items-center gap-1 text-[9px] font-black text-green-600 uppercase bg-green-50 px-2 py-0.5 rounded-full">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    Xaridor qabul qildi
+                                </span>
+                            {% else %}
+                                <span class="flex items-center gap-1 text-[9px] font-black text-amber-600 uppercase bg-amber-50 px-2 py-0.5 rounded-full">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Tasdiq kutilmoqda
+                                </span>
+                            {% endif %}
+                        </div>
+                        <form action="{% url 'update_order_item_status' item.pk %}" method="POST" class="flex items-center gap-2">
+                            {% csrf_token %}
+                            <select name="status" class="text-[10px] font-bold uppercase tracking-widest bg-gray-50 border border-gray-100 rounded-full px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                {% for code, label in item.STATUS_CHOICES %}
+                                    <option value="{{ code }}" {% if item.status == code %}selected{% endif %}
+                                        {% if code == 'delivered' and not item.buyer_confirmed %}disabled title="Xaridor tasdiqlashi kerak"{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-sm">
+                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                        </form>
+                    </div>
             </div>
             {% if item.order.note %}
             <div class="mt-3 p-3 bg-gray-50 rounded-2xl text-xs text-gray-600 italic">

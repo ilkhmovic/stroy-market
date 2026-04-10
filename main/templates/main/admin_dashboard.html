@@ -1,0 +1,160 @@
+{% extends 'main/admin/admin_base.html' %}
+{% block title %}Dashboard - Admin Panel{% endblock %}
+{% block admin_content %}
+
+<div class="mb-8">
+    <h1 class="text-3xl font-black text-gray-900 mb-2 italic">Dashboard</h1>
+    <p class="text-gray-500">Tizim holati va asosiy ko'rsatkichlar</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 italic">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Umumiy Savdo</p>
+        <p class="text-3xl font-black text-blue-600">{{ total_revenue|floatformat:0 }} <span class="text-xs">SO'M</span></p>
+    </div>
+    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 italic">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Buyurtmalar</p>
+        <p class="text-3xl font-black text-gray-900">{{ total_orders }}</p>
+    </div>
+    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 italic">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Foydalanuvchilar</p>
+        <p class="text-3xl font-black text-gray-900">{{ total_users }}</p>
+    </div>
+    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 italic">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Do'konlar</p>
+        <p class="text-3xl font-black text-gray-900">{{ total_stores }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+    <!-- Pending Stores Summary -->
+    <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden">
+        <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+            <h2 class="text-lg font-black text-gray-900 uppercase tracking-widest italic">Tasdiqlash kutilmoqda</h2>
+            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-black rounded-full">{{ pending_stores|length }} TA</span>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for store in pending_stores|slice:":5" %}
+            <div class="p-6 flex items-center justify-between hover:bg-gray-50 transition-all duration-300">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xl shadow-inner italic">
+                        {{ store.name|first|upper }}
+                    </div>
+                    <div>
+                        <p class="font-black text-gray-900">{{ store.name }}</p>
+                        <p class="text-xs text-gray-500">{{ store.created_at|date:"d.m.Y" }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{% url 'admin_store_status' store.pk 'active' %}" class="w-10 h-10 flex items-center justify-center bg-green-500 text-white rounded-xl hover:scale-110 transition shadow-lg shadow-green-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-12 text-center text-gray-400 italic">Yangi so'rovlar yo'q</div>
+            {% endfor %}
+        </div>
+        {% if pending_stores|length > 5 %}
+        <a href="{% url 'admin_model_list' 'store' %}" class="block p-4 bg-gray-50 text-center text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] hover:bg-gray-100 transition">Barchasini ko'rish</a>
+        {% endif %}
+    </div>
+
+    <!-- Recent Products Summary (Top Mgmt) -->
+    <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden">
+        <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+            <h2 class="text-lg font-black text-gray-900 uppercase tracking-widest italic">Mahsulotlar</h2>
+            <a href="{% url 'admin_model_list' 'product' %}" class="text-blue-600 text-[10px] font-black uppercase tracking-widest hover:underline">Hammasi</a>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for p in all_products|slice:":5" %}
+            <div class="p-6 flex items-center justify-between hover:bg-gray-50 transition-all duration-300">
+                <div class="flex items-center gap-4">
+                    {% if p.image %}
+                        <img src="{{ p.image.url }}" class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-blue-100">
+                    {% else %}
+                        <div class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 font-black italic">!</div>
+                    {% endif %}
+                    <div>
+                        <p class="font-black text-gray-900 truncate w-40">{{ p.name }}</p>
+                        <p class="text-xs text-blue-600 font-bold italic">{{ p.price|floatformat:0 }} so'm</p>
+                    </div>
+                </div>
+                <a href="{% url 'admin_toggle_top' p.pk %}" class="w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300 {% if p.is_top %}bg-amber-400 text-white shadow-lg shadow-amber-100{% else %}bg-gray-100 text-gray-300 hover:bg-gray-200{% endif %}">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-.135-.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Store Management -->
+<div class="mt-8 bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden">
+    <div class="p-8 border-b border-gray-50 bg-gray-900">
+        <h2 class="text-xl font-black text-white uppercase tracking-[0.2em] italic">Do'konlar boshqaruvi</h2>
+        <p class="text-gray-400 text-xs mt-1">Barcha do'konlar, ularning holati va batafsil ma'lumotlari</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Do'kon</th>
+                    <th class="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sotuvchi & STIR</th>
+                    <th class="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hudud</th>
+                    <th class="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Holati</th>
+                    <th class="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Amal</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 italic">
+                {% for store in all_stores %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-4">
+                            {% if store.logo %}
+                                <img src="{{ store.logo.url }}" class="w-10 h-10 rounded-xl object-cover shadow-sm">
+                            {% else %}
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm uppercase">{{ store.name|first }}</div>
+                            {% endif %}
+                            <div>
+                                <p class="font-black text-gray-900 leading-none">{{ store.name }}</p>
+                                <p class="text-[10px] text-gray-400 mt-1 font-bold">{{ store.phone }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <p class="text-sm font-black text-gray-700 leading-none">{{ store.owner.username }}</p>
+                        <p class="text-[10px] text-gray-400 mt-1 font-bold uppercase">STIR: {{ store.owner.stir_pinfl|default:"Ma'lumot yo'q" }}</p>
+                    </td>
+                    <td class="px-8 py-6">
+                        <p class="text-xs font-black text-gray-600 uppercase tracking-widest">{{ store.region.name|default:"Noma'lum" }}</p>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest
+                            {% if store.status == 'active' %}bg-green-50 text-green-600
+                            {% elif store.status == 'suspended' %}bg-red-50 text-red-600
+                            {% elif store.status == 'pending' %}bg-yellow-50 text-yellow-600
+                            {% else %}bg-gray-100 text-gray-400{% endif %}">
+                            {{ store.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex justify-end gap-2">
+                             {% if store.status == 'active' %}
+                                <a href="{% url 'admin_store_status' store.pk 'suspended' %}" class="px-4 py-2 bg-red-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition shadow-lg shadow-red-100">To'xtatish</a>
+                             {% elif store.status == 'suspended' %}
+                                <a href="{% url 'admin_store_status' store.pk 'active' %}" class="px-4 py-2 bg-green-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-green-600 transition shadow-lg shadow-green-100">Tiklash</a>
+                             {% elif store.status == 'pending' %}
+                                <a href="{% url 'admin_store_status' store.pk 'active' %}" class="px-4 py-2 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-100">Tasdiqlash</a>
+                             {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

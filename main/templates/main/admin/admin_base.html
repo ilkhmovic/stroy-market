@@ -1,0 +1,76 @@
+{% extends 'main/base.html' %}
+{% block title %}Admin Panel - ArzonMaterial{% endblock %}
+{% block content %}
+
+<div class="flex flex-col lg:flex-row gap-8 min-h-[600px]">
+    <!-- Admin Sidebar -->
+    <div class="w-full lg:w-64 flex-shrink-0">
+        <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden sticky top-24">
+            <div class="p-6 border-b border-gray-50 bg-gradient-to-r from-blue-600 to-indigo-700">
+                <h3 class="text-white font-black uppercase tracking-widest text-xs">Boshqaruv</h3>
+            </div>
+            <nav class="p-4 space-y-2">
+                <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Dashboard
+                </a>
+                
+                <div class="pt-4 pb-2">
+                    <p class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Modellar</p>
+                </div>
+
+                <a href="{% url 'admin_model_list' 'user' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'user' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Foydalanuvchilar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'store' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'store' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    Do'konlar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'category' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'category' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Toifalar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'brand' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'brand' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Brendlar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'region' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'region' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Viloyatlar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'product' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'product' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+                    Mahsulotlar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'order' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'order' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    Buyurtmalar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'review' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'review' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                    Sharhlar
+                </a>
+
+                <a href="{% url 'admin_model_list' 'notification' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'notification' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    Bildirishnomalar
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Admin Content -->
+    <div class="flex-grow">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+
+{% endblock %}

@@ -25,6 +25,7 @@ urlpatterns = [
     path('add-product/', views.add_product, name='add_product'),
     path('seller/orders/', views.seller_orders, name='seller_orders'),
     path('seller/item/update/<int:item_id>/', views.update_order_item_status, name='update_order_item_status'),
+    path('notifications/', views.notifications_view, name='notifications'),
     path('notification/read/<int:pk>/', views.mark_notification_read, name='mark_notification_read'),
 
     # ── Cart ──
@@ -43,4 +44,13 @@ urlpatterns = [
     path('review/reply/<int:review_id>/', views.add_review_reply, name='add_review_reply'),
     path('seller/reviews/', views.seller_reviews, name='seller_reviews'),
     path('seller/statistics/', views.seller_statistics, name='seller_statistics'),
+    # ── Admin Dashboard ──
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/toggle-top/<int:product_id>/', views.admin_toggle_top, name='admin_toggle_top'),
+    path('admin-dashboard/store-status/<int:store_id>/<str:status>/', views.admin_store_status, name='admin_store_status'),
+    path('admin-dashboard/m/<str:model_name>/', views.admin_model_list, name='admin_model_list'),
+    path('admin-dashboard/m/<str:model_name>/add/', views.admin_model_edit, name='admin_model_add'),
+    path('admin-dashboard/m/<str:model_name>/edit/<int:pk>/', views.admin_model_edit, name='admin_model_edit'),
+    path('admin-dashboard/m/<str:model_name>/delete/<int:pk>/', views.admin_model_delete, name='admin_model_delete'),
+    path('order/confirm/<int:order_id>/<int:store_id>/', views.confirm_store_receipt, name='confirm_store_receipt'),
 ]

@@ -1,0 +1,80 @@
+{% extends 'main/admin/admin_base.html' %}
+{% block title %}{% if instance %}Tahrirlash: {{ instance }}{% else %}Yangi qo'shish{% endif %} - Admin Panel{% endblock %}
+{% block admin_content %}
+
+<div class="mb-8">
+    <a href="{% url 'admin_model_list' model_name %}" class="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-blue-600 transition mb-4">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Ro'yxatga qaytish
+    </a>
+    <h1 class="text-3xl font-black text-gray-900 italic">
+        {% if instance %}{{ verbose_name }}: {{ instance }}{% else %}Yangi {{ verbose_name|lower }} qo'shish{% endif %}
+    </h1>
+</div>
+
+<div class="max-w-4xl">
+    <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 p-8 md:p-12">
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {% for field in form %}
+                <div class="{% if field.field.widget.input_type == 'textarea' or field.name == 'address' or field.name == 'note' or field.name == 'description' or field.name == 'comment' or field.name == 'seller_reply' %}md:col-span-2{% endif %}">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-2">{{ field.label }}</label>
+                    <div class="relative">
+                        {{ field }}
+                        {% if field.errors %}
+                            <p class="text-red-500 text-[10px] font-bold mt-2 ml-2">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    {% if field.help_text %}
+                        <p class="text-[10px] text-gray-400 mt-2 ml-2">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="pt-8 border-t border-gray-50 flex flex-col sm:flex-row gap-4">
+                <button type="submit" class="flex-grow bg-blue-600 text-white font-black py-5 rounded-3xl shadow-xl shadow-blue-200 hover:bg-blue-700 hover:scale-[1.02] transition-all duration-300 uppercase tracking-widest text-sm">
+                    {% if instance %}O'zgarishlarni saqlash{% else %}Tizimga qo'shish{% endif %}
+                </button>
+                <a href="{% url 'admin_model_list' model_name %}" class="px-10 py-5 bg-gray-50 text-gray-400 font-bold rounded-3xl hover:bg-red-50 hover:text-red-500 transition-all duration-300 text-center uppercase tracking-widest text-sm">
+                    Bekor qilish
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="email"], input[type="number"], input[type="password"], input[type="url"], select, textarea {
+        width: 100%;
+        background-color: #f9fafb;
+        border: 2px solid #f3f4f6;
+        border-radius: 1.5rem;
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+        color: #111827;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: #3b82f6;
+        background-color: #fff;
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
+    }
+    input[type="checkbox"] {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 0.5rem;
+        border: 2px solid #d1d5db;
+        color: #3b82f6;
+        cursor: pointer;
+    }
+    input[type="file"] {
+        padding: 0.75rem;
+        cursor: pointer;
+    }
+</style>
+
+{% endblock %}

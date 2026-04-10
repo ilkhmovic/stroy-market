@@ -43,6 +43,50 @@
                 </div>
             </div>
 
+            <!-- Payment Method -->
+            <div class="border-b border-gray-200 pb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4">To'lov turi</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500">
+                        <input type="radio" name="payment_method" value="card" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <div class="ml-3">
+                            <p class="text-sm font-bold text-gray-900">Plastik karta</p>
+                            <p class="text-xs text-gray-500">Online to'lov</p>
+                        </div>
+                    </label>
+                    <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
+                        <input type="radio" name="payment_method" value="cash" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <div class="ml-3">
+                            <p class="text-sm font-bold text-gray-900">Naqd pul</p>
+                            <p class="text-xs text-gray-500">Yetkazilganda to'lash</p>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Contract Info (Visible for Cash) -->
+                <div id="cash-contract" class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 hidden">
+                    <p class="font-bold mb-1">⚠️ Naqd pulda to'lash shartnomasi:</p>
+                    <ul class="list-disc ml-4 space-y-1">
+                        <li>Buyurtmani asossiz bekor qilganingizda jarima qo'llaniladi.</li>
+                        <li>Agar buyurtma summasi 1,000,000 so'mdan kam bo'lsa: <b>100,000 so'm</b> jarima.</li>
+                        <li>Agar buyurtma summasi 1,000,000 so'mdan ko'p bo'lsa: <b>10%</b> jarima.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <script>
+                document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        const contract = document.getElementById('cash-contract');
+                        if (e.target.value === 'cash') {
+                            contract.classList.remove('hidden');
+                        } else {
+                            contract.classList.add('hidden');
+                        }
+                    });
+                });
+            </script>
+
             <!-- Delivery Address -->
             <div>
                 <label class="block text-sm font-bold text-gray-900 mb-2">Yetkazib berish manzili *</label>

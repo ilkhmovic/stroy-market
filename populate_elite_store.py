@@ -1,7 +1,14 @@
 import urllib.request
+import os
+import django
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
+
+# Setup Django environment
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+
 from main.models import Store, Category, Product, Order, OrderItem
 
 User = get_user_model()

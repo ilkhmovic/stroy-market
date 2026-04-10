@@ -1,0 +1,22 @@
+{% extends 'main/base.html' %}
+{% block title %}Rad etildi - ArzonMaterial{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto text-center py-20 px-6">
+    <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl shadow-red-100/50">
+        <svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </div>
+    
+    <h1 class="text-3xl font-black text-gray-900 mb-4">So'rov rad etildi</h1>
+    <p class="text-gray-600 text-lg leading-relaxed mb-8">
+        Afsuski, sizning do'koningizni tasdiqlash so'rovi rad etildi. Qo'shimcha ma'lumot olish uchun biz bilan bog'laning.
+    </p>
+    
+    <a href="{% url 'marketplace' %}" class="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-2xl hover:bg-gray-800 transition shadow-xl shadow-gray-200 uppercase tracking-widest text-xs">
+        Bozorga qaytish
+    </a>
+</div>
+
+{% endblock %}

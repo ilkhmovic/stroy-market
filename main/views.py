@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
-from .models import Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification
-from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm
+from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region
+from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm
 
 
 def register(request):
@@ -25,36 +25,69 @@ def register(request):
 
 
 def marketplace(request):
-    products = Product.objects.all().order_by('-created_at')
+    # Only show products from active stores
+    products = Product.objects.filter(store__status='active').order_by('-created_at')
     
-    # Calculate top selling products (Sold quantity)
-    top_sellers = Product.objects.annotate(
-        total_sold=Sum('orderitem__quantity')
-    ).filter(total_sold__gt=0).order_by('-total_sold')[:10]
-    
-    categories = Category.objects.all()
+    # Filters
     q = request.GET.get('q')
     category_slug = request.GET.get('category')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    brand_ids = request.GET.getlist('brands')
+    region_ids = request.GET.getlist('regions')
     
     if q:
         products = products.filter(name__icontains=q)
     if category_slug:
         products = products.filter(category__slug=category_slug)
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+    if brand_ids:
+        products = products.filter(brand_id__in=brand_ids)
+    if region_ids:
+        # Filter by store's delivery regions
+        products = products.filter(store__delivery_regions__id__in=region_ids).distinct()
+        
+    top_sellers = Product.objects.annotate(
+        total_sold=Sum('orderitem__quantity')
+    ).filter(total_sold__gt=0).order_by('-total_sold')[:10]
+    
+    categories = Category.objects.all()
+    brands = Brand.objects.all()
+    regions = Region.objects.all()
         
     return render(request, 'main/marketplace.html', {
         'products': products,
         'top_sellers': top_sellers,
         'categories': categories,
+        'brands': brands,
+        'regions': regions,
         'current_category': category_slug,
+        'current_brands': list(map(int, brand_ids)) if brand_ids else [],
+        'current_regions': list(map(int, region_ids)) if region_ids else [],
+        'min_price': min_price,
+        'max_price': max_price,
     })
 
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     related = Product.objects.filter(category=product.category).exclude(pk=pk)[:4]
+    
+    has_delivered = False
+    if request.user.is_authenticated:
+        has_delivered = OrderItem.objects.filter(
+            order__user=request.user,
+            product=product,
+            status='delivered'
+        ).exists()
+        
     return render(request, 'main/product_detail.html', {
         'product': product,
         'related': related,
+        'has_delivered': has_delivered,
     })
 
 
@@ -110,6 +143,11 @@ def seller_dashboard(request):
     if not hasattr(request.user, 'store'):
         return redirect('create_store')
     store = request.user.store
+    if store.status == 'pending':
+        return render(request, 'main/store_pending.html', {'store': store})
+    if store.status == 'rejected':
+        return render(request, 'main/store_rejected.html', {'store': store})
+        
     products = store.products.all()
     return render(request, 'main/seller_dashboard.html', {'store': store, 'products': products})
 
@@ -120,12 +158,20 @@ def create_store(request):
         return redirect('marketplace')
     if hasattr(request.user, 'store'):
         return redirect('seller_dashboard')
+        
+    # Check for missing info
+    if not request.user.stir_pinfl or not request.user.phone:
+        messages.warning(request, "Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting.")
+        return redirect('buyer_profile')
+        
     if request.method == 'POST':
         form = StoreForm(request.POST, request.FILES)
         if form.is_valid():
             store = form.save(commit=False)
             store.owner = request.user
             store.save()
+            form.save_m2m() # Save ManyToMany delivery_regions
+            messages.success(request, "Do'kon muvaffaqiyatli yaratildi va tasdiqlash uchun yuborildi.")
             return redirect('seller_dashboard')
     else:
         form = StoreForm()
@@ -216,6 +262,7 @@ def checkout(request):
     if request.method == 'POST':
         address = request.POST.get('address', '').strip()
         note = request.POST.get('note', '').strip()
+        payment_method = request.POST.get('payment_method', 'card')
         
         if not address:
             messages.error(request, "Yetkazib berish manzilini kiriting!")
@@ -226,11 +273,11 @@ def checkout(request):
             })
         
         # Create order
-        get_total_price = cart.get_total_price()
         order = Order.objects.create(
             user=request.user,
             address=address,
             note=note,
+            payment_method=payment_method,
             status='pending'
         )
         
@@ -256,7 +303,8 @@ def checkout(request):
         for seller in sellers_to_notify:
             Notification.objects.create(
                 user=seller,
-                message=f"Yangi buyurtma! #{order.pk} raqamli buyurtmada sizning mahsulotingiz bor."
+                message=f"Yangi buyurtma! #{order.pk} raqamli buyurtmada sizning mahsulotingiz bor.",
+                target_url='/seller/orders/'
             )
         
         # Clear cart
@@ -285,8 +333,28 @@ def orders(request):
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
-    items = order.items.all()
-    return render(request, 'main/order_detail.html', {'order': order, 'items': items})
+    
+    # Group items by store for split confirmation
+    stores_data = {}
+    for item in order.items.all().select_related('product__store'):
+        store = item.product.store
+        if store.pk not in stores_data:
+            stores_data[store.pk] = {
+                'store': store,
+                'items': [],
+                'all_confirmed': True,
+                'can_confirm': False
+            }
+        stores_data[store.pk]['items'].append(item)
+        if not item.buyer_confirmed:
+            stores_data[store.pk]['all_confirmed'] = False
+            if item.status in ['shipped', 'delivered']:
+                stores_data[store.pk]['can_confirm'] = True
+                
+    return render(request, 'main/order_detail.html', {
+        'order': order, 
+        'stores_data': stores_data.values()
+    })
 
 
 # ────────── REVIEWS ──────────
@@ -303,7 +371,8 @@ def add_review(request, pk):
     has_delivered = OrderItem.objects.filter(
         order__user=request.user,
         product=product,
-        status='delivered'
+        status='delivered',
+        buyer_confirmed=True
     ).exists()
     
     if not has_delivered:
@@ -361,15 +430,23 @@ def update_order_item_status(request, item_id):
     if request.method == 'POST':
         new_status = request.POST.get('status')
         if new_status in dict(OrderItem.STATUS_CHOICES):
-            item.status = new_status
-            item.save()
-            
-            # Notify buyer
-            Notification.objects.create(
-                user=item.order.user,
-                message=f"'{item.product_name}' mahsulotingiz holati '{item.get_status_display()}' ga o'zgardi."
-            )
-            messages.success(request, f"Status '{item.get_status_display()}' ga o'zgartirildi.")
+            # Check for buyer confirmation if setting to delivered
+            if new_status == 'delivered' and not item.buyer_confirmed:
+                messages.error(request, "Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!")
+            else:
+                item.status = new_status
+                item.save()
+                
+                if new_status == 'cancelled':
+                    item.order.apply_penalty()
+                
+                # Notify buyer
+                Notification.objects.create(
+                    user=item.order.user,
+                    message=f"'{item.product_name}' mahsulotingiz holati '{item.get_status_display()}' ga o'zgardi.",
+                    target_url=f"/order/{item.order.pk}/"
+                )
+                messages.success(request, f"Status '{item.get_status_display()}' ga o'zgartirildi.")
             
     return redirect('seller_orders')
 
@@ -463,8 +540,196 @@ def seller_orders(request):
     return render(request, 'main/seller_orders.html', {'items': seller_items})
 
 @login_required
+def notifications_view(request):
+    all_notifs = request.user.notifications.all()
+    return render(request, 'main/notifications.html', {'notifications': all_notifs})
+
+@login_required
 def mark_notification_read(request, pk):
     notification = get_object_or_404(Notification, pk=pk, user=request.user)
     notification.is_read = True
     notification.save()
+    
+    if notification.target_url:
+        return redirect(notification.target_url)
     return redirect(request.META.get('HTTP_REFERER', 'seller_dashboard'))
+
+# ────────── ADMIN DASHBOARD ──────────
+
+def is_superuser(user):
+    return user.is_authenticated and user.is_superuser
+
+@user_passes_test(is_superuser)
+def admin_dashboard(request):
+    total_revenue = OrderItem.objects.exclude(status='cancelled').aggregate(total=Sum(F('price') * F('quantity')))['total'] or 0
+    total_orders = Order.objects.count()
+    total_users = User.objects.count()
+    total_stores = Store.objects.count()
+    
+    pending_stores = Store.objects.filter(status='pending')
+    all_stores = Store.objects.all().order_by('-created_at')
+    all_products = Product.objects.all().order_by('-created_at')
+    
+    context = {
+        'total_revenue': total_revenue,
+        'total_orders': total_orders,
+        'total_users': total_users,
+        'total_stores': total_stores,
+        'pending_stores': pending_stores,
+        'all_stores': all_stores,
+        'all_products': all_products,
+    }
+    return render(request, 'main/admin_dashboard.html', context)
+
+@user_passes_test(is_superuser)
+def admin_toggle_top(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    product.is_top = not product.is_top
+    product.save()
+    messages.success(request, f"'{product.name}' top holati o'zgartirildi.")
+    return redirect('admin_dashboard')
+
+@user_passes_test(is_superuser)
+def admin_model_list(request, model_name):
+    model_map = {
+        'user': User,
+        'store': Store,
+        'category': Category,
+        'product': Product,
+        'order': Order,
+        'review': Review,
+        'notification': Notification,
+        'brand': Brand,
+        'region': Region,
+    }
+    
+    if model_name not in model_map:
+        messages.error(request, "Model topilmadi.")
+        return redirect('admin_dashboard')
+        
+    model = model_map[model_name]
+    queryset = model.objects.all().order_by('-pk')
+    
+    # Search logic
+    search_query = request.GET.get('q', '')
+    if search_query:
+        if model_name == 'user':
+            queryset = queryset.filter(username__icontains=search_query) | queryset.filter(phone__icontains=search_query)
+        elif model_name in ['store', 'category', 'product']:
+            queryset = queryset.filter(name__icontains=search_query)
+        elif model_name == 'order':
+            queryset = queryset.filter(id__icontains=search_query) | queryset.filter(user__username__icontains=search_query)
+            
+    return render(request, 'main/admin/model_list.html', {
+        'model_name': model_name,
+        'items': queryset,
+        'search_query': search_query,
+        'verbose_name': model._meta.verbose_name.capitalize(),
+        'verbose_name_plural': model._meta.verbose_name_plural.capitalize(),
+    })
+
+@user_passes_test(is_superuser)
+def admin_model_edit(request, model_name, pk=None):
+    model_map = {
+        'user': (User, UserAdminForm),
+        'store': (Store, StoreForm),
+        'category': (Category, CategoryForm),
+        'product': (Product, ProductForm),
+        'order': (Order, OrderAdminForm),
+        'review': (Review, ReviewForm),
+        'notification': (Notification, NotificationForm),
+        'brand': (Brand, BrandForm),
+        'region': (Region, RegionForm),
+    }
+    
+    if model_name not in model_map:
+        return redirect('admin_dashboard')
+        
+    model, form_class = model_map[model_name]
+    instance = get_object_or_404(model, pk=pk) if pk else None
+    
+    if request.method == 'POST':
+        form = form_class(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"{model._meta.verbose_name} saqlandi.")
+            return redirect('admin_model_list', model_name=model_name)
+    else:
+        form = form_class(instance=instance)
+        
+    return render(request, 'main/admin/model_form.html', {
+        'form': form,
+        'model_name': model_name,
+        'instance': instance,
+        'verbose_name': model._meta.verbose_name.capitalize(),
+    })
+
+@user_passes_test(is_superuser)
+def admin_model_delete(request, model_name, pk):
+    model_map = {
+        'user': User,
+        'store': Store,
+        'category': Category,
+        'product': Product,
+        'order': Order,
+        'review': Review,
+        'notification': Notification,
+        'brand': Brand,
+        'region': Region,
+    }
+    
+    if model_name not in model_map:
+        return redirect('admin_dashboard')
+        
+    obj = get_object_or_404(model_map[model_name], pk=pk)
+    obj.delete()
+    messages.success(request, f"{obj} o'chirildi.")
+    return redirect('admin_model_list', model_name=model_name)
+
+@user_passes_test(is_superuser)
+def admin_store_status(request, store_id, status):
+    store = get_object_or_404(Store, pk=store_id)
+    if status in ['active', 'rejected', 'suspended']:
+        store.status = status
+        store.save()
+        
+        status_map = {
+            'active': 'tasdiqlandi va faollashtirildi',
+            'rejected': 'rad etildi',
+            'suspended': 'vaqtinchalik to\'xtatildi'
+        }
+        msg = status_map.get(status)
+        
+        Notification.objects.create(
+            user=store.owner,
+            message=f"Sizning do'koningiz {msg}."
+        )
+        messages.success(request, f"Do'kon holati '{status}' ga o'zgartirildi.")
+    return redirect('admin_dashboard')
+
+@login_required
+def confirm_store_receipt(request, order_id, store_id):
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    items = order.items.filter(product__store_id=store_id)
+    
+    if not items.exists():
+        messages.error(request, "Bu do'kondan mahsulot topilmadi.")
+        return redirect('order_detail', order_id=order.pk)
+        
+    items.update(buyer_confirmed=True)
+    
+    # Check if all items in order are confirmed to update order level status
+    if not order.items.filter(buyer_confirmed=False).exists():
+        order.buyer_confirmed = True
+        order.save(update_fields=['buyer_confirmed'])
+    
+    # Notify ONLY the relevant store owner
+    store = get_object_or_404(Store, pk=store_id)
+    Notification.objects.create(
+        user=store.owner,
+        message=f"#{order.pk} buyurtmadagi mahsulotlaringizni xaridor qabul qildi. Endi siz 'Yetkazildi' holatiga o'tkazishingiz mumkin.",
+        target_url='/seller/orders/'
+    )
+    
+    messages.success(request, f"'{store.name}' do'koni mahsulotlari qabul qilingani tasdiqlandi!")
+    return redirect('order_detail', order_id=order.pk)

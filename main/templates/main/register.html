@@ -6,7 +6,7 @@
     <form method="POST" novalidate>
         {% csrf_token %}
         {% for field in form %}
-        <div class="mb-4">
+        <div class="mb-4 {% if field.name == 'stir_pinfl' %}hidden{% endif %}" id="div_{{ field.name }}">
             <label class="block text-gray-700 text-sm font-bold mb-2">{{ field.label }}</label>
             {% if field.name == 'role' %}
                 <div class="grid grid-cols-2 gap-3">
@@ -31,6 +31,26 @@
     </form>
     <p class="text-center mt-4 text-sm text-gray-600">Allaqachon akkauntingiz bormi? <a href="{% url 'login' %}" class="text-blue-600 ml-1 hover:underline">Kirish</a></p>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelectors = document.querySelectorAll('input[name="role"]');
+        const stirDiv = document.getElementById('div_stir_pinfl');
+        
+        function updateFields() {
+            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            if (selectedRole === 'seller') {
+                stirDiv.classList.remove('hidden');
+            } else {
+                stirDiv.classList.add('hidden');
+            }
+        }
+        
+        roleSelectors.forEach(el => el.addEventListener('change', updateFields));
+        updateFields();
+    });
+</script>
+
 <style>
     input[type="text"], input[type="email"], input[type="password"] {
         width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
