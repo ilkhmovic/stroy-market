@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 import os
 from uuid import uuid4
+from decimal import Decimal
 
 from django.utils.deconstruct import deconstructible
 
@@ -205,13 +206,23 @@ class Order(models.Model):
     def get_potential_penalty(self):
         total = self.get_total_price()
         if total < 1000000:
-            return 100000
+            return Decimal('100000')
         else:
-            return total * 0.1
+            return total * Decimal('0.1')
 
-    def apply_penalty(self):
-        if self.payment_method == 'cash' and self.status == 'cancelled':
-            self.penalty_amount = self.get_potential_penalty()
+    def get_item_penalty(self, item_price, item_quantity):
+        item_total = item_price * item_quantity
+        # 10% penalty for item cancellation
+        return item_total * Decimal('0.1')
+
+    def apply_penalty(self, item=None):
+        if self.payment_method == 'cash':
+            if item:
+                # Add penalty for a specific cancelled item
+                self.penalty_amount += self.get_item_penalty(item.price, item.quantity)
+            elif self.status == 'cancelled':
+                # Re-calculate full penalty if entire order cancelled
+                self.penalty_amount = self.get_potential_penalty()
             self.save(update_fields=['penalty_amount'])
 
     def __str__(self):

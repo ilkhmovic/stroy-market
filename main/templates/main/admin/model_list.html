@@ -55,6 +55,11 @@
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">User</th>
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Message</th>
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Read</th>
+                    {% elif model_name == 'brand' %}
+                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Brend</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Slug</th>
+                    {% elif model_name == 'region' %}
+                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Viloyat nomi</th>
                     {% endif %}
                     <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
@@ -97,7 +102,9 @@
                         </td>
                         <td class="px-6 py-4 font-black text-blue-600">{{ item.price|floatformat:0 }}</td>
                         <td class="px-6 py-4">
-                            {% if item.is_top %}<span class="w-2 h-2 rounded-full bg-amber-400 block shadow-lg shadow-amber-200"></span>{% endif %}
+                            <a href="{% url 'admin_toggle_top' item.pk %}" class="w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-300 {% if item.is_top %}bg-amber-400 text-white shadow-lg shadow-amber-200{% else %}bg-gray-100 text-gray-300 hover:bg-gray-200{% endif %}">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-.135-.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </a>
                         </td>
                     {% elif model_name == 'order' %}
                         <td class="px-6 py-4 font-black text-gray-900">{{ item.user.username }}</td>
@@ -124,6 +131,11 @@
                                 <span class="w-2 h-2 rounded-full bg-red-400 block transition-all animate-pulse"></span>
                             {% endif %}
                         </td>
+                    {% elif model_name == 'brand' %}
+                        <td class="px-6 py-4 font-black text-gray-900">{{ item.name }}</td>
+                        <td class="px-6 py-4 text-xs font-mono text-gray-500">{{ item.slug }}</td>
+                    {% elif model_name == 'region' %}
+                        <td class="px-6 py-4 font-black text-gray-900">{{ item.name }}</td>
                     {% endif %}
 
                     <td class="px-6 py-4 text-right">

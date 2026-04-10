@@ -87,7 +87,9 @@
                                         {{ item.get_status_display }}
                                     </span>
                                     {% if item.buyer_confirmed %}
-                                    <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">Xaridor tasdiqladi</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">Xaridor tasdiqladi</span>
+                                    {% elif item.status == 'pending' %}
+                                    <a href="{% url 'cancel_order_item' item.pk %}" onclick="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')" class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">Bekor qilish</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -141,6 +143,15 @@
                     <span class="text-[10px] font-black text-green-600 uppercase tracking-widest">Yetkazib berish</span>
                     <span class="font-black text-green-600 text-[10px] uppercase tracking-widest">BEPUL</span>
                 </div>
+                {% if order.penalty_amount > 0 %}
+                <div class="flex justify-between items-center bg-red-50 p-4 rounded-2xl border border-red-100">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Jarima summasi</span>
+                        <span class="text-[8px] text-red-400 font-bold uppercase tracking-widest">(Naqd pulda bekor qilingani uchun)</span>
+                    </div>
+                    <span class="font-black text-red-600">{{ order.penalty_amount|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
+                </div>
+                {% endif %}
             </div>
 
             <div class="pt-8 border-t border-gray-100 flex justify-between items-center">
@@ -152,6 +163,22 @@
             <div class="mt-8 p-4 bg-blue-900 text-white rounded-2xl text-center">
                 <p class="text-[10px] font-black uppercase tracking-widest">To'liq tasdiqlangan</p>
             </div>
+            {% elif order.status == 'pending' or order.status == 'confirmed' %}
+                {% if order.items.all %}
+                    {# Check if there are any pending items to show the bulk cancel button #}
+                    <div class="mt-8">
+                        <button onclick="confirmCancel()" class="w-full py-4 bg-red-50 text-red-600 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
+                            Kutilayotganlarni bekor qilish
+                        </button>
+                    </div>
+                {% endif %}
+            <script>
+                function confirmCancel() {
+                    if (confirm('Kutilayotgan barcha mahsulotlarni bekor qilmoqchimisiz? Agar buyurtma naqd pulda bo\'lsa, jarima qo\'llanilishi mumkin.')) {
+                        window.location.href = "{% url 'cancel_order' order.pk %}";
+                    }
+                }
+            </script>
             {% endif %}
 
             <!-- Mini Timeline -->

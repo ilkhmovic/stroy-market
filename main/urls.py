@@ -38,6 +38,8 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('orders/', views.orders, name='orders'),
     path('order/<int:order_id>/', views.order_detail, name='order_detail'),
+    path('order/<int:order_id>/cancel/', views.cancel_order, name='cancel_order'),
+    path('order/item/<int:item_id>/cancel/', views.cancel_order_item, name='cancel_order_item'),
 
     # ── Reviews ──
     path('product/<int:pk>/review/', views.add_review, name='add_review'),

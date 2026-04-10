@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Store, Category, Product, Review, Cart, CartItem, Order, OrderItem, Notification
+from .models import User, Store, Category, Product, Review, Cart, CartItem, Order, OrderItem, Notification, Brand, Region
 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
@@ -33,9 +33,28 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ('is_read', 'created_at')
     search_fields = ('user__username', 'message')
 
+class BrandAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+
+class StoreAdmin(admin.ModelAdmin):
+    list_display = ('name', 'owner', 'region', 'status', 'created_at')
+    list_filter = ('status', 'region', 'created_at')
+    search_fields = ('name', 'owner__username')
+
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Store)
-admin.site.register(Category)
+admin.site.register(Store, StoreAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Brand, BrandAdmin)
+admin.site.register(Region, RegionAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Order, OrderAdmin)

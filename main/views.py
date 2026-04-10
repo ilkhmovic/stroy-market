@@ -357,6 +357,77 @@ def order_detail(request, order_id):
     })
 
 
+@login_required
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    # Allow cancellation if entire order is pending OR if it's confirmed but has pending items
+    pending_items = order.items.filter(status='pending')
+    
+    if order.status in ['pending', 'confirmed'] and pending_items.exists():
+        # Cancel only pending items
+        for item in pending_items:
+            if item.product:
+                item.product.stock += item.quantity
+                item.product.save()
+            item.status = 'cancelled'
+            item.save()
+            
+            # Notify seller
+            if item.product and item.product.store:
+                Notification.objects.create(
+                    user=item.product.store.owner,
+                    message=f"#{order.pk} buyurtmadagi '{item.product_name}' mahsuloti xaridor tomonidan bekor qilindi.",
+                    target_url='/seller/orders/'
+                )
+            
+            # Apply penalty for each pending item being cancelled
+            old_penalty = order.penalty_amount
+            order.apply_penalty(item=item)
+            if order.penalty_amount > old_penalty:
+                penalty_diff = order.penalty_amount - old_penalty
+                messages.warning(request, f"Naqd puldagi buyurtma bekor qilingani uchun {penalty_diff|floatformat:0} so'm jarima qo'llandi.")
+        
+        # If all items are now cancelled, set order status to cancelled
+        # If some were delivered/shipped, update_status (called in item.save) will handle it
+        
+        messages.success(request, "Kutilayotgan mahsulotlar bekor qilindi.")
+    else:
+        messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q.")
+        
+    return redirect('order_detail', order_id=order.pk)
+
+
+@login_required
+def cancel_order_item(request, item_id):
+    item = get_object_or_404(OrderItem, pk=item_id, order__user=request.user)
+    if item.status == 'pending':
+        item.status = 'cancelled'
+        if item.product:
+            item.product.stock += item.quantity
+            item.product.save()
+        item.save()
+        
+        # Notify seller
+        if item.product and item.product.store:
+            Notification.objects.create(
+                user=item.product.store.owner,
+                message=f"#{item.order.pk} buyurtmadagi '{item.product_name}' mahsuloti xaridor tomonidan bekor qilindi.",
+                target_url='/seller/orders/'
+            )
+            
+        old_penalty = item.order.penalty_amount
+        item.order.apply_penalty(item=item)
+        if item.order.penalty_amount > old_penalty:
+            penalty_diff = item.order.penalty_amount - old_penalty
+            messages.warning(request, f"Naqd puldagi mahsulot bekor qilingani uchun {penalty_diff|floatformat:0} so'm jarima qo'llandi.")
+            
+        messages.success(request, f"'{item.product_name}' bekor qilindi.")
+    else:
+        messages.error(request, "Ushbu mahsulotni bekor qilib bo'lmaydi.")
+        
+    return redirect('order_detail', order_id=item.order.pk)
+
+
 # ────────── REVIEWS ──────────
 
 @login_required
