@@ -23,6 +23,8 @@ urlpatterns = [
     path('dashboard/', views.seller_dashboard, name='seller_dashboard'),
     path('create-store/', views.create_store, name='create_store'),
     path('add-product/', views.add_product, name='add_product'),
+    path('product-edit/<int:pk>/', views.edit_product, name='edit_product'),
+    path('product-delete/<int:pk>/', views.delete_product, name='delete_product'),
     path('seller/orders/', views.seller_orders, name='seller_orders'),
     path('seller/item/update/<int:item_id>/', views.update_order_item_status, name='update_order_item_status'),
     path('notifications/', views.notifications_view, name='notifications'),
@@ -55,4 +57,7 @@ urlpatterns = [
     path('admin-dashboard/m/<str:model_name>/edit/<int:pk>/', views.admin_model_edit, name='admin_model_edit'),
     path('admin-dashboard/m/<str:model_name>/delete/<int:pk>/', views.admin_model_delete, name='admin_model_delete'),
     path('order/confirm/<int:order_id>/<int:store_id>/', views.confirm_store_receipt, name='confirm_store_receipt'),
+
+    # ── Anora AI ──
+    path('api/ai/chat/', views.ai_chat, name='ai_chat'),
 ]

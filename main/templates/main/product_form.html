@@ -8,8 +8,8 @@
             </svg>
         </a>
         <div>
-            <h1 class="text-xl font-extrabold text-gray-900">Mahsulot qo'shish</h1>
-            <p class="text-sm text-gray-500">Do'koningizga yangi mahsulot qo'shing</p>
+            <h1 class="text-xl font-extrabold text-gray-900">{% if edit %}Mahsulotni tahrirlash{% else %}Mahsulot qo'shish{% endif %}</h1>
+            <p class="text-sm text-gray-500">{% if edit %}Mahsulot ma'lumotlarini yangilang{% else %}Do'koningizga yangi mahsulot qo'shing{% endif %}</p>
         </div>
     </div>
     <form method="POST" enctype="multipart/form-data">
@@ -45,21 +45,27 @@
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">Narxi (so'm) *</label>
-                <input type="number" name="price" required min="0" step="1" placeholder="0"
+                <input type="number" name="price" required min="0" step="1" placeholder="0" value="{{ form.price.value|default:'' }}"
                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
             </div>
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">Soni (dona) *</label>
-                <input type="number" name="stock" required min="0" placeholder="0"
+                <input type="number" name="stock" required min="0" placeholder="0" value="{{ form.stock.value|default:'' }}"
                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
             </div>
         </div>
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-bold mb-2">Rasm (ixtiyoriy)</label>
+            {% if product.image %}
+                <div class="mb-2">
+                    <img src="{{ product.image.url }}" class="w-20 h-20 rounded-lg object-cover border">
+                    <p class="text-[10px] text-gray-400 mt-1">Hozirgi rasm</p>
+                </div>
+            {% endif %}
             <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">
-            Mahsulotni qo'shish
+        <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-100 hover:bg-blue-700 hover:translate-y-[-2px] transition-all">
+            {% if edit %}Saqlash{% else %}Mahsulotni qo'shish{% endif %}
         </button>
     </form>
 </div>

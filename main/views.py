@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
 from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
@@ -188,10 +192,36 @@ def add_product(request):
             product = form.save(commit=False)
             product.store = request.user.store
             product.save()
+            messages.success(request, f"'{product.name}' muvaffaqiyatli qo'shildi!")
             return redirect('seller_dashboard')
     else:
         form = ProductForm()
     return render(request, 'main/product_form.html', {'form': form})
+
+
+@login_required
+def edit_product(request, pk):
+    product = get_object_or_404(Product, pk=pk, store__owner=request.user)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"'{product.name}' muvaffaqiyatli tahrirlandi.")
+            return redirect('seller_dashboard')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'main/product_form.html', {'form': form, 'edit': True, 'product': product})
+
+
+@login_required
+def delete_product(request, pk):
+    product = get_object_or_404(Product, pk=pk, store__owner=request.user)
+    if request.method == 'POST':
+        name = product.name
+        product.delete()
+        messages.success(request, f"'{name}' o'chirildi.")
+        return redirect('seller_dashboard')
+    return render(request, 'main/product_confirm_delete.html', {'product': product})
 
 
 # ────────── CART ──────────
@@ -804,3 +834,31 @@ def confirm_store_receipt(request, order_id, store_id):
     
     messages.success(request, f"'{store.name}' do'koni mahsulotlari qabul qilingani tasdiqlandi!")
     return redirect('order_detail', order_id=order.pk)
+
+
+# ────────── ANORA AI CHAT ──────────
+
+@csrf_exempt
+@require_POST
+def ai_chat(request):
+    """AJAX endpoint for Anora AI yordamchi."""
+    try:
+        data = json.loads(request.body)
+        message = data.get('message', '').strip()
+        chat_history = data.get('history', [])
+
+        if not message:
+            return JsonResponse({'success': False, 'response': 'Xabar kiriting.'})
+
+        if len(message) > 1000:
+            return JsonResponse({'success': False, 'response': 'Xabar juda uzun. 1000 belgidan oshmasin.'})
+
+        from .ai_assistant import get_ai_response
+        result = get_ai_response(request.user, message, chat_history)
+
+        return JsonResponse(result)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'response': 'Noto\'g\'ri so\'rov formati.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'response': 'Xatolik yuz berdi. Qayta urinib ko\'ring.'})

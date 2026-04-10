@@ -208,5 +208,288 @@
         </div>
     </div>
 </footer>
+
+<!-- ══════════ ANORA AI CHATBOT ══════════ -->
+<div id="anora-chat" class="fixed bottom-6 right-6 z-[9999]">
+    <!-- Chat Toggle Button -->
+    <button id="anora-toggle" onclick="toggleAnora()" class="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-full shadow-2xl shadow-blue-500/30 flex items-center justify-center hover:scale-110 hover:shadow-blue-500/50 transition-all duration-500 group relative">
+        <!-- Pulse ring -->
+        <span class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20"></span>
+        <!-- AI Icon -->
+        <svg id="anora-icon-open" class="w-7 h-7 relative z-10 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+        </svg>
+        <svg id="anora-icon-close" class="w-7 h-7 relative z-10 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+        <!-- Badge -->
+        <span id="anora-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-blue-900 text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-lg">AI</span>
+    </button>
+
+    <!-- Chat Panel -->
+    <div id="anora-panel" class="hidden absolute bottom-20 right-0 w-[380px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-blue-900/20 border border-white/50 overflow-hidden flex flex-col" style="height: 560px;">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 px-6 py-5 flex items-center gap-4 flex-shrink-0">
+            <div class="relative">
+                <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/30 shadow-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                </div>
+                <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-blue-700 shadow-sm"></span>
+            </div>
+            <div class="flex-grow">
+                <h3 class="text-white font-black text-base tracking-wide">Anora</h3>
+                <p class="text-blue-200 text-[10px] font-bold uppercase tracking-[0.15em]">AI Yordamchi • Onlayn</p>
+            </div>
+            <button onclick="clearAnora()" class="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center text-white/60 hover:bg-white/20 hover:text-white transition" title="Tozalash">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="anora-messages" class="flex-grow overflow-y-auto p-5 space-y-4" style="scroll-behavior: smooth;">
+            <!-- Welcome message -->
+            <div class="flex gap-3 anora-msg">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-lg shadow-blue-200">A</div>
+                <div class="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm border border-gray-100">
+                    <p class="text-sm text-gray-700 leading-relaxed">Assalomu alaykum! 👋 Men <strong>Anora</strong> — ArzonMaterial saytining AI yordamchisiman. Sizga qanday yordam bera olaman?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div id="anora-typing" class="hidden px-5 pb-2">
+            <div class="flex gap-3 items-center">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0">A</div>
+                <div class="bg-gray-50 rounded-2xl px-4 py-3 flex gap-1.5 border border-gray-100">
+                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Suggestions -->
+        <div id="anora-suggestions" class="px-5 pb-3 flex gap-2 flex-wrap">
+            {% if user.is_authenticated and user.is_seller %}
+            <button onclick="sendQuick('Bugungi sotuvlarim qanday?')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition border border-blue-100">📊 Bugungi sotuvlarim</button>
+            <button onclick="sendQuick('Mahsulot qanday qo\'shaman?')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition border border-blue-100">📦 Mahsulot qo'shish</button>
+            <button onclick="sendQuick('Do\'konni qanday rasmiylashtirishim kerak?')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition border border-blue-100">🏪 Rasmiylashtirish</button>
+            {% else %}
+            <button onclick="sendQuick('Eng arzon mahsulotlar qaysi?')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition border border-blue-100">💰 Eng arzon</button>
+            <button onclick="sendQuick('Eng yaxshi baholangan mahsulotlar?')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition border border-blue-100">⭐ Eng yaxshi</button>
+            <button onclick="sendQuick('Sayt qanday ishlaydi?')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition border border-blue-100">❓ Qanday ishlaydi</button>
+            {% endif %}
+        </div>
+
+        <!-- Input Area -->
+        <div class="px-4 pb-4 flex-shrink-0">
+            <form id="anora-form" onsubmit="sendAnora(event)" class="flex gap-2">
+                <input 
+                    id="anora-input" 
+                    type="text" 
+                    placeholder="Anoraga yozing..." 
+                    autocomplete="off"
+                    class="flex-grow bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all outline-none placeholder:text-gray-300 font-medium"
+                >
+                <button type="submit" id="anora-send" class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center hover:scale-105 hover:shadow-lg hover:shadow-blue-200 transition-all duration-300 flex-shrink-0 disabled:opacity-50 disabled:hover:scale-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+            </form>
+            <p class="text-[9px] text-gray-300 text-center mt-2 font-medium">Anora • Gemini AI bilan ishlaydi</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Anora Chat Animations */
+    #anora-panel {
+        animation: anoraSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes anoraSlideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .anora-msg {
+        animation: anoraMsgIn 0.3s ease-out;
+    }
+    @keyframes anoraMsgIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    #anora-messages::-webkit-scrollbar { width: 4px; }
+    #anora-messages::-webkit-scrollbar-track { background: transparent; }
+    #anora-messages::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+    
+    /* Markdown-like styling for AI responses */
+    .anora-ai-text strong { font-weight: 800; color: #1e3a5f; }
+    .anora-ai-text ul { list-style: disc; margin-left: 1rem; margin-top: 0.25rem; }
+    .anora-ai-text li { margin-bottom: 0.15rem; }
+    .anora-ai-text a { color: #2563eb; text-decoration: underline; }
+    .anora-ai-text p { margin-bottom: 0.35rem; }
+    .anora-ai-text p:last-child { margin-bottom: 0; }
+</style>
+
+<script>
+    // ── Anora Chat State ──
+    let anoraOpen = false;
+    let anoraHistory = JSON.parse(sessionStorage.getItem('anoraHistory') || '[]');
+    let anoraLoading = false;
+
+    function toggleAnora() {
+        anoraOpen = !anoraOpen;
+        const panel = document.getElementById('anora-panel');
+        const iconOpen = document.getElementById('anora-icon-open');
+        const iconClose = document.getElementById('anora-icon-close');
+        const badge = document.getElementById('anora-badge');
+
+        if (anoraOpen) {
+            panel.classList.remove('hidden');
+            panel.style.display = 'flex';
+            iconOpen.classList.add('hidden');
+            iconClose.classList.remove('hidden');
+            badge.classList.add('hidden');
+            scrollMessages();
+            document.getElementById('anora-input').focus();
+        } else {
+            panel.classList.add('hidden');
+            panel.style.display = 'none';
+            iconOpen.classList.remove('hidden');
+            iconClose.classList.add('hidden');
+            badge.classList.remove('hidden');
+        }
+    }
+
+    function scrollMessages() {
+        const container = document.getElementById('anora-messages');
+        setTimeout(() => container.scrollTop = container.scrollHeight, 50);
+    }
+
+    function formatAIText(text) {
+        // Simple markdown: **bold**, *italic*, links, newlines
+        let html = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n- /g, '\n• ')
+            .replace(/\n/g, '<br>')
+            .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
+        return html;
+    }
+
+    function addMessage(text, isUser) {
+        const container = document.getElementById('anora-messages');
+        const div = document.createElement('div');
+        div.className = 'flex gap-3 anora-msg ' + (isUser ? 'justify-end' : '');
+
+        if (isUser) {
+            div.innerHTML = `
+                <div class="bg-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-[85%] shadow-sm">
+                    <p class="text-sm leading-relaxed">${text}</p>
+                </div>
+            `;
+        } else {
+            div.innerHTML = `
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-lg shadow-blue-200">A</div>
+                <div class="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm border border-gray-100">
+                    <div class="text-sm text-gray-700 leading-relaxed anora-ai-text">${formatAIText(text)}</div>
+                </div>
+            `;
+        }
+        container.appendChild(div);
+        scrollMessages();
+    }
+
+    function showTyping(show) {
+        document.getElementById('anora-typing').classList.toggle('hidden', !show);
+        if (show) scrollMessages();
+    }
+
+    async function sendAnora(event) {
+        event.preventDefault();
+        const input = document.getElementById('anora-input');
+        const message = input.value.trim();
+        if (!message || anoraLoading) return;
+
+        // Hide suggestions after first message
+        document.getElementById('anora-suggestions').classList.add('hidden');
+
+        // Add user message
+        addMessage(message, true);
+        anoraHistory.push({ role: 'user', text: message });
+        input.value = '';
+
+        // Show typing
+        anoraLoading = true;
+        showTyping(true);
+        document.getElementById('anora-send').disabled = true;
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+            
+            const response = await fetch('/api/ai/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: anoraHistory.slice(-10),
+                }),
+            });
+
+            const data = await response.json();
+            
+            showTyping(false);
+            addMessage(data.response, false);
+            anoraHistory.push({ role: 'model', text: data.response });
+            
+            // Save to session
+            sessionStorage.setItem('anoraHistory', JSON.stringify(anoraHistory.slice(-20)));
+
+        } catch (err) {
+            showTyping(false);
+            addMessage('Tarmoq xatosi yuz berdi. Qayta urinib koʻring. 🔄', false);
+        }
+
+        anoraLoading = false;
+        document.getElementById('anora-send').disabled = false;
+        input.focus();
+    }
+
+    function sendQuick(text) {
+        document.getElementById('anora-input').value = text;
+        sendAnora(new Event('submit'));
+    }
+
+    function clearAnora() {
+        anoraHistory = [];
+        sessionStorage.removeItem('anoraHistory');
+        const container = document.getElementById('anora-messages');
+        container.innerHTML = `
+            <div class="flex gap-3 anora-msg">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-lg shadow-blue-200">A</div>
+                <div class="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm border border-gray-100">
+                    <p class="text-sm text-gray-700 leading-relaxed">Assalomu alaykum! 👋 Men <strong>Anora</strong> — ArzonMaterial saytining AI yordamchisiman. Sizga qanday yordam bera olaman?</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('anora-suggestions').classList.remove('hidden');
+    }
+
+    // Restore chat history on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        if (anoraHistory.length > 0) {
+            const container = document.getElementById('anora-messages');
+            anoraHistory.forEach(msg => {
+                addMessage(msg.text, msg.role === 'user');
+            });
+            document.getElementById('anora-suggestions').classList.add('hidden');
+        }
+    });
+</script>
+
 </body>
 </html>

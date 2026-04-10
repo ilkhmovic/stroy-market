@@ -155,8 +155,8 @@
             </div>
 
             <div class="pt-8 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Jami</span>
-                <span class="text-3xl font-black text-blue-700 italic tracking-tighter">{{ order.get_total_price|floatformat:0 }} <span class="text-xs">SO'M</span></span>
+                <span class="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Jami to'lanadigan</span>
+                <span class="text-3xl font-black text-blue-700 italic tracking-tighter">{{ order.get_total_price|add:order.penalty_amount|floatformat:0 }} <span class="text-xs">SO'M</span></span>
             </div>
 
             {% if order.buyer_confirmed %}

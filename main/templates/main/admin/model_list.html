@@ -41,6 +41,8 @@
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Slug</th>
                     {% elif model_name == 'product' %}
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Product</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Brand</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Region</th>
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</th>
                         <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Top</th>
                     {% elif model_name == 'order' %}
@@ -100,6 +102,8 @@
                             <p class="font-black text-gray-900">{{ item.name }}</p>
                             <p class="text-[10px] text-gray-500">{{ item.store.name }}</p>
                         </td>
+                        <td class="px-6 py-4 text-[10px] font-black uppercase text-blue-600 tracking-widest italic">{{ item.brand.name|default:"—" }}</td>
+                        <td class="px-6 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">{{ item.store.region.name|default:"—" }}</td>
                         <td class="px-6 py-4 font-black text-blue-600">{{ item.price|floatformat:0 }}</td>
                         <td class="px-6 py-4">
                             <a href="{% url 'admin_toggle_top' item.pk %}" class="w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-300 {% if item.is_top %}bg-amber-400 text-white shadow-lg shadow-amber-200{% else %}bg-gray-100 text-gray-300 hover:bg-gray-200{% endif %}">
