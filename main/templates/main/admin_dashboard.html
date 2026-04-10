@@ -43,7 +43,11 @@
                     </div>
                     <div>
                         <p class="font-black text-gray-900">{{ store.name }}</p>
-                        <p class="text-xs text-gray-500">{{ store.created_at|date:"d.m.Y" }}</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <p class="text-[10px] text-gray-500">{{ store.created_at|date:"d.m.Y" }}</p>
+                            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">STIR: {{ store.owner.stir_pinfl }}</p>
+                        </div>
                     </div>
                 </div>
                 <div class="flex gap-2">

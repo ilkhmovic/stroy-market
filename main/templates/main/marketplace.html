@@ -2,35 +2,45 @@
 {% block title %}Marketplace - ArzonMaterial{% endblock %}
 {% block content %}
 
+<!-- Horizontal Categories Bar -->
+<div class="relative group -mt-8 mb-6 border-b-2 border-gray-200">
+    <!-- Left Fade & Arrow -->
+    <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-gray-50/80 to-transparent z-10 flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button onclick="scrollCategories(-200)" class="w-10 h-10 ml-2 rounded-full bg-white/70 backdrop-blur-md shadow-xl border border-white/50 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:scale-110 pointer-events-auto transition-all active:scale-95">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+    </div>
+
+    <!-- Right Fade & Arrow -->
+    <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-gray-50/80 to-transparent z-10 flex items-center justify-end pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button onclick="scrollCategories(200)" class="w-10 h-10 mr-2 rounded-full bg-white/70 backdrop-blur-md shadow-xl border border-white/50 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:scale-110 pointer-events-auto transition-all active:scale-95">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+        </button>
+    </div>
+    
+    <div id="category-scroll" class="flex gap-1 overflow-x-auto custom-scrollbar scroll-smooth no-scrollbar">
+        <a href="{% url 'marketplace' %}" class="flex-shrink-0 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all duration-300 {% if not current_category %}bg-blue-600 text-white shadow-lg shadow-blue-100{% else %}text-gray-400 hover:text-blue-600 hover:bg-blue-50/50{% endif %}">
+            Barchasi
+        </a>
+        {% for cat in categories %}
+        <a href="?category={{ cat.slug }}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex-shrink-0 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all duration-300 {% if current_category == cat.slug %}bg-blue-600 text-white shadow-lg shadow-blue-100{% else %}text-gray-400 hover:text-blue-600 hover:bg-blue-50/50{% endif %}">
+            {{ cat.name }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="flex flex-col lg:flex-row gap-8">
-    <!-- Sidebar Filters -->
-    <div class="w-full lg:w-72 flex-shrink-0">
+    <!-- Sidebar Filters (Shown only if a category is selected) -->
+    {% if current_category %}
+    <div class="w-full lg:w-72 flex-shrink-0 animate-in fade-in slide-in-from-left duration-500">
         <form id="filter-form" method="GET" class="space-y-6 sticky top-24">
             <!-- Search (hidden input if coming from header search) -->
             {% if request.GET.q %}
                 <input type="hidden" name="q" value="{{ request.GET.q }}">
             {% endif %}
-
-            <!-- Categories Accordion -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden">
-                <button type="button" onclick="toggleAccordion('cat-accordion')" class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                    <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest">Toifalar</h3>
-                    <svg id="cat-icon" class="w-4 h-4 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div id="cat-accordion" class="hidden border-t border-gray-50 bg-white">
-                    <div class="p-4 space-y-1">
-                        <a href="{% url 'marketplace' %}" class="block px-4 py-2 rounded-xl text-sm {% if not current_category %}bg-blue-600 text-white font-bold shadow-lg shadow-blue-100{% else %}text-gray-600 hover:bg-gray-50{% endif %} transition">
-                            Barchasi
-                        </a>
-                        {% for cat in categories %}
-                        <a href="?category={{ cat.slug }}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="block px-4 py-2 rounded-xl text-sm {% if current_category == cat.slug %}bg-blue-600 text-white font-bold shadow-lg shadow-blue-100{% else %}text-gray-600 hover:bg-gray-50{% endif %} transition">
-                            {{ cat.name }}
-                        </a>
-                        {% endfor %}
-                        <input type="hidden" name="category" value="{{ current_category|default:'' }}">
-                    </div>
-                </div>
-            </div>
+            
+            <input type="hidden" name="category" value="{{ current_category }}">
 
             <!-- Price Filter Redesign -->
             <div class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-50 p-6">
@@ -93,14 +103,15 @@
             </div>
         </form>
     </div>
+    {% endif %}
 
     <!-- Product Grid -->
     <div class="flex-grow">
         <!-- Results Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-6">
             <div>
                 <h2 class="text-2xl font-black text-gray-900 italic">Marketplace</h2>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">{{ products|length }} ta mahsulot topildi</p>
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{{ products|length }} ta mahsulot topildi</p>
             </div>
             <div class="hidden sm:flex items-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-50 text-xs font-black uppercase tracking-widest text-gray-500">
                 Saralash: <span class="text-blue-600">Eng yangilar</span>
@@ -108,7 +119,7 @@
         </div>
 
         {% if products %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 {% if current_category %}xl:grid-cols-3{% else %}xl:grid-cols-4{% endif %} gap-8">
             {% for product in products %}
             <div class="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden group hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500">
                 <div class="aspect-[4/5] overflow-hidden relative">
@@ -164,6 +175,7 @@
 <style>
     .custom-scrollbar::-webkit-scrollbar {
         width: 4px;
+        height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
         background: transparent;
@@ -175,29 +187,31 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #e5e5e5;
     }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 </style>
 
 <script>
-    function toggleAccordion(id) {
-        const content = document.getElementById(id);
-        const icon = document.getElementById(id.replace('accordion', 'icon'));
-        if (content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
-            icon.style.transform = 'rotate(180deg)';
-        } else {
-            content.classList.add('hidden');
-            icon.style.transform = 'rotate(0deg)';
-        }
+    function scrollCategories(val) {
+        document.getElementById('category-scroll').scrollBy({
+            left: val,
+            behavior: 'smooth'
+        });
     }
 
-    // Preserve accordion state if category is selected
+    // Preserve scroll position or center active category
     window.onload = function() {
-        const currentCat = '{{ current_category }}';
-        if (currentCat) {
-            document.getElementById('cat-accordion').classList.remove('hidden');
-            document.getElementById('cat-icon').style.transform = 'rotate(180deg)';
+        const active = document.querySelector('[class*="bg-blue-600"]');
+        if (active && active.parentElement.id === 'category-scroll') {
+            active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
     }
 </script>
+
 
 {% endblock %}
