@@ -1,7 +1,123 @@
 {% extends 'main/base.html' %}
-{% block title %}Marketplace - ArzonMaterial{% endblock %}
+{% block title %}Marketplace - ArzonMaterial
+<style>
+/* Professional marketplace composition */
+.sm-hero{position:relative;display:grid;grid-template-columns:1.06fr .94fr;min-height:390px;overflow:hidden;border-radius:26px;background:#f0f4e9;border:1px solid #e5ebdc;margin:0 0 22px}
+.sm-hero-copy{position:relative;z-index:2;padding:42px 0 28px 42px;display:flex;flex-direction:column;align-items:flex-start}
+.sm-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:10px;font-weight:800;letter-spacing:.13em;color:#557449}
+.sm-eyebrow-dot{width:7px;height:7px;background:#70a94a;border-radius:50%;box-shadow:0 0 0 4px #dce9cf}
+.sm-hero h1{font-size:clamp(28px,3.2vw,43px);line-height:1.12;letter-spacing:-.055em;font-weight:800;color:#202b1d;margin:22px 0 14px}
+.sm-hero h1 span{color:#4c872e}
+.sm-hero-copy>p{font-size:13px;line-height:1.8;color:#687361;max-width:410px;margin:0}
+.sm-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:22px}
+.sm-primary-cta{display:inline-flex;align-items:center;gap:16px;background:#4b8b2b;color:#fff!important;padding:13px 18px;border-radius:11px;font-size:12px;font-weight:750;box-shadow:0 7px 16px #4b8b2b22}
+.sm-primary-cta:hover{background:#30651d!important;transform:translateY(-2px)}
+.sm-primary-cta span{font-size:18px;line-height:12px}
+.sm-hero-note{font-size:10px;color:#63705b;font-weight:650;display:flex;align-items:center;gap:6px}
+.sm-check{display:grid;place-items:center;width:17px;height:17px;background:#dce9cf;border-radius:50%;color:#3e7426}
+.sm-hero-stats{display:flex;gap:26px;margin-top:auto;padding-top:26px}
+.sm-hero-stats div{display:flex;flex-direction:column;gap:4px}
+.sm-hero-stats strong{font-size:12px;color:#33442a}
+.sm-hero-stats span{font-size:10px;color:#7a8572}
+.sm-hero-art{position:relative;min-height:350px;overflow:hidden;background:radial-gradient(ellipse at 55% 48%,#e0eacb 0%,#eaf0de 46%,#f0f4e9 74%)}
+.sm-art-orbit{position:absolute;width:330px;height:330px;left:50%;top:51%;transform:translate(-50%,-50%);border:1px solid #cdddbb;border-radius:50%;box-shadow:0 0 0 28px #e7eedb,0 0 0 29px #d9e5c9}
+.sm-art-building{position:absolute;left:50%;top:51%;transform:translate(-50%,-43%);width:205px;filter:drop-shadow(0 18px 14px #536c3b24)}
+.sm-building-roof{width:0;height:0;margin:auto;border-left:112px solid transparent;border-right:112px solid transparent;border-bottom:82px solid #5e7f42;position:relative}
+.sm-building-roof:after{content:"";position:absolute;left:-88px;top:21px;width:176px;height:4px;background:#7f9b5f;transform:rotate(-36deg);border-radius:5px}
+.sm-building-body{height:132px;background:linear-gradient(90deg,#fffdf5,#e5e9d8);border:1px solid #c9d3b9;display:flex;align-items:center;justify-content:space-evenly;padding:20px 12px 0;position:relative}
+.sm-building-body:before{content:"";position:absolute;top:0;left:0;right:0;height:9px;background:#9bb57d}
+.sm-building-window{width:33px;height:38px;background:#a9c8c9;border:5px solid #fdfcf3;box-shadow:0 0 0 1px #c5d2bd}
+.sm-building-window.second{width:29px}
+.sm-building-door{width:35px;height:66px;align-self:flex-end;background:#8b9d70;border:4px solid #faf9ee;border-bottom:0;border-radius:3px 3px 0 0}
+.sm-building-base{height:12px;background:#a3ad8c;border-bottom:4px solid #778a60}
+.sm-art-block{position:absolute;border-radius:5px;background:linear-gradient(145deg,#d6b48a,#b88e60);box-shadow:0 12px 22px #7e694322}
+.sm-block-one{width:74px;height:53px;right:11%;bottom:17%;transform:rotate(-9deg);background:repeating-linear-gradient(0deg,#c79e71 0 14px,#b88d5f 14px 17px)}
+.sm-block-two{width:49px;height:39px;left:11%;bottom:23%;transform:rotate(8deg);background:repeating-linear-gradient(0deg,#e2c8a2 0 11px,#c6a67d 11px 14px)}
+.sm-art-tag{position:absolute;display:flex;align-items:center;gap:10px;padding:11px 13px;background:#ffffffed;border:1px solid #ffffff;border-radius:13px;box-shadow:0 9px 28px #33432a14;backdrop-filter:blur(8px)}
+.sm-art-tag b{display:block;font-size:10px;color:#34412c}
+.sm-art-tag small{display:block;font-size:9px;color:#8a9381;margin-top:4px}
+.sm-art-tag-top{right:5%;top:14%}
+.sm-art-tag-bottom{left:3%;bottom:12%}
+.sm-tag-icon,.sm-tag-check{display:grid;place-items:center;width:30px;height:30px;flex-shrink:0;border-radius:9px;background:#edf4e4;color:#4b8b2b;font-size:19px}
+.sm-tag-check{background:#4b8b2b;color:white;font-size:14px}
+.sm-art-spark{position:absolute;color:#87a969}
+.sm-spark-one{top:22%;left:17%;font-size:22px}
+.sm-spark-two{right:14%;bottom:27%;font-size:19px}
+.sm-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:38px}
+.sm-benefit{display:flex;align-items:center;gap:12px;padding:16px 18px;background:#fff;border:1px solid #e9ece6;border-radius:15px}
+.sm-benefit-icon{display:grid;place-items:center;flex-shrink:0;width:38px;height:38px;border-radius:12px;background:#f0f5e9;color:#4b8b2b;font-size:23px}
+.sm-benefit b{display:block;font-size:12px;color:#30392b}
+.sm-benefit small{display:block;font-size:10px;color:#858c80;margin-top:4px}
+.sm-catalog-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:0 0 20px}
+.sm-section-kicker{font-size:9px;letter-spacing:.15em;font-weight:800;color:#71925e}
+.sm-catalog-heading h2{font-size:25px;letter-spacing:-.04em;font-weight:800;color:#252b22;margin:7px 0 4px}
+.sm-catalog-heading p{font-size:12px;color:#82887f;margin:0}
+.sm-catalog-pill{padding:9px 13px;border:1px solid #e0e7da;border-radius:999px;background:#fff;color:#607352;font-size:10px;font-weight:700;white-space:nowrap}
+#category-scroll{gap:8px!important;padding:6px 2px 14px!important}
+#category-scroll a{border-radius:10px!important;padding:11px 16px!important;font-size:10px!important;letter-spacing:.045em!important}
+#category-scroll a:not(.bg-blue-600){background:#fff!important;border:1px solid #e7ebe3!important;color:#61695d!important}
+#category-scroll a:not(.bg-blue-600):hover{background:#eff5e9!important;border-color:#cedfc0!important}
+#sm-catalog+.relative{margin-top:0}
+.sm-results-head h2{font-style:normal!important;font-size:20px!important;letter-spacing:-.035em}
+.sm-product-grid{gap:16px!important}
+.sm-product-card{border-radius:16px!important;border:1px solid #e8ebe5!important;box-shadow:0 4px 14px #1b2b1510!important;transition:transform .22s ease,box-shadow .22s ease!important}
+.sm-product-card:hover{transform:translateY(-4px);box-shadow:0 14px 28px #1b2b1518!important}
+.sm-product-image{aspect-ratio:1/1!important;background:#f7f8f5}
+.sm-product-image img{object-fit:contain!important;padding:12px;transition:transform .25s ease!important}
+.sm-product-card:hover .sm-product-image img{transform:scale(1.045)}
+.sm-product-info{padding:15px!important}
+.sm-product-name{font-size:14px!important;line-height:1.45!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px}
+.sm-product-info p.text-2xl{font-size:19px!important;font-style:normal!important;letter-spacing:-.035em!important}
+.sm-product-info .text-xs.line-clamp-2{font-size:11px!important;line-height:1.6!important;margin-bottom:14px!important}
+.sm-product-info .pt-6{padding-top:13px!important}
+.sm-product-info a.w-14{width:40px!important;height:40px!important;border-radius:11px!important;background:#4b8b2b!important}
+.sm-product-info a.w-14:hover{background:#30651d!important;transform:translateY(-2px)!important}
+.sm-product-card .absolute.top-6{top:12px!important;left:12px!important}
+.sm-product-card .absolute.top-6 span{padding:6px 9px!important;font-size:9px!important}
+#filter-form>div{border:1px solid #e8ebe5!important;border-radius:16px!important;box-shadow:0 4px 14px #1b2b1508!important}
+#filter-form h3{font-size:10px!important;letter-spacing:.1em}
+#filter-form button[type=submit]{padding:14px!important;border-radius:12px!important}
+@media(max-width:900px){.sm-hero{grid-template-columns:1fr .8fr}.sm-hero-copy{padding:32px 0 25px 28px}.sm-art-tag-top{right:2%}.sm-hero-stats{gap:14px}.sm-art-orbit{width:260px;height:260px}.sm-building-roof{border-left-width:90px;border-right-width:90px;border-bottom-width:66px}.sm-building-body{height:115px}.sm-art-tag{padding:9px}.sm-art-tag small{max-width:105px}}
+@media(max-width:640px){.sm-hero{grid-template-columns:1fr;border-radius:20px}.sm-hero-copy{padding:27px 22px 22px}.sm-hero h1{font-size:31px;margin:17px 0 10px}.sm-hero-copy>p{font-size:12px;max-width:100%}.sm-hero-actions{gap:12px;margin-top:18px}.sm-hero-stats{width:100%;gap:0;justify-content:space-between;padding-top:22px;margin-top:8px}.sm-hero-stats div{max-width:31%}.sm-hero-stats strong{font-size:11px}.sm-hero-stats span{font-size:9px;line-height:1.4}.sm-hero-art{min-height:255px}.sm-art-orbit{width:220px;height:220px}.sm-art-building{transform:translate(-50%,-43%) scale(.77)}.sm-art-tag-top{right:4%;top:8%}.sm-art-tag-bottom{left:4%;bottom:8%}.sm-art-tag b{font-size:9px}.sm-art-tag small{font-size:8px}.sm-block-one{right:12%;bottom:12%}.sm-block-two{left:13%;bottom:17%}.sm-benefits{grid-template-columns:1fr;gap:8px;margin-bottom:28px}.sm-benefit{padding:12px 14px}.sm-benefit-icon{width:34px;height:34px}.sm-catalog-heading{align-items:flex-start;margin-bottom:15px}.sm-catalog-heading h2{font-size:21px;line-height:1.25}.sm-catalog-heading p{font-size:11px;line-height:1.5}.sm-catalog-pill{display:none}#category-scroll{margin-bottom:4px}.sm-results-head{align-items:flex-start}.sm-results-head h2{font-size:18px!important}.sm-results-head .text-\\[10px\\]{font-size:9px!important}.sm-product-grid{gap:10px!important}.sm-product-info{padding:11px!important}.sm-product-name{font-size:12px!important;min-height:36px}.sm-product-info p.text-2xl{font-size:16px!important}.sm-product-info .pt-6{gap:6px}.sm-product-info a.w-14{width:34px!important;height:34px!important}.sm-product-info a.w-14 svg{width:18px;height:18px}.sm-product-info .text-\\[10px\\]{font-size:9px!important}.sm-product-card .absolute.top-6 span{font-size:8px!important;padding:5px 7px!important}.sm-product-image img{padding:7px}.sm-product-info .text-xs.line-clamp-2{font-size:10px!important;margin-bottom:10px!important}.sm-product-info .pt-6{padding-top:10px!important}}
+@media(prefers-reduced-motion:reduce){.sm-product-card,.sm-product-image img{transition:none!important}}
+</style>
+
+{% endblock %}
 {% block content %}
 
+<!-- Storefront hero -->
+<section class="sm-hero">
+  <div class="sm-hero-copy">
+    <span class="sm-eyebrow"><span class="sm-eyebrow-dot"></span> QURILISH UCHUN HAMMASI BIR JOYDA</span>
+    <h1>Orzuyingizdagi uy<br> <span>mustahkam</span> poydevordan boshlanadi.</h1>
+    <p>Sifatli qurilish materiallari, ishonchli sotuvchilar va qulay narxlar — barchasi bitta bozorda.</p>
+    <div class="sm-hero-actions">
+      <a href="#sm-catalog" class="sm-primary-cta">Mahsulotlarni ko‘rish <span aria-hidden="true">↗</span></a>
+      <span class="sm-hero-note"><span class="sm-check">✓</span> Qurilish uchun ishonchli tanlov</span>
+    </div>
+    <div class="sm-hero-stats">
+      <div><strong>Bir joyda</strong><span>Ko‘plab mahsulotlar</span></div>
+      <div><strong>Qulay</strong><span>Taqqoslash va tanlash</span></div>
+      <div><strong>Oson</strong><span>Onlayn buyurtma</span></div>
+    </div>
+  </div>
+  <div class="sm-hero-art" aria-hidden="true">
+    <div class="sm-art-orbit"></div>
+    <div class="sm-art-tag sm-art-tag-top"><span class="sm-tag-icon">✳</span><span><b>Qurilishni boshlang</b><small>Kerakli mahsulotlar shu yerda</small></span></div>
+    <div class="sm-art-building"><div class="sm-building-roof"></div><div class="sm-building-body"><div class="sm-building-window"></div><div class="sm-building-door"></div><div class="sm-building-window second"></div></div><div class="sm-building-base"></div></div>
+    <div class="sm-art-block sm-block-one"></div><div class="sm-art-block sm-block-two"></div>
+    <div class="sm-art-tag sm-art-tag-bottom"><span class="sm-tag-check">✓</span><span><b>To‘g‘ri tanlov</b><small>Uy uchun, ustalar uchun</small></span></div>
+    <span class="sm-art-spark sm-spark-one">✳</span><span class="sm-art-spark sm-spark-two">✦</span>
+  </div>
+</section>
+
+<section class="sm-benefits" aria-label="Xarid afzalliklari">
+  <div class="sm-benefit"><span class="sm-benefit-icon">⌕</span><span><b>Oson qidiruv</b><small>Kerakli mahsulotni tez toping</small></span></div>
+  <div class="sm-benefit"><span class="sm-benefit-icon">◇</span><span><b>Tanlov kengligi</b><small>Turli mahsulot va sotuvchilar</small></span></div>
+  <div class="sm-benefit"><span class="sm-benefit-icon">↗</span><span><b>Qulay xarid</b><small>Buyurtmani bir joyda boshqaring</small></span></div>
+</section>
+
+<div id="sm-catalog" class="sm-catalog-heading"><div><span class="sm-section-kicker">STROY MARKET KATALOGI</span><h2>Qurilish uchun kerakli mahsulotlar</h2><p>Kerakli kategoriyani tanlang va mahsulotlarni solishtiring.</p></div><span class="sm-catalog-pill">Siz uchun qulay tanlov</span></div>
 <!-- Horizontal Categories Bar -->
 <div class="relative group -mt-8 mb-6 border-b-2 border-gray-200">
     <!-- Left Fade & Arrow -->
@@ -108,9 +224,9 @@
     <!-- Product Grid -->
     <div class="flex-grow">
         <!-- Results Header -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6 sm-results-head">
             <div>
-                <h2 class="text-2xl font-black text-gray-900 italic">Marketplace</h2>
+                <h2 class="text-2xl font-black text-gray-900">Barcha mahsulotlar</h2>
                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{{ products|length }} ta mahsulot topildi</p>
             </div>
             <div class="hidden sm:flex items-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-50 text-xs font-black uppercase tracking-widest text-gray-500">
@@ -119,10 +235,10 @@
         </div>
 
         {% if products %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 {% if current_category %}xl:grid-cols-3{% else %}xl:grid-cols-4{% endif %} gap-8">
+        <div class="grid grid-cols-2 sm:grid-cols-2 {% if current_category %}xl:grid-cols-3{% else %}xl:grid-cols-4{% endif %} gap-4 sm:gap-5 sm-product-grid">
             {% for product in products %}
-            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden group hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500">
-                <div class="aspect-[4/5] overflow-hidden relative">
+            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden group hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 sm-product-card">
+                <div class="aspect-[4/5] overflow-hidden relative sm-product-image">
                     {% if product.image %}
                         <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                     {% else %}
@@ -136,7 +252,7 @@
                         <span class="bg-white/80 backdrop-blur-md text-gray-800 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">{{ product.store.region.name|default:"O'zbekiston" }}</span>
                     </div>
                 </div>
-                <div class="p-8">
+                <div class="p-5 sm:p-5 sm-product-info">
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">{{ product.category.name|default:"Umumiy" }}</p>
                         <div class="flex items-center gap-1 group">
@@ -144,7 +260,7 @@
                              <span class="text-[10px] font-black text-gray-400 group-hover:text-amber-500 transition-colors">{{ product.avg_rating }}</span>
                         </div>
                     </div>
-                    <h3 class="font-black text-gray-900 text-xl mb-3 truncate italic leading-tight">{{ product.name }}</h3>
+                    <h3 class="font-bold text-gray-900 text-base mb-2 leading-snug sm-product-name">{{ product.name }}</h3>
                     <p class="text-gray-400 text-xs line-clamp-2 mb-6 leading-relaxed font-medium">{{ product.description }}</p>
                     
                     <div class="flex items-center justify-between pt-6 border-t border-gray-50">
