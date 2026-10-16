@@ -9,7 +9,40 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    </style>
+    
+    /* ArzonMaterial — refreshed visual system */
+    :root { --am-ink:#17231d; --am-green:#176b4d; --am-lime:#d7f36a; --am-paper:#f7f8f3; --am-muted:#6b756e; }
+    html { scroll-behavior:smooth; }
+    body { font-family:'Inter',sans-serif; background:var(--am-paper)!important; color:var(--am-ink); letter-spacing:-.01em; }
+    body > nav { background:#fff!important; color:var(--am-ink)!important; box-shadow:0 1px 0 rgba(23,35,29,.08)!important; }
+    body > nav a { color:var(--am-ink); }
+    body > nav a:hover { background:#eef4ec!important; }
+    body > nav .text-yellow-400 { color:var(--am-green)!important; }
+    body > nav .bg-blue-900 { background:#fff!important; }
+    body > nav .max-w-7xl { max-width:1440px; }
+    main, #main-content { color:var(--am-ink); }
+    a { transition:color .18s ease,background-color .18s ease,transform .18s ease; }
+    input,select,textarea { border-radius:12px!important; }
+    button, [type=submit] { transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease; }
+    button:hover, [type=submit]:hover { transform:translateY(-1px); }
+    .bg-blue-600 { background-color:var(--am-green)!important; }
+    .text-blue-600 { color:var(--am-green)!important; }
+    .hover\\:text-blue-600:hover { color:var(--am-green)!important; }
+    .border-blue-600 { border-color:var(--am-green)!important; }
+    .ring-blue-500 { --tw-ring-color:var(--am-green)!important; }
+    .shadow-blue-100 { --tw-shadow-color:rgba(23,107,77,.12)!important; }
+    .rounded-3xl { border-radius:22px!important; }
+    .shadow-xl { --tw-shadow:0 12px 35px -22px rgba(23,35,29,.22)!important; box-shadow:var(--tw-shadow)!important; }
+    .bg-gray-50 { background-color:var(--am-paper)!important; }
+    .text-gray-400 { color:#778078!important; }
+    .text-gray-900 { color:var(--am-ink)!important; }
+    .border-gray-50 { border-color:#e9ede6!important; }
+    @media(max-width:640px) {
+      body > nav .h-16 { min-height:64px;height:auto;padding-top:10px;padding-bottom:10px; }
+      body > nav .text-2xl { font-size:1.25rem; }
+    }
+
+</style>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50">
 
