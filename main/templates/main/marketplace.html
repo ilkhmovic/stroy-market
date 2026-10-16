@@ -194,6 +194,27 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+
+    /* Marketplace polish: editorial category strip, calmer cards, better mobile rhythm */
+    #category-scroll { padding:8px 4px 14px; gap:8px!important; border:0!important; }
+    #category-scroll a { border-radius:999px!important; padding:12px 20px!important; letter-spacing:.06em!important; }
+    #category-scroll a:not(.bg-blue-600) { background:#fff!important; border:1px solid #e6ebe4!important; color:#59645c!important; }
+    #category-scroll a:not(.bg-blue-600):hover { background:#edf4ec!important; border-color:#cbdaca!important; }
+    #filter-form > div { border-radius:20px!important; box-shadow:0 8px 28px -24px rgba(23,35,29,.35)!important; }
+    #filter-form h3 { letter-spacing:.08em; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#dce4d9!important; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#aebfac!important; }
+    /* Product grid cards are kept compatible with existing Django template logic */
+    .group\/product, .product-card { transition:transform .25s ease,box-shadow .25s ease; }
+    .group\/product:hover, .product-card:hover { transform:translateY(-4px); }
+    .bg-white.rounded-\\[2rem\\], .bg-white.rounded-\\[2\\.5rem\\], .bg-white.rounded-\\[3rem\\] { border:1px solid #e9ede6; box-shadow:0 10px 32px -25px rgba(23,35,29,.3); }
+    .text-2xl.font-black { letter-spacing:-.045em!important; }
+    @media(max-width:640px) {
+      #category-scroll a { padding:10px 15px!important; font-size:10px!important; }
+      .bg-white.rounded-\\[3rem\\].p-32 { padding:3rem 1.5rem!important; }
+      #filter-form { position:static!important; }
+    }
+
 </style>
 
 <script>
