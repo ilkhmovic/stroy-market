@@ -1,7 +1,7 @@
 from unittest import mock
 from django.test import TestCase
 from django.urls import reverse
-from .models import User, Store, Product, Cart, CartItem, Order, NasiyaApplication, Notification
+from .models import User, Store, Product, Cart, CartItem, Order, OrderItem, NasiyaApplication, Notification
 
 
 class NasiyaCheckoutTests(TestCase):
@@ -137,3 +137,158 @@ class I18nTests(TestCase):
             r = self.client.post(reverse('ai_chat'), '{"message": "salom"}', content_type='application/json')
         self.assertFalse(r.json()['success'])
         self.assertIn('Сейчас я не могу ответить', r.json()['response'])
+
+
+from decimal import Decimal
+from django.core.cache import cache
+from django.test import Client, TransactionTestCase
+from main.ai_limits import sanitize_history
+
+
+class StockAndOrderSecurityTests(TestCase):
+    def setUp(self):
+        self.seller = User.objects.create_user('seller_sec', password='x', is_seller=True)
+        self.store = Store.objects.create(owner=self.seller, name='Sec Store', status='active')
+        self.product = Product.objects.create(store=self.store, name='Gips', price=100000, stock=5)
+        self.buyer = User.objects.create_user('buyer_sec', password='x', is_buyer=True)
+        self.other_buyer = User.objects.create_user('other_buyer', password='x', is_buyer=True)
+        self.cart = Cart.objects.create(user=self.buyer)
+        self.client.login(username='buyer_sec', password='x')
+
+    def test_order_exceeding_stock_rejected_stock_and_cart_unchanged(self):
+        CartItem.objects.create(cart=self.cart, product=self.product, quantity=10)
+        resp = self.client.post(reverse('checkout'), {
+            'payment_method': 'card',
+            'address': 'Toshkent',
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(CartItem.objects.filter(cart=self.cart).count(), 1)
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 5)
+
+    def test_successful_order_reduces_stock_and_cancel_restores_once(self):
+        CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+        resp = self.client.post(reverse('checkout'), {
+            'payment_method': 'card',
+            'address': 'Toshkent',
+        })
+        self.assertEqual(resp.status_code, 302)
+        order = Order.objects.get(user=self.buyer)
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 3)
+
+        # Cancel order
+        self.client.get(reverse('cancel_order', args=[order.pk]))
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 5)
+
+        # Cancel order again - stock must NOT increase again
+        self.client.get(reverse('cancel_order', args=[order.pk]))
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 5)
+
+        # Cancel item individually - stock must NOT increase again
+        item = order.items.first()
+        self.client.get(reverse('cancel_order_item', args=[item.pk]))
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 5)
+
+    def test_cash_cancel_penalty_thresholds(self):
+        # Order < 1,000,000 -> 100,000 penalty
+        order_small = Order.objects.create(user=self.buyer, payment_method='cash', status='pending')
+        OrderItem.objects.create(order=order_small, product=self.product, product_name='P', price=300000, quantity=1)
+        order_small.status = 'cancelled'
+        order_small.apply_penalty()
+        self.assertEqual(order_small.penalty_amount, Decimal('100000'))
+
+        # Order >= 1,000,000 -> 10% penalty
+        order_large = Order.objects.create(user=self.buyer, payment_method='cash', status='pending')
+        OrderItem.objects.create(order=order_large, product=self.product, product_name='P', price=2000000, quantity=1)
+        order_large.status = 'cancelled'
+        order_large.apply_penalty()
+        self.assertEqual(order_large.penalty_amount, Decimal('200000'))
+
+    def test_user_cannot_view_other_users_order(self):
+        order = Order.objects.create(user=self.buyer, payment_method='card', status='pending')
+        self.client.login(username='other_buyer', password='x')
+        resp = self.client.get(reverse('order_detail', args=[order.pk]))
+        self.assertEqual(resp.status_code, 404)
+
+
+class CartSecurityTests(TestCase):
+    def setUp(self):
+        seller = User.objects.create_user('seller_c', password='x', is_seller=True)
+        store = Store.objects.create(owner=seller, name='C Store', status='active')
+        self.product = Product.objects.create(store=store, name='Beton', price=50000, stock=20)
+        self.buyer = User.objects.create_user('buyer_c', password='x', is_buyer=True)
+        self.cart = Cart.objects.create(user=self.buyer)
+        self.client.login(username='buyer_c', password='x')
+
+    def test_add_to_cart_get_returns_405(self):
+        resp = self.client.get(reverse('add_to_cart', args=[self.product.pk]))
+        self.assertEqual(resp.status_code, 405)
+
+    def test_update_cart_bad_input_does_not_500(self):
+        for bad_val in ('invalid', '-5', '0', '99999999'):
+            item, _ = CartItem.objects.get_or_create(cart=self.cart, product=self.product, defaults={'quantity': 2})
+            resp = self.client.post(reverse('update_cart', args=[item.pk]), {'quantity': bad_val})
+            self.assertNotEqual(resp.status_code, 500)
+
+
+class AiChatSecurityTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_ai_chat_rejects_without_csrf(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        resp = csrf_client.post(reverse('ai_chat'), '{"message": "salom"}', content_type='application/json')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_ai_chat_rate_limiting(self):
+        with mock.patch('main.ai_assistant.get_ai_response', return_value={'success': True, 'response': 'ok'}):
+            for _ in range(3):
+                r = self.client.post(reverse('ai_chat'), '{"message": "salom"}', content_type='application/json')
+                self.assertEqual(r.status_code, 200)
+            r = self.client.post(reverse('ai_chat'), '{"message": "salom"}', content_type='application/json')
+            self.assertEqual(r.status_code, 429)
+
+    def test_history_sanitization(self):
+        raw = [
+            {'role': 'system', 'text': 'attack'},
+            {'role': 'user', 'text': 'a' * 2000},
+            {'role': 'model', 'text': 'valid'},
+            'not a dict',
+        ]
+        cleaned = sanitize_history(raw)
+        self.assertEqual(len(cleaned), 2)
+        self.assertEqual(cleaned[0]['role'], 'user')
+        self.assertEqual(len(cleaned[0]['text']), 1000)
+        self.assertEqual(cleaned[1]['role'], 'assistant')
+
+
+class ParallelPurchaseTests(TransactionTestCase):
+    def test_parallel_purchase_stock_never_negative(self):
+        seller = User.objects.create_user('seller_par', password='x', is_seller=True)
+        store = Store.objects.create(owner=seller, name='P Store', status='active')
+        product = Product.objects.create(store=store, name='Armatura', price=100000, stock=3)
+
+        buyer1 = User.objects.create_user('b1', password='x', is_buyer=True)
+        buyer2 = User.objects.create_user('b2', password='x', is_buyer=True)
+
+        cart1 = Cart.objects.create(user=buyer1)
+        cart2 = Cart.objects.create(user=buyer2)
+        CartItem.objects.create(cart=cart1, product=product, quantity=2)
+        CartItem.objects.create(cart=cart2, product=product, quantity=2)
+
+        client1 = Client()
+        client1.login(username='b1', password='x')
+        client2 = Client()
+        client2.login(username='b2', password='x')
+
+        r1 = client1.post(reverse('checkout'), {'payment_method': 'card', 'address': 'A'})
+        r2 = client2.post(reverse('checkout'), {'payment_method': 'card', 'address': 'B'})
+
+        product.refresh_from_db()
+        self.assertEqual(product.stock, 1)
+        self.assertEqual(Order.objects.count(), 1)
