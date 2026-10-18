@@ -3,9 +3,10 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
+import logging
+from django.db import transaction, connection
 from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
@@ -14,6 +15,12 @@ from datetime import timedelta
 from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region, NasiyaApplication
 from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm
 from .nasiya import notify_managers
+from .http_utils import safe_redirect
+from .stock import restore_item_stock_once, InsufficientStock
+from .ai_limits import rate_limited, sanitize_history, TEXT_MAX
+
+logger = logging.getLogger(__name__)
+MAX_CART_QTY = 10000
 
 
 def register(request):
@@ -242,22 +249,52 @@ def cart_view(request):
     return render(request, 'main/cart.html', {'cart': cart, 'items': items})
 
 
+def _parse_qty(raw, default=None):
+    try:
+        qty = int(raw)
+    except (TypeError, ValueError):
+        return None
+    if qty > MAX_CART_QTY:
+        return None
+    return qty
+
+
 @login_required
+@require_POST
 def add_to_cart(request, pk):
     if request.user.is_seller:
         messages.error(request, gettext("Sotuvchilar savat ishlatа olmaydi."))
         return redirect('product_detail', pk=pk)
     product = get_object_or_404(Product, pk=pk)
+    if product.stock <= 0:
+        messages.error(request, gettext("Bu mahsulot sotuvda yo'q."))
+        return safe_redirect(request, 'cart')
+    qty = _parse_qty(request.POST.get('quantity', 1))
+    if qty is None or qty < 1:
+        messages.error(request, gettext("Miqdor noto'g'ri. Musbat butun son kiriting."))
+        return safe_redirect(request, 'cart')
     cart = _get_or_create_cart(request.user)
     item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-    if not created:
-        item.quantity += 1
-        item.save()
-    messages.success(request, f"'{product.name}' savatga qo'shildi!")
-    return redirect(request.META.get('HTTP_REFERER', 'cart'))
+    new_qty = qty if created else item.quantity + qty
+    if new_qty > product.stock:
+        messages.error(
+            request,
+            gettext("%(name)s: omborda faqat %(stock)s qolgan.") % {
+                'name': product.display_name,
+                'stock': product.stock,
+            },
+        )
+        if created:
+            item.delete()
+        return safe_redirect(request, 'cart')
+    item.quantity = new_qty
+    item.save()
+    messages.success(request, gettext("'%(name)s' savatga qo'shildi!") % {'name': product.display_name})
+    return safe_redirect(request, 'cart')
 
 
 @login_required
+@require_POST
 def remove_from_cart(request, item_id):
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
     item.delete()
@@ -266,14 +303,29 @@ def remove_from_cart(request, item_id):
 
 
 @login_required
+@require_POST
 def update_cart(request, item_id):
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
-    qty = int(request.POST.get('quantity', 1))
+    qty = _parse_qty(request.POST.get('quantity', 1))
+    if qty is None:
+        messages.error(request, gettext("Miqdor noto'g'ri. Musbat butun son kiriting."))
+        return redirect('cart')
     if qty < 1:
         item.delete()
-    else:
-        item.quantity = qty
-        item.save()
+        messages.success(request, gettext("Mahsulot savatdan o'chirildi."))
+        return redirect('cart')
+    stock = item.product.stock
+    if qty > stock:
+        messages.error(
+            request,
+            gettext("%(name)s: omborda faqat %(stock)s qolgan.") % {
+                'name': item.product.display_name,
+                'stock': stock,
+            },
+        )
+        return redirect('cart')
+    item.quantity = qty
+    item.save()
     return redirect('cart')
 
 
@@ -319,58 +371,82 @@ def checkout(request):
         if payment_method == 'nasiya' and not nasiya_form.is_valid():
             return _checkout_error(gettext("Nasiya arizasidagi ma'lumotlarni to'g'ri to'ldiring!"))
 
-        # Create order
-        order = Order.objects.create(
-            user=request.user,
-            address=address,
-            note=note,
-            payment_method=payment_method,
-            status='pending'
-        )
-        
-        # Create order items and identify sellers to notify
-        sellers_to_notify = set()
-        for item in items:
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                product_name=item.product.name,
-                price=item.product.price,
-                quantity=item.quantity
-            )
-            # Notify seller
-            if item.product.store:
-                sellers_to_notify.add(item.product.store.owner)
-            
-            # Reduce stock
-            item.product.stock -= item.quantity
-            item.product.save()
-        
-        # Create notifications for sellers
-        for seller in sellers_to_notify:
-            Notification.objects.create(
-                user=seller,
-                message=f"Yangi buyurtma! #{order.pk} raqamli buyurtmada sizning mahsulotingiz bor.",
-                target_url='/seller/orders/'
-            )
-        
-        # Clear cart
-        cart.items.all().delete()
+        try:
+            with transaction.atomic():
+                locked_rows = []
+                sellers_to_notify = set()
+                for item in items.select_related('product', 'product__store'):
+                    product = Product.objects.select_for_update().get(pk=item.product_id)
+                    if product.stock < item.quantity:
+                        raise InsufficientStock(product)
+                    locked_rows.append((item, product))
+                    if product.store_id:
+                        sellers_to_notify.add(product.store.owner_id)
 
-        # Nasiya: arizani saqlab, menejerga yuboramiz (to'lovni menejer qo'lda rasmiylashtiradi)
+                order = Order.objects.create(
+                    user=request.user,
+                    address=address,
+                    note=note,
+                    payment_method=payment_method,
+                    status='pending'
+                )
+                for item, product in locked_rows:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        product_name=product.name,
+                        price=product.price,
+                        quantity=item.quantity
+                    )
+                    Product.objects.filter(pk=product.pk).update(
+                        stock=F('stock') - item.quantity
+                    )
+
+                cart.items.all().delete()
+
+                application = None
+                if payment_method == 'nasiya':
+                    application = nasiya_form.save(commit=False)
+                    application.order = order
+                    application.save()
+
+                order_id = order.pk
+                app_id = application.pk if application else None
+                seller_ids = list(sellers_to_notify)
+
+                def _notify_after_commit():
+                    try:
+                        for seller_id in seller_ids:
+                            Notification.objects.create(
+                                user_id=seller_id,
+                                message=gettext("Yangi buyurtma! #%(n)s raqamli buyurtmada sizning mahsulotingiz bor.") % {'n': order_id},
+                                target_url='/seller/orders/'
+                            )
+                        if app_id:
+                            notify_managers(NasiyaApplication.objects.get(pk=app_id))
+                    except Exception:
+                        logger.exception("Buyurtma bildirishnomasini yuborib bo'lmadi")
+
+                if connection.savepoint_ids:
+                    _notify_after_commit()
+                else:
+                    transaction.on_commit(_notify_after_commit)
+        except InsufficientStock as exc:
+            return _checkout_error(
+                gettext("%(name)s: omborda faqat %(stock)s qolgan. Buyurtma yaratilmadi.") % {
+                    'name': exc.product.display_name,
+                    'stock': exc.product.stock,
+                }
+            )
+
         if payment_method == 'nasiya':
-            application = nasiya_form.save(commit=False)
-            application.order = order
-            application.save()
-            notify_managers(application)
             messages.success(
                 request,
                 gettext("Buyurtma va nasiya arizangiz qabul qilindi! Menejerimiz tez orada telefon orqali bog'lanadi.")
             )
-            return redirect('order_detail', order_id=order.pk)
-
-        messages.success(request, gettext("Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi."))
-        return redirect('order_detail', order_id=order.pk)
+        else:
+            messages.success(request, gettext("Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi."))
+        return redirect('order_detail', order_id=order_id)
 
     return render(request, 'main/checkout.html', {
         'cart': cart,
@@ -428,36 +504,43 @@ def order_detail(request, order_id):
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
     # Allow cancellation if entire order is pending OR if it's confirmed but has pending items
-    pending_items = order.items.filter(status='pending')
+    pending_items = list(order.items.filter(status='pending').select_related('product', 'product__store'))
     
-    if order.status in ['pending', 'confirmed'] and pending_items.exists():
-        # Cancel only pending items
+    if order.status in ['pending', 'confirmed'] and pending_items:
+        cancelled_any = False
         for item in pending_items:
-            if item.product:
-                item.product.stock += item.quantity
-                item.product.save()
-            item.status = 'cancelled'
-            item.save()
-            
-            # Notify seller
-            if item.product and item.product.store:
-                Notification.objects.create(
-                    user=item.product.store.owner,
-                    message=f"#{order.pk} buyurtmadagi '{item.product_name}' mahsuloti xaridor tomonidan bekor qilindi.",
-                    target_url='/seller/orders/'
-                )
-            
-            # Apply penalty for each pending item being cancelled
-            old_penalty = order.penalty_amount
-            order.apply_penalty(item=item)
-            if order.penalty_amount > old_penalty:
-                penalty_diff = order.penalty_amount - old_penalty
-                messages.warning(request, f"Naqd puldagi buyurtma bekor qilingani uchun {penalty_diff|floatformat:0} so'm jarima qo'llandi.")
+            if restore_item_stock_once(item):
+                cancelled_any = True
+                # Notify seller
+                if item.product and item.product.store:
+                    Notification.objects.create(
+                        user=item.product.store.owner,
+                        message=gettext("#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi.") % {
+                            'order_id': order.pk,
+                            'name': item.product_name,
+                        },
+                        target_url='/seller/orders/'
+                    )
+                
+                # Apply penalty for each pending item being cancelled
+                old_penalty = order.penalty_amount
+                order.apply_penalty(item=item)
+                if order.penalty_amount > old_penalty:
+                    penalty_diff = order.penalty_amount - old_penalty
+                    messages.warning(
+                        request,
+                        gettext("Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima qo'llandi.") % {
+                            'amount': f"{penalty_diff:,.0f}"
+                        }
+                    )
         
-        # If all items are now cancelled, set order status to cancelled
-        # If some were delivered/shipped, update_status (called in item.save) will handle it
-        
-        messages.success(request, gettext("Kutilayotgan mahsulotlar bekor qilindi."))
+        if cancelled_any:
+            order.refresh_from_db()
+            if order.status == 'cancelled' and order.payment_method == 'cash':
+                order.apply_penalty()
+            messages.success(request, gettext("Kutilayotgan mahsulotlar bekor qilindi."))
+        else:
+            messages.error(request, gettext("Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q."))
     else:
         messages.error(request, gettext("Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q."))
         
@@ -468,27 +551,32 @@ def cancel_order(request, order_id):
 def cancel_order_item(request, item_id):
     item = get_object_or_404(OrderItem, pk=item_id, order__user=request.user)
     if item.status == 'pending':
-        item.status = 'cancelled'
-        if item.product:
-            item.product.stock += item.quantity
-            item.product.save()
-        item.save()
-        
-        # Notify seller
-        if item.product and item.product.store:
-            Notification.objects.create(
-                user=item.product.store.owner,
-                message=f"#{item.order.pk} buyurtmadagi '{item.product_name}' mahsuloti xaridor tomonidan bekor qilindi.",
-                target_url='/seller/orders/'
-            )
-            
-        old_penalty = item.order.penalty_amount
-        item.order.apply_penalty(item=item)
-        if item.order.penalty_amount > old_penalty:
-            penalty_diff = item.order.penalty_amount - old_penalty
-            messages.warning(request, f"Naqd puldagi mahsulot bekor qilingani uchun {penalty_diff|floatformat:0} so'm jarima qo'llandi.")
-            
-        messages.success(request, f"'{item.product_name}' bekor qilindi.")
+        if restore_item_stock_once(item):
+            # Notify seller
+            if item.product and item.product.store:
+                Notification.objects.create(
+                    user=item.product.store.owner,
+                    message=gettext("#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi.") % {
+                        'order_id': item.order.pk,
+                        'name': item.product_name,
+                    },
+                    target_url='/seller/orders/'
+                )
+                
+            old_penalty = item.order.penalty_amount
+            item.order.apply_penalty(item=item)
+            if item.order.penalty_amount > old_penalty:
+                penalty_diff = item.order.penalty_amount - old_penalty
+                messages.warning(
+                    request,
+                    gettext("Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima qo'llandi.") % {
+                        'amount': f"{penalty_diff:,.0f}"
+                    }
+                )
+                
+            messages.success(request, gettext("'%(name)s' bekor qilindi.") % {'name': item.product_name})
+        else:
+            messages.error(request, gettext("Ushbu mahsulotni bekor qilib bo'lmaydi."))
     else:
         messages.error(request, gettext("Ushbu mahsulotni bekor qilib bo'lmaydi."))
         
@@ -875,7 +963,6 @@ def confirm_store_receipt(request, order_id, store_id):
 
 # ────────── ANORA AI CHAT ──────────
 
-@csrf_exempt
 @require_POST
 def ai_chat(request):
     """AJAX endpoint for Anora AI yordamchi (UZ/RU/EN)."""
@@ -883,14 +970,25 @@ def ai_chat(request):
     from .anora_fallback import find_fallback
     try:
         data = json.loads(request.body)
-        message = data.get('message', '').strip()
-        chat_history = data.get('history', [])
+        message = data.get('message', '')
+        if not isinstance(message, str):
+            return JsonResponse({'success': False, 'response': gettext("Noto'g'ri so'rov formati.")})
+        message = message.strip()
+        raw_history = data.get('history', [])
 
         if not message:
             return JsonResponse({'success': False, 'response': gettext('Xabar kiriting.')})
 
-        if len(message) > 1000:
+        if len(message) > TEXT_MAX:
             return JsonResponse({'success': False, 'response': gettext('Xabar juda uzun. 1000 belgidan oshmasin.')})
+
+        if rate_limited(request):
+            return JsonResponse({
+                'success': False,
+                'response': gettext("So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring.")
+            }, status=429)
+
+        chat_history = sanitize_history(raw_history)
 
         from .ai_assistant import get_ai_response
         result = get_ai_response(request.user, message, chat_history, language=lang)
@@ -898,7 +996,8 @@ def ai_chat(request):
             return JsonResponse(result)
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'response': gettext("Noto'g'ri so'rov formati.")})
-    except Exception:
+    except Exception as exc:
+        logger.exception("Anora AI xatosi: %s", type(exc).__name__)
         message = locals().get('message', '')
 
     # Gemini javob bermadi: avval qo'lda yozilgan javob, bo'lmasa umumiy xabar

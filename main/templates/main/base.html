@@ -484,7 +484,21 @@
         document.getElementById('anora-send').disabled = true;
 
         try {
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '{{ csrf_token }}';
             
             const response = await fetch('/api/ai/chat/', {
                 method: 'POST',
@@ -509,7 +523,7 @@
 
         } catch (err) {
             showTyping(false);
-            addMessage('Tarmoq xatosi yuz berdi. Qayta urinib koʻring. 🔄', false);
+            addMessage("{% trans "Tarmoq xatosi yuz berdi. Qayta urinib ko'ring." %}", false);
         }
 
         anoraLoading = false;

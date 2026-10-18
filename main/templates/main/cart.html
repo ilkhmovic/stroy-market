@@ -45,7 +45,10 @@
                     </div>
                 </form>
                 <p class="text-sm font-extrabold text-gray-800">{{ item.get_total_price|floatformat:0 }} {% trans "so'm" %}</p>
-                <a href="{% url 'remove_from_cart' item.pk %}" class="text-xs text-red-500 hover:underline">{% trans "O'chirish" %}</a>
+                <form method="POST" action="{% url 'remove_from_cart' item.pk %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs text-red-500 hover:underline cursor-pointer bg-transparent border-0 p-0">{% trans "O'chirish" %}</button>
+                </form>
             </div>
         </div>
         {% endfor %}

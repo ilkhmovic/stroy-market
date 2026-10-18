@@ -1074,3 +1074,37 @@ msgstr "📦 Кабинет"
 
 msgid "📦 Mahsulot qo'shish"
 msgstr "📦 Добавить товар"
+
+msgid "Kuryerga karta/terminal orqali to'lash"
+msgstr "Оплата курьеру картой/терминалом"
+
+msgid "%(name)s: omborda faqat %(stock)s qolgan. Buyurtma yaratilmadi."
+msgstr "%(name)s: на складе осталось только %(stock)s. Заказ не создан."
+
+msgid "#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi."
+msgstr "Товар '%(name)s' в заказе #%(order_id)s был отменен покупателем."
+
+msgid "Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
+msgstr "За отмену заказа с наличной оплатой наложен штраф в размере %(amount)s сум."
+
+msgid "Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
+msgstr "За отмену товара с наличной оплатой наложен штраф в размере %(amount)s сум."
+
+msgid "'%(name)s' bekor qilindi."
+msgstr "'%(name)s' отменен."
+
+msgid "Bu mahsulot sotuvda yo'q."
+msgstr "Этого товара нет в наличии."
+
+msgid "Miqdor noto'g'ri. Musbat butun son kiriting."
+msgstr "Неверное количество. Введите положительное целое число."
+
+msgid "Mahsulot savatdan o'chirildi."
+msgstr "Товар удален из корзины."
+
+msgid "So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
+msgstr "Слишком много запросов. Пожалуйста, повторите попытку через минуту."
+
+msgid "%(name)s: omborda faqat %(stock)s qolgan."
+msgstr "%(name)s: на складе осталось только %(stock)s."
+

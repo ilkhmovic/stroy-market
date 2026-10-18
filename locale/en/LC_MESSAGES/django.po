@@ -1077,3 +1077,37 @@ msgstr "📦 Dashboard"
 
 msgid "📦 Mahsulot qo'shish"
 msgstr "📦 Add product"
+
+msgid "Kuryerga karta/terminal orqali to'lash"
+msgstr "Payment to courier via card/terminal"
+
+msgid "%(name)s: omborda faqat %(stock)s qolgan. Buyurtma yaratilmadi."
+msgstr "%(name)s: only %(stock)s left in stock. Order was not created."
+
+msgid "#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi."
+msgstr "Item '%(name)s' in order #%(order_id)s was cancelled by buyer."
+
+msgid "Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
+msgstr "A penalty of %(amount)s UZS was applied for cancelling a cash order."
+
+msgid "Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
+msgstr "A penalty of %(amount)s UZS was applied for cancelling a cash item."
+
+msgid "'%(name)s' bekor qilindi."
+msgstr "'%(name)s' was cancelled."
+
+msgid "Bu mahsulot sotuvda yo'q."
+msgstr "This product is out of stock."
+
+msgid "Miqdor noto'g'ri. Musbat butun son kiriting."
+msgstr "Invalid quantity. Please enter a positive integer."
+
+msgid "Mahsulot savatdan o'chirildi."
+msgstr "Product removed from cart."
+
+msgid "So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
+msgstr "Too many requests. Please try again in a minute."
+
+msgid "%(name)s: omborda faqat %(stock)s qolgan."
+msgstr "%(name)s: only %(stock)s left in stock."
+
