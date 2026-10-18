@@ -75,3 +75,10 @@ class PagesRenderTests(TestCase):
         Cart.objects.create(user=buyer)
         for name in ('cart', 'orders', 'notifications'):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+
+
+class ThemeToggleTests(TestCase):
+    def test_toggle_and_init_script_present(self):
+        r = self.client.get(reverse('marketplace'))
+        self.assertContains(r, 'id="theme-toggle"')
+        self.assertContains(r, "localStorage.getItem('theme')")
