@@ -46,19 +46,26 @@
             <!-- Payment Method -->
             <div class="border-b border-gray-200 pb-6">
                 <h2 class="text-lg font-bold text-gray-900 mb-4">To'lov turi</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500">
-                        <input type="radio" name="payment_method" value="card" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <input type="radio" name="payment_method" value="card" {% if selected_payment == 'card' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <div class="ml-3">
                             <p class="text-sm font-bold text-gray-900">Plastik karta</p>
                             <p class="text-xs text-gray-500">Online to'lov</p>
                         </div>
                     </label>
                     <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
-                        <input type="radio" name="payment_method" value="cash" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <input type="radio" name="payment_method" value="cash" {% if selected_payment == 'cash' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <div class="ml-3">
                             <p class="text-sm font-bold text-gray-900">Naqd pul</p>
                             <p class="text-xs text-gray-500">Yetkazilganda to'lash</p>
+                        </div>
+                    </label>
+                    <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
+                        <input type="radio" name="payment_method" value="nasiya" {% if selected_payment == 'nasiya' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <div class="ml-3">
+                            <p class="text-sm font-bold text-gray-900">Nasiya</p>
+                            <p class="text-xs text-gray-500">Bo'lib to'lash</p>
                         </div>
                     </label>
                 </div>
@@ -72,19 +79,66 @@
                         <li>Agar buyurtma summasi 1,000,000 so'mdan ko'p bo'lsa: <b>10%</b> jarima.</li>
                     </ul>
                 </div>
+
+                <!-- Nasiya application (visible for Nasiya) -->
+                <div id="nasiya-block" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-4 {% if selected_payment != 'nasiya' %}hidden{% endif %}">
+                    <p class="text-xs text-blue-800">
+                        <b>Nasiya arizasi.</b> Ma'lumotlaringiz menejerga yuboriladi, u siz bilan telefon orqali bog'lanib,
+                        shartlarni kelishadi va rasmiylashtiradi. Pasport raqami va boshqa maxfiy ma'lumotlar saytda so'ralmaydi.
+                    </p>
+                    {% if nasiya_form.errors %}
+                    <div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                        {% for field in nasiya_form %}{% for e in field.errors %}<p>{{ field.label }}: {{ e }}</p>{% endfor %}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">F.I.Sh. *</label>
+                            <input type="text" name="nasiya-full_name" maxlength="150" data-nasiya-required value="{{ nasiya_form.full_name.value|default_if_none:'' }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Familiya Ism Sharif">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Telefon *</label>
+                            <input type="tel" name="nasiya-phone" maxlength="20" data-nasiya-required value="{{ nasiya_form.phone.value|default_if_none:'' }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="+998 90 123 45 67">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Muddat *</label>
+                            <select name="nasiya-term_months" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                {% for value, label in nasiya_form.fields.term_months.choices %}
+                                <option value="{{ value }}" {% if nasiya_form.term_months.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Oylik daromad (ixtiyoriy)</label>
+                            <input type="number" name="nasiya-monthly_income" min="0" value="{{ nasiya_form.monthly_income.value|default_if_none:'' }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="so'm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Ish joyi (ixtiyoriy)</label>
+                            <input type="text" name="nasiya-workplace" maxlength="200" value="{{ nasiya_form.workplace.value|default_if_none:'' }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-blue-700">Ariza ko'rib chiqilguncha buyurtma "Kutilmoqda" holatida turadi. Nasiya tasdiqlanishi kafolatlanmagan.</p>
+                </div>
             </div>
 
             <script>
                 document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
                     radio.addEventListener('change', (e) => {
                         const contract = document.getElementById('cash-contract');
-                        if (e.target.value === 'cash') {
-                            contract.classList.remove('hidden');
-                        } else {
-                            contract.classList.add('hidden');
-                        }
+                        const nasiya = document.getElementById('nasiya-block');
+                        contract.classList.toggle('hidden', e.target.value !== 'cash');
+                        nasiya.classList.toggle('hidden', e.target.value !== 'nasiya');
+                        // Nasiya maydonlari faqat nasiya tanlanganda majburiy
+                        nasiya.querySelectorAll('[data-nasiya-required]').forEach(i => i.required = (e.target.value === 'nasiya'));
                     });
                 });
+                if (document.querySelector('input[name="payment_method"]:checked')?.value === 'nasiya') {
+                    document.querySelectorAll('#nasiya-block [data-nasiya-required]').forEach(i => i.required = true);
+                }
             </script>
 
             <!-- Delivery Address -->

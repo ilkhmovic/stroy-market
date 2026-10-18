@@ -168,7 +168,7 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(
         max_length=10, 
-        choices=[('card', 'Karta'), ('cash', 'Naqd')], 
+        choices=[('card', 'Karta'), ('cash', 'Naqd'), ('nasiya', 'Nasiya')], 
         default='card',
         verbose_name="To'lov turi"
     )
@@ -252,6 +252,46 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_name} x{self.quantity}"
+
+class NasiyaApplication(models.Model):
+    """Nasiya (bo'lib to'lash) arizasi. Hamkor tizimga ulanmagan: ariza menejerga
+    yuboriladi, menejer mijoz bilan bog'lanib, rasmiylashtirishni qo'lda bajaradi.
+    Pasport/PINFL kabi maxfiy ma'lumotlar saytda SAQLANMAYDI, menejer ularni
+    telefon yoki shaxsan olishi kerak."""
+    TERM_CHOICES = [(3, '3 oy'), (6, '6 oy'), (12, '12 oy')]
+    STATUS_CHOICES = [
+        ('new', 'Yangi'),
+        ('contacted', "Bog'lanildi"),
+        ('approved', 'Tasdiqlandi'),
+        ('rejected', 'Rad etildi'),
+    ]
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='nasiya')
+    full_name = models.CharField(max_length=150, verbose_name="F.I.Sh.")
+    phone = models.CharField(max_length=20, verbose_name="Telefon raqam")
+    term_months = models.PositiveSmallIntegerField(choices=TERM_CHOICES, default=6, verbose_name="Muddat")
+    monthly_income = models.DecimalField(
+        max_digits=12, decimal_places=0, null=True, blank=True,
+        verbose_name="Oylik daromad (ixtiyoriy)"
+    )
+    workplace = models.CharField(max_length=200, blank=True, verbose_name="Ish joyi (ixtiyoriy)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Holati")
+    manager_note = models.TextField(blank=True, verbose_name="Menejer izohi")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Nasiya arizasi"
+        verbose_name_plural = "Nasiya arizalari"
+
+    def __str__(self):
+        return f"Nasiya #{self.pk} (buyurtma #{self.order_id}) - {self.full_name}"
+
+    @property
+    def monthly_payment(self):
+        """Taxminiy oylik to'lov (ustama foizsiz, faqat ma'lumot uchun)."""
+        total = self.order.get_total_price()
+        return round(total / self.term_months) if self.term_months else total
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')

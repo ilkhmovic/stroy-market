@@ -38,6 +38,13 @@
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">To'lov turi</p>
                     <p class="font-bold text-gray-700 uppercase tracking-widest">{{ order.get_payment_method_display }}</p>
                 </div>
+                {% if order.payment_method == 'nasiya' and order.nasiya %}
+                <div class="col-span-full p-4 bg-blue-50 border border-blue-100 rounded-2xl space-y-1">
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Nasiya arizasi</p>
+                    <p class="font-bold text-gray-700">{{ order.nasiya.get_term_months_display }} &middot; taxminan {{ order.nasiya.monthly_payment|floatformat:0 }} so'm/oy</p>
+                    <p class="text-xs text-gray-600">Holati: <b>{{ order.nasiya.get_status_display }}</b>. Menejerimiz {{ order.nasiya.phone }} raqamiga qo'ng'iroq qiladi.</p>
+                </div>
+                {% endif %}
                 {% if order.note %}
                 <div class="col-span-full space-y-1">
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Izoh</p>

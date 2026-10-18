@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region
+import re
+from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region, NasiyaApplication
 
 class UserRegisterForm(UserCreationForm):
     ROLE_CHOICES = (
@@ -114,3 +115,26 @@ class RegionForm(forms.ModelForm):
     class Meta:
         model = Region
         fields = ['name']
+
+
+class NasiyaApplicationForm(forms.ModelForm):
+    """Checkoutda 'Nasiya' tanlanganda to'ldiriladi (prefix='nasiya')."""
+    class Meta:
+        model = NasiyaApplication
+        fields = ['full_name', 'phone', 'term_months', 'monthly_income', 'workplace']
+
+    def clean_full_name(self):
+        name = ' '.join(self.cleaned_data['full_name'].split())
+        if len(name) < 5 or ' ' not in name:
+            raise forms.ValidationError("Familiya va ismingizni to'liq kiriting.")
+        return name
+
+    def clean_phone(self):
+        raw = self.cleaned_data['phone']
+        digits = re.sub(r'\D', '', raw)
+        # 998901234567 yoki 901234567 ko'rinishlari
+        if len(digits) == 9:
+            digits = '998' + digits
+        if not (len(digits) == 12 and digits.startswith('998')):
+            raise forms.ValidationError("Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67).")
+        return '+' + digits

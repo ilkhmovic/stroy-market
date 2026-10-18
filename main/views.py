@@ -10,8 +10,9 @@ from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region
-from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm
+from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region, NasiyaApplication
+from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm
+from .nasiya import notify_managers
 
 
 def register(request):
@@ -293,15 +294,30 @@ def checkout(request):
         address = request.POST.get('address', '').strip()
         note = request.POST.get('note', '').strip()
         payment_method = request.POST.get('payment_method', 'card')
-        
-        if not address:
-            messages.error(request, "Yetkazib berish manzilini kiriting!")
+
+        nasiya_form = NasiyaApplicationForm(request.POST, prefix='nasiya')
+
+        def _checkout_error(msg):
+            messages.error(request, msg)
             return render(request, 'main/checkout.html', {
                 'cart': cart,
                 'items': items,
                 'get_total_price': cart.get_total_price(),
+                'nasiya_form': nasiya_form,
+                'user_address': address,
+                'selected_payment': payment_method,
             })
-        
+
+        if payment_method not in ('card', 'cash', 'nasiya'):
+            return _checkout_error("To'lov turi noto'g'ri tanlangan!")
+
+        if not address:
+            return _checkout_error("Yetkazib berish manzilini kiriting!")
+
+        # Nasiya tanlansa, ariza ma'lumotlari to'g'ri to'ldirilishi shart
+        if payment_method == 'nasiya' and not nasiya_form.is_valid():
+            return _checkout_error("Nasiya arizasidagi ma'lumotlarni to'g'ri to'ldiring!")
+
         # Create order
         order = Order.objects.create(
             user=request.user,
@@ -339,15 +355,35 @@ def checkout(request):
         
         # Clear cart
         cart.items.all().delete()
-        
+
+        # Nasiya: arizani saqlab, menejerga yuboramiz (to'lovni menejer qo'lda rasmiylashtiradi)
+        if payment_method == 'nasiya':
+            application = nasiya_form.save(commit=False)
+            application.order = order
+            application.save()
+            notify_managers(application)
+            messages.success(
+                request,
+                "Buyurtma va nasiya arizangiz qabul qilindi! Menejerimiz tez orada telefon orqali bog'lanadi."
+            )
+            return redirect('order_detail', order_id=order.pk)
+
         messages.success(request, "Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi.")
         return redirect('order_detail', order_id=order.pk)
-    
+
     return render(request, 'main/checkout.html', {
         'cart': cart,
         'items': items,
         'get_total_price': cart.get_total_price(),
         'user_address': request.user.address,
+        'nasiya_form': NasiyaApplicationForm(
+            prefix='nasiya',
+            initial={
+                'full_name': request.user.get_full_name(),
+                'phone': request.user.phone,
+            },
+        ),
+        'selected_payment': 'card',
     })
 
 

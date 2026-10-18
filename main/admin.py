@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Store, Category, Product, Review, Cart, CartItem, Order, OrderItem, Notification, Brand, Region
+from .models import User, Store, Category, Product, Review, Cart, CartItem, Order, OrderItem, Notification, Brand, Region, NasiyaApplication
 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
@@ -50,6 +50,18 @@ class StoreAdmin(admin.ModelAdmin):
     list_filter = ('status', 'region', 'created_at')
     search_fields = ('name', 'owner__username')
 
+class NasiyaApplicationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order', 'full_name', 'phone', 'term_months', 'order_total', 'status', 'created_at')
+    list_filter = ('status', 'term_months', 'created_at')
+    list_editable = ('status',)
+    search_fields = ('full_name', 'phone', 'order__id')
+    readonly_fields = ('order', 'created_at', 'updated_at')
+
+    @admin.display(description="Jami summa (so'm)")
+    def order_total(self, obj):
+        return f"{obj.order.get_total_price():,.0f}".replace(',', ' ')
+
+admin.site.register(NasiyaApplication, NasiyaApplicationAdmin)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Store, StoreAdmin)
 admin.site.register(Category, CategoryAdmin)
