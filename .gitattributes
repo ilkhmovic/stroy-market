@@ -1,0 +1,3 @@
+requirements.txt text eol=lf
+*.po text
+*.mo binary

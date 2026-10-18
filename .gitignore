@@ -6,8 +6,6 @@ __pycache__/
 
 # Environment variables
 .env
-.env.example
-!.env.example
 
 # Virtual environments
 venv/
@@ -20,8 +18,14 @@ db.sqlite3
 
 # Media & Static
 media/
+media.zip
 staticfiles/
 static_cdn/
+
+# Secrets / keys (never commit)
+my_ssh_key*
+*.pem
+*.key
 
 # Logs
 *.log
