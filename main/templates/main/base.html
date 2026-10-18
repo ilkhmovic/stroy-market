@@ -5,111 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ArzonMaterial{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: {
+            fontFamily: { sans: ['Onest', 'system-ui', 'sans-serif'] },
+            colors: { blue: { 50:'#FFF4EC',100:'#FFE6D2',200:'#FFCCA6',300:'#FFAA6E',400:'#FF8B3F',500:'#F9731A',600:'#E8590C',700:'#C44708',800:'#7C2D0A',900:'#161A23' } }
+        } } }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Onest', system-ui, sans-serif; }
+        :focus-visible { outline: 2px solid #E8590C; outline-offset: 2px; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    
-    /* ArzonMaterial — refreshed visual system */
-    :root { --am-ink:#17231d; --am-green:#176b4d; --am-lime:#d7f36a; --am-paper:#f7f8f3; --am-muted:#6b756e; }
-    html { scroll-behavior:smooth; }
-    body { font-family:'Inter',sans-serif; background:var(--am-paper)!important; color:var(--am-ink); letter-spacing:-.01em; }
-    body > nav { background:#fff!important; color:var(--am-ink)!important; box-shadow:0 1px 0 rgba(23,35,29,.08)!important; }
-    body > nav a { color:var(--am-ink); }
-    body > nav a:hover { background:#eef4ec!important; }
-    body > nav .text-yellow-400 { color:var(--am-green)!important; }
-    body > nav .bg-blue-900 { background:#fff!important; }
-    body > nav .max-w-7xl { max-width:1440px; }
-    main, #main-content { color:var(--am-ink); }
-    a { transition:color .18s ease,background-color .18s ease,transform .18s ease; }
-    input,select,textarea { border-radius:12px!important; }
-    button, [type=submit] { transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease; }
-    button:hover, [type=submit]:hover { transform:translateY(-1px); }
-    .bg-blue-600 { background-color:var(--am-green)!important; }
-    .text-blue-600 { color:var(--am-green)!important; }
-    .hover\\:text-blue-600:hover { color:var(--am-green)!important; }
-    .border-blue-600 { border-color:var(--am-green)!important; }
-    .ring-blue-500 { --tw-ring-color:var(--am-green)!important; }
-    .shadow-blue-100 { --tw-shadow-color:rgba(23,107,77,.12)!important; }
-    .rounded-3xl { border-radius:22px!important; }
-    .shadow-xl { --tw-shadow:0 12px 35px -22px rgba(23,35,29,.22)!important; box-shadow:var(--tw-shadow)!important; }
-    .bg-gray-50 { background-color:var(--am-paper)!important; }
-    .text-gray-400 { color:#778078!important; }
-    .text-gray-900 { color:var(--am-ink)!important; }
-    .border-gray-50 { border-color:#e9ede6!important; }
-    @media(max-width:640px) {
-      body > nav .h-16 { min-height:64px;height:auto;padding-top:10px;padding-bottom:10px; }
-      body > nav .text-2xl { font-size:1.25rem; }
-    }
-
-
-    /* StroyMarket premium storefront layer */
-    :root { --sm-ink:#20231f; --sm-green:#4b8b2b; --sm-green-dark:#30651d; --sm-lime:#d7f36a; --sm-bg:#f5f6f4; --sm-line:#e7e9e5; --sm-muted:#777e75; }
-    body { background:var(--sm-bg)!important; color:var(--sm-ink)!important; letter-spacing:0!important; }
-    body > nav { position:sticky; top:0; background:#fff!important; color:var(--sm-ink)!important; box-shadow:0 2px 14px rgba(25,35,20,.055)!important; border-bottom:1px solid #edf0eb; }
-    body > nav > div { max-width:1440px!important; }
-    body > nav > div > div { gap:22px; }
-    .am-brand { gap:10px!important; font-size:22px!important; line-height:1; }
-    .am-brand-mark { width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--sm-green);color:white; }
-    .am-brand-mark svg { width:23px;height:23px; }
-    .am-brand-accent { color:var(--sm-green)!important; }
-    .am-header-search { flex:1; min-width:140px; max-width:560px; height:44px; align-items:center; gap:10px; padding:4px 5px 4px 14px; border:1px solid #dfe4dc; background:#f8f9f7; border-radius:13px; }
-    .am-header-search svg { width:19px;height:19px; flex-shrink:0;color:#858d81; }
-    .am-header-search input { flex:1;min-width:0;background:transparent!important;border:0!important;outline:none!important;box-shadow:none!important;font-size:13px!important;color:#242a22!important;padding:8px 0!important; }
-    .am-header-search button { align-self:stretch;background:var(--sm-green);color:white;padding:0 18px;border-radius:10px;font-size:12px;font-weight:750;white-space:nowrap; }
-    body > nav .flex.items-center.gap-2 { gap:5px!important; }
-    body > nav a, body > nav button { border-radius:10px!important; }
-    body > nav a:hover, body > nav button:hover { background:#f1f5ee!important; }
-    body > nav .text-yellow-400 { color:var(--sm-green)!important; }
-    body > nav .bg-yellow-400 { background:var(--sm-green)!important;color:#fff!important; }
-    body > nav .bg-yellow-400:hover { background:var(--sm-green-dark)!important; }
-    main { max-width:1440px!important; padding-top:26px!important; padding-bottom:48px!important; }
-    footer { background:#20271f!important; }
-    footer .text-yellow-400 { color:#b9e38a!important; }
-    .bg-blue-600 { background-color:var(--sm-green)!important; }
-    .hover\\:bg-blue-700:hover { background-color:var(--sm-green-dark)!important; }
-    .text-blue-600 { color:var(--sm-green)!important; }
-    .border-blue-600 { border-color:var(--sm-green)!important; }
-    .ring-blue-500 { --tw-ring-color:var(--sm-green)!important; }
-    .bg-gray-50 { background-color:#f5f6f4!important; }
-    .text-gray-900 { color:#20231f!important; }
-    .text-gray-400 { color:#7b8278!important; }
-    .border-gray-50 { border-color:#eaede8!important; }
-    .rounded-3xl { border-radius:18px!important; }
-    .shadow-xl { --tw-shadow:0 8px 28px -22px rgba(24,35,19,.28)!important; box-shadow:var(--tw-shadow)!important; }
-    input,select,textarea { border-radius:10px!important; }
-    a,button { -webkit-tap-highlight-color:transparent; }
-    @media(max-width:767px) {
-      body > nav > div > div { flex-wrap:wrap;height:auto!important;padding-top:12px;padding-bottom:12px;gap:10px!important; }
-      .am-brand { font-size:19px!important; }
-      body > nav .flex.items-center.gap-2 { flex-wrap:wrap;justify-content:flex-end; }
-      body > nav .text-sm { font-size:11px!important; }
-      main { padding-top:18px!important;padding-left:14px!important;padding-right:14px!important; }
-    }
-    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important;transition:none!important;animation:none!important; } }
-
-</style>
+    </style>
 </head>
-<body class="flex flex-col min-h-screen bg-gray-50">
+<body class="flex flex-col min-h-screen bg-gray-100 text-gray-900">
 
 <!-- NAVBAR -->
-<nav class="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
+<nav class="bg-blue-900 text-white sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
-            <!-- Brand and product search -->
-            <a href="{% url 'marketplace' %}" class="am-brand flex items-center gap-2 text-2xl font-extrabold tracking-tight shrink-0">
-                <span class="am-brand-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6"/></svg></span>
-                <span>Stroy<span class="am-brand-accent">Market</span></span>
+            <!-- Logo -->
+            <a href="{% url 'marketplace' %}" class="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Arzon<span class="text-orange-400">Material</span>
             </a>
-            <form action="{% url 'marketplace' %}" method="get" class="am-header-search hidden md:flex">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m16 16 4 4"/></svg>
-                <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Sement, bo‘yoq, g‘isht va boshqalar..." aria-label="Mahsulot qidirish">
-                <button type="submit">Qidirish</button>
+
+            <!-- Qidiruv -->
+            <form action="{% url 'marketplace' %}" method="get" class="hidden md:flex flex-1 max-w-2xl mx-6" role="search">
+                <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Sement, g'isht, bo'yoq, plitka qidiring..." aria-label="Mahsulot qidirish"
+                    class="w-full h-11 px-4 rounded-l-lg bg-white text-gray-900 text-sm border-0 focus:ring-2 focus:ring-orange-400">
+                <button type="submit" class="h-11 px-6 rounded-r-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition">Qidirish</button>
             </form>
 
             <!-- Nav Links -->
             <div class="flex items-center gap-2">
-                <a href="{% url 'marketplace' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition">Bozor</a>
+                <a href="{% url 'marketplace' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition">Bozor</a>
 
                 {% if user.is_authenticated %}
                     {% if user.is_seller %}
@@ -125,9 +57,9 @@
                                 {% endif %}
                             </button>
                             <!-- Dropdown -->
-                            <div class="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[60] py-2">
+                            <div class="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-sm border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[60] py-2">
                                 <div class="px-4 py-2 border-b border-gray-50 flex justify-between items-center">
-                                    <span class="text-xs font-bold text-gray-900 uppercase tracking-wider">Bildirishnomalar</span>
+                                    <span class="text-xs font-bold text-gray-900  ">Bildirishnomalar</span>
                                     <a href="{% url 'notifications' %}" class="text-[10px] text-blue-600 hover:underline">Hammasi</a>
                                 </div>
                                 <div class="max-h-80 overflow-y-auto custom-scrollbar">
@@ -158,25 +90,25 @@
                             </div>
                         </div>
 
-                        <a href="{% url 'seller_dashboard' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition flex items-center gap-1">
+                        <a href="{% url 'seller_dashboard' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition flex items-center gap-1">
                             📦 Kabinet
                         </a>
-                        <a href="{% url 'seller_reviews' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition flex items-center gap-1">
+                        <a href="{% url 'seller_reviews' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition flex items-center gap-1">
                             💬 Sharhlar
                         </a>
-                        <a href="{% url 'seller_statistics' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition flex items-center gap-1">
+                        <a href="{% url 'seller_statistics' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition flex items-center gap-1">
                             📈 Statistika
                         </a>
 {% else %}
                         <!-- Buying options for buyers -->
                         <div class="flex items-center gap-2">
-                            <a href="{% url 'orders' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition flex items-center gap-1">
+                            <a href="{% url 'orders' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition flex items-center gap-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                                 </svg>
                                 Buyurtmalarim
                             </a>
-                            <a href="{% url 'cart' %}" class="relative px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition flex items-center gap-1">
+                            <a href="{% url 'cart' %}" class="relative px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition flex items-center gap-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
@@ -190,7 +122,7 @@
 
                     <!-- Profile Dropdown -->
                     <div class="relative group">
-                        <button class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition">
+                        <button class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition">
                             {% if user.avatar %}
                                 <img src="{{ user.avatar.url }}" class="w-7 h-7 rounded-full object-cover border-2 border-yellow-400">
                             {% else %}
@@ -231,11 +163,15 @@
                     </div>
 
                 {% else %}
-                    <a href="{% url 'login' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition">Kirish</a>
+                    <a href="{% url 'login' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition">Kirish</a>
                     <a href="{% url 'register' %}" class="px-4 py-2 rounded-lg text-sm font-semibold bg-yellow-400 text-blue-900 hover:bg-yellow-300 transition">Ro'yxatdan o'tish</a>
                 {% endif %}
             </div>
         </div>
+        <form action="{% url 'marketplace' %}" method="get" class="md:hidden flex pb-3" role="search">
+            <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Mahsulot qidirish" aria-label="Mahsulot qidirish" class="w-full h-10 px-4 rounded-l-lg bg-white text-gray-900 text-sm border-0">
+            <button type="submit" class="h-10 px-4 rounded-r-lg bg-blue-600 text-white text-sm font-bold">Qidirish</button>
+        </form>
     </div>
 </nav>
 
@@ -294,7 +230,7 @@
 <!-- ══════════ ANORA AI CHATBOT ══════════ -->
 <div id="anora-chat" class="fixed bottom-6 right-6 z-[9999]">
     <!-- Chat Toggle Button -->
-    <button id="anora-toggle" onclick="toggleAnora()" class="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-full shadow-2xl shadow-blue-500/30 flex items-center justify-center hover:scale-110 hover:shadow-blue-500/50 transition-all duration-500 group relative">
+    <button id="anora-toggle" onclick="toggleAnora()" class="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-full shadow-sm flex items-center justify-center hover:scale-110 hover:shadow-blue-500/50 transition-all duration-500 group relative">
         <!-- Pulse ring -->
         <span class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20"></span>
         <!-- AI Icon -->
@@ -305,11 +241,11 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
         </svg>
         <!-- Badge -->
-        <span id="anora-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-blue-900 text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-lg">AI</span>
+        <span id="anora-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-blue-900 text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">AI</span>
     </button>
 
     <!-- Chat Panel -->
-    <div id="anora-panel" class="hidden absolute bottom-20 right-0 w-[380px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-blue-900/20 border border-white/50 overflow-hidden flex flex-col" style="height: 560px;">
+    <div id="anora-panel" class="hidden absolute bottom-20 right-0 w-[380px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-2xl rounded-2xl shadow-sm border border-white/50 overflow-hidden flex flex-col" style="height: 560px;">
         
         <!-- Header -->
         <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 px-6 py-5 flex items-center gap-4 flex-shrink-0">
@@ -322,8 +258,8 @@
                 <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-blue-700 shadow-sm"></span>
             </div>
             <div class="flex-grow">
-                <h3 class="text-white font-black text-base tracking-wide">Anora</h3>
-                <p class="text-blue-200 text-[10px] font-bold uppercase tracking-[0.15em]">AI Yordamchi • Onlayn</p>
+                <h3 class="text-white font-bold text-base ">Anora</h3>
+                <p class="text-blue-200 text-[10px] font-bold  ">AI Yordamchi • Onlayn</p>
             </div>
             <button onclick="clearAnora()" class="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center text-white/60 hover:bg-white/20 hover:text-white transition" title="Tozalash">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -334,7 +270,7 @@
         <div id="anora-messages" class="flex-grow overflow-y-auto p-5 space-y-4" style="scroll-behavior: smooth;">
             <!-- Welcome message -->
             <div class="flex gap-3 anora-msg">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-lg shadow-blue-200">A</div>
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-lg shadow-blue-200">A</div>
                 <div class="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-700 leading-relaxed">Assalomu alaykum! 👋 Men <strong>Anora</strong> — ArzonMaterial saytining AI yordamchisiman. Sizga qanday yordam bera olaman?</p>
                 </div>
@@ -344,7 +280,7 @@
         <!-- Typing Indicator -->
         <div id="anora-typing" class="hidden px-5 pb-2">
             <div class="flex gap-3 items-center">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0">A</div>
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0">A</div>
                 <div class="bg-gray-50 rounded-2xl px-4 py-3 flex gap-1.5 border border-gray-100">
                     <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
                     <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
@@ -473,7 +409,7 @@
             `;
         } else {
             div.innerHTML = `
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-lg shadow-blue-200">A</div>
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-lg shadow-blue-200">A</div>
                 <div class="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm border border-gray-100">
                     <div class="text-sm text-gray-700 leading-relaxed anora-ai-text">${formatAIText(text)}</div>
                 </div>
@@ -552,7 +488,7 @@
         const container = document.getElementById('anora-messages');
         container.innerHTML = `
             <div class="flex gap-3 anora-msg">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-lg shadow-blue-200">A</div>
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-lg shadow-blue-200">A</div>
                 <div class="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-700 leading-relaxed">Assalomu alaykum! 👋 Men <strong>Anora</strong> — ArzonMaterial saytining AI yordamchisiman. Sizga qanday yordam bera olaman?</p>
                 </div>

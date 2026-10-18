@@ -1,149 +1,38 @@
 {% extends 'main/base.html' %}
-{% block title %}Marketplace - ArzonMaterial
-<style>
-/* Professional marketplace composition */
-.sm-hero{position:relative;display:grid;grid-template-columns:1.06fr .94fr;min-height:390px;overflow:hidden;border-radius:26px;background:#f0f4e9;border:1px solid #e5ebdc;margin:0 0 22px}
-.sm-hero-copy{position:relative;z-index:2;padding:42px 0 28px 42px;display:flex;flex-direction:column;align-items:flex-start}
-.sm-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:10px;font-weight:800;letter-spacing:.13em;color:#557449}
-.sm-eyebrow-dot{width:7px;height:7px;background:#70a94a;border-radius:50%;box-shadow:0 0 0 4px #dce9cf}
-.sm-hero h1{font-size:clamp(28px,3.2vw,43px);line-height:1.12;letter-spacing:-.055em;font-weight:800;color:#202b1d;margin:22px 0 14px}
-.sm-hero h1 span{color:#4c872e}
-.sm-hero-copy>p{font-size:13px;line-height:1.8;color:#687361;max-width:410px;margin:0}
-.sm-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:22px}
-.sm-primary-cta{display:inline-flex;align-items:center;gap:16px;background:#4b8b2b;color:#fff!important;padding:13px 18px;border-radius:11px;font-size:12px;font-weight:750;box-shadow:0 7px 16px #4b8b2b22}
-.sm-primary-cta:hover{background:#30651d!important;transform:translateY(-2px)}
-.sm-primary-cta span{font-size:18px;line-height:12px}
-.sm-hero-note{font-size:10px;color:#63705b;font-weight:650;display:flex;align-items:center;gap:6px}
-.sm-check{display:grid;place-items:center;width:17px;height:17px;background:#dce9cf;border-radius:50%;color:#3e7426}
-.sm-hero-stats{display:flex;gap:26px;margin-top:auto;padding-top:26px}
-.sm-hero-stats div{display:flex;flex-direction:column;gap:4px}
-.sm-hero-stats strong{font-size:12px;color:#33442a}
-.sm-hero-stats span{font-size:10px;color:#7a8572}
-.sm-hero-art{position:relative;min-height:350px;overflow:hidden;background:radial-gradient(ellipse at 55% 48%,#e0eacb 0%,#eaf0de 46%,#f0f4e9 74%)}
-.sm-art-orbit{position:absolute;width:330px;height:330px;left:50%;top:51%;transform:translate(-50%,-50%);border:1px solid #cdddbb;border-radius:50%;box-shadow:0 0 0 28px #e7eedb,0 0 0 29px #d9e5c9}
-.sm-art-building{position:absolute;left:50%;top:51%;transform:translate(-50%,-43%);width:205px;filter:drop-shadow(0 18px 14px #536c3b24)}
-.sm-building-roof{width:0;height:0;margin:auto;border-left:112px solid transparent;border-right:112px solid transparent;border-bottom:82px solid #5e7f42;position:relative}
-.sm-building-roof:after{content:"";position:absolute;left:-88px;top:21px;width:176px;height:4px;background:#7f9b5f;transform:rotate(-36deg);border-radius:5px}
-.sm-building-body{height:132px;background:linear-gradient(90deg,#fffdf5,#e5e9d8);border:1px solid #c9d3b9;display:flex;align-items:center;justify-content:space-evenly;padding:20px 12px 0;position:relative}
-.sm-building-body:before{content:"";position:absolute;top:0;left:0;right:0;height:9px;background:#9bb57d}
-.sm-building-window{width:33px;height:38px;background:#a9c8c9;border:5px solid #fdfcf3;box-shadow:0 0 0 1px #c5d2bd}
-.sm-building-window.second{width:29px}
-.sm-building-door{width:35px;height:66px;align-self:flex-end;background:#8b9d70;border:4px solid #faf9ee;border-bottom:0;border-radius:3px 3px 0 0}
-.sm-building-base{height:12px;background:#a3ad8c;border-bottom:4px solid #778a60}
-.sm-art-block{position:absolute;border-radius:5px;background:linear-gradient(145deg,#d6b48a,#b88e60);box-shadow:0 12px 22px #7e694322}
-.sm-block-one{width:74px;height:53px;right:11%;bottom:17%;transform:rotate(-9deg);background:repeating-linear-gradient(0deg,#c79e71 0 14px,#b88d5f 14px 17px)}
-.sm-block-two{width:49px;height:39px;left:11%;bottom:23%;transform:rotate(8deg);background:repeating-linear-gradient(0deg,#e2c8a2 0 11px,#c6a67d 11px 14px)}
-.sm-art-tag{position:absolute;display:flex;align-items:center;gap:10px;padding:11px 13px;background:#ffffffed;border:1px solid #ffffff;border-radius:13px;box-shadow:0 9px 28px #33432a14;backdrop-filter:blur(8px)}
-.sm-art-tag b{display:block;font-size:10px;color:#34412c}
-.sm-art-tag small{display:block;font-size:9px;color:#8a9381;margin-top:4px}
-.sm-art-tag-top{right:5%;top:14%}
-.sm-art-tag-bottom{left:3%;bottom:12%}
-.sm-tag-icon,.sm-tag-check{display:grid;place-items:center;width:30px;height:30px;flex-shrink:0;border-radius:9px;background:#edf4e4;color:#4b8b2b;font-size:19px}
-.sm-tag-check{background:#4b8b2b;color:white;font-size:14px}
-.sm-art-spark{position:absolute;color:#87a969}
-.sm-spark-one{top:22%;left:17%;font-size:22px}
-.sm-spark-two{right:14%;bottom:27%;font-size:19px}
-.sm-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:38px}
-.sm-benefit{display:flex;align-items:center;gap:12px;padding:16px 18px;background:#fff;border:1px solid #e9ece6;border-radius:15px}
-.sm-benefit-icon{display:grid;place-items:center;flex-shrink:0;width:38px;height:38px;border-radius:12px;background:#f0f5e9;color:#4b8b2b;font-size:23px}
-.sm-benefit b{display:block;font-size:12px;color:#30392b}
-.sm-benefit small{display:block;font-size:10px;color:#858c80;margin-top:4px}
-.sm-catalog-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:0 0 20px}
-.sm-section-kicker{font-size:9px;letter-spacing:.15em;font-weight:800;color:#71925e}
-.sm-catalog-heading h2{font-size:25px;letter-spacing:-.04em;font-weight:800;color:#252b22;margin:7px 0 4px}
-.sm-catalog-heading p{font-size:12px;color:#82887f;margin:0}
-.sm-catalog-pill{padding:9px 13px;border:1px solid #e0e7da;border-radius:999px;background:#fff;color:#607352;font-size:10px;font-weight:700;white-space:nowrap}
-#category-scroll{gap:8px!important;padding:6px 2px 14px!important}
-#category-scroll a{border-radius:10px!important;padding:11px 16px!important;font-size:10px!important;letter-spacing:.045em!important}
-#category-scroll a:not(.bg-blue-600){background:#fff!important;border:1px solid #e7ebe3!important;color:#61695d!important}
-#category-scroll a:not(.bg-blue-600):hover{background:#eff5e9!important;border-color:#cedfc0!important}
-#sm-catalog+.relative{margin-top:0}
-.sm-results-head h2{font-style:normal!important;font-size:20px!important;letter-spacing:-.035em}
-.sm-product-grid{gap:16px!important}
-.sm-product-card{border-radius:16px!important;border:1px solid #e8ebe5!important;box-shadow:0 4px 14px #1b2b1510!important;transition:transform .22s ease,box-shadow .22s ease!important}
-.sm-product-card:hover{transform:translateY(-4px);box-shadow:0 14px 28px #1b2b1518!important}
-.sm-product-image{aspect-ratio:1/1!important;background:#f7f8f5}
-.sm-product-image img{object-fit:contain!important;padding:12px;transition:transform .25s ease!important}
-.sm-product-card:hover .sm-product-image img{transform:scale(1.045)}
-.sm-product-info{padding:15px!important}
-.sm-product-name{font-size:14px!important;line-height:1.45!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px}
-.sm-product-info p.text-2xl{font-size:19px!important;font-style:normal!important;letter-spacing:-.035em!important}
-.sm-product-info .text-xs.line-clamp-2{font-size:11px!important;line-height:1.6!important;margin-bottom:14px!important}
-.sm-product-info .pt-6{padding-top:13px!important}
-.sm-product-info a.w-14{width:40px!important;height:40px!important;border-radius:11px!important;background:#4b8b2b!important}
-.sm-product-info a.w-14:hover{background:#30651d!important;transform:translateY(-2px)!important}
-.sm-product-card .absolute.top-6{top:12px!important;left:12px!important}
-.sm-product-card .absolute.top-6 span{padding:6px 9px!important;font-size:9px!important}
-#filter-form>div{border:1px solid #e8ebe5!important;border-radius:16px!important;box-shadow:0 4px 14px #1b2b1508!important}
-#filter-form h3{font-size:10px!important;letter-spacing:.1em}
-#filter-form button[type=submit]{padding:14px!important;border-radius:12px!important}
-@media(max-width:900px){.sm-hero{grid-template-columns:1fr .8fr}.sm-hero-copy{padding:32px 0 25px 28px}.sm-art-tag-top{right:2%}.sm-hero-stats{gap:14px}.sm-art-orbit{width:260px;height:260px}.sm-building-roof{border-left-width:90px;border-right-width:90px;border-bottom-width:66px}.sm-building-body{height:115px}.sm-art-tag{padding:9px}.sm-art-tag small{max-width:105px}}
-@media(max-width:640px){.sm-hero{grid-template-columns:1fr;border-radius:20px}.sm-hero-copy{padding:27px 22px 22px}.sm-hero h1{font-size:31px;margin:17px 0 10px}.sm-hero-copy>p{font-size:12px;max-width:100%}.sm-hero-actions{gap:12px;margin-top:18px}.sm-hero-stats{width:100%;gap:0;justify-content:space-between;padding-top:22px;margin-top:8px}.sm-hero-stats div{max-width:31%}.sm-hero-stats strong{font-size:11px}.sm-hero-stats span{font-size:9px;line-height:1.4}.sm-hero-art{min-height:255px}.sm-art-orbit{width:220px;height:220px}.sm-art-building{transform:translate(-50%,-43%) scale(.77)}.sm-art-tag-top{right:4%;top:8%}.sm-art-tag-bottom{left:4%;bottom:8%}.sm-art-tag b{font-size:9px}.sm-art-tag small{font-size:8px}.sm-block-one{right:12%;bottom:12%}.sm-block-two{left:13%;bottom:17%}.sm-benefits{grid-template-columns:1fr;gap:8px;margin-bottom:28px}.sm-benefit{padding:12px 14px}.sm-benefit-icon{width:34px;height:34px}.sm-catalog-heading{align-items:flex-start;margin-bottom:15px}.sm-catalog-heading h2{font-size:21px;line-height:1.25}.sm-catalog-heading p{font-size:11px;line-height:1.5}.sm-catalog-pill{display:none}#category-scroll{margin-bottom:4px}.sm-results-head{align-items:flex-start}.sm-results-head h2{font-size:18px!important}.sm-results-head .text-\\[10px\\]{font-size:9px!important}.sm-product-grid{gap:10px!important}.sm-product-info{padding:11px!important}.sm-product-name{font-size:12px!important;min-height:36px}.sm-product-info p.text-2xl{font-size:16px!important}.sm-product-info .pt-6{gap:6px}.sm-product-info a.w-14{width:34px!important;height:34px!important}.sm-product-info a.w-14 svg{width:18px;height:18px}.sm-product-info .text-\\[10px\\]{font-size:9px!important}.sm-product-card .absolute.top-6 span{font-size:8px!important;padding:5px 7px!important}.sm-product-image img{padding:7px}.sm-product-info .text-xs.line-clamp-2{font-size:10px!important;margin-bottom:10px!important}.sm-product-info .pt-6{padding-top:10px!important}}
-@media(prefers-reduced-motion:reduce){.sm-product-card,.sm-product-image img{transition:none!important}}
-</style>
-
-{% endblock %}
+{% block title %}Marketplace - ArzonMaterial{% endblock %}
 {% block content %}
 
-<!-- Storefront hero -->
-<section class="sm-hero">
-  <div class="sm-hero-copy">
-    <span class="sm-eyebrow"><span class="sm-eyebrow-dot"></span> QURILISH UCHUN HAMMASI BIR JOYDA</span>
-    <h1>Orzuyingizdagi uy<br> <span>mustahkam</span> poydevordan boshlanadi.</h1>
-    <p>Sifatli qurilish materiallari, ishonchli sotuvchilar va qulay narxlar — barchasi bitta bozorda.</p>
-    <div class="sm-hero-actions">
-      <a href="#sm-catalog" class="sm-primary-cta">Mahsulotlarni ko‘rish <span aria-hidden="true">↗</span></a>
-      <span class="sm-hero-note"><span class="sm-check">✓</span> Qurilish uchun ishonchli tanlov</span>
-    </div>
-    <div class="sm-hero-stats">
-      <div><strong>Bir joyda</strong><span>Ko‘plab mahsulotlar</span></div>
-      <div><strong>Qulay</strong><span>Taqqoslash va tanlash</span></div>
-      <div><strong>Oson</strong><span>Onlayn buyurtma</span></div>
-    </div>
-  </div>
-  <div class="sm-hero-art" aria-hidden="true">
-    <div class="sm-art-orbit"></div>
-    <div class="sm-art-tag sm-art-tag-top"><span class="sm-tag-icon">✳</span><span><b>Qurilishni boshlang</b><small>Kerakli mahsulotlar shu yerda</small></span></div>
-    <div class="sm-art-building"><div class="sm-building-roof"></div><div class="sm-building-body"><div class="sm-building-window"></div><div class="sm-building-door"></div><div class="sm-building-window second"></div></div><div class="sm-building-base"></div></div>
-    <div class="sm-art-block sm-block-one"></div><div class="sm-art-block sm-block-two"></div>
-    <div class="sm-art-tag sm-art-tag-bottom"><span class="sm-tag-check">✓</span><span><b>To‘g‘ri tanlov</b><small>Uy uchun, ustalar uchun</small></span></div>
-    <span class="sm-art-spark sm-spark-one">✳</span><span class="sm-art-spark sm-spark-two">✦</span>
-  </div>
-</section>
-
-<section class="sm-benefits" aria-label="Xarid afzalliklari">
-  <div class="sm-benefit"><span class="sm-benefit-icon">⌕</span><span><b>Oson qidiruv</b><small>Kerakli mahsulotni tez toping</small></span></div>
-  <div class="sm-benefit"><span class="sm-benefit-icon">◇</span><span><b>Tanlov kengligi</b><small>Turli mahsulot va sotuvchilar</small></span></div>
-  <div class="sm-benefit"><span class="sm-benefit-icon">↗</span><span><b>Qulay xarid</b><small>Buyurtmani bir joyda boshqaring</small></span></div>
-</section>
-
-<div id="sm-catalog" class="sm-catalog-heading"><div><span class="sm-section-kicker">STROY MARKET KATALOGI</span><h2>Qurilish uchun kerakli mahsulotlar</h2><p>Kerakli kategoriyani tanlang va mahsulotlarni solishtiring.</p></div><span class="sm-catalog-pill">Siz uchun qulay tanlov</span></div>
-<!-- Horizontal Categories Bar -->
-<div class="relative group -mt-8 mb-6 border-b-2 border-gray-200">
-    <!-- Left Fade & Arrow -->
-    <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-gray-50/80 to-transparent z-10 flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button onclick="scrollCategories(-200)" class="w-10 h-10 ml-2 rounded-full bg-white/70 backdrop-blur-md shadow-xl border border-white/50 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:scale-110 pointer-events-auto transition-all active:scale-95">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-    </div>
-
-    <!-- Right Fade & Arrow -->
-    <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-gray-50/80 to-transparent z-10 flex items-center justify-end pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button onclick="scrollCategories(200)" class="w-10 h-10 mr-2 rounded-full bg-white/70 backdrop-blur-md shadow-xl border border-white/50 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:scale-110 pointer-events-auto transition-all active:scale-95">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
-        </button>
-    </div>
-    
-    <div id="category-scroll" class="flex gap-1 overflow-x-auto custom-scrollbar scroll-smooth no-scrollbar">
-        <a href="{% url 'marketplace' %}" class="flex-shrink-0 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all duration-300 {% if not current_category %}bg-blue-600 text-white shadow-lg shadow-blue-100{% else %}text-gray-400 hover:text-blue-600 hover:bg-blue-50/50{% endif %}">
-            Barchasi
+<!-- Bosh banner (faqat bosh sahifada) -->
+{% if not current_category and not request.GET.q %}
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <a href="#mahsulotlar" class="lg:col-span-2 rounded-2xl bg-blue-900 text-white p-8 sm:p-10 flex flex-col justify-between min-h-[220px] relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-blue-600/90"></div>
+        <div class="absolute right-24 -top-8 w-32 h-32 rounded-full bg-orange-400/80"></div>
+        <div class="relative max-w-md">
+            <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">Ta'mirga kerakli hamma narsa bir joyda</h1>
+            <p class="mt-3 text-sm text-gray-300">Sement, g'isht, bo'yoq, plitka va asboblar. Do'konlar narxini solishtirib, arzonini tanlang.</p>
+        </div>
+        <span class="relative mt-6 inline-flex w-max items-center px-6 py-3 rounded-lg bg-white text-gray-900 text-sm font-bold">Mahsulotlarni ko'rish</span>
+    </a>
+    <div class="grid grid-rows-2 gap-4">
+        <div class="rounded-2xl bg-white border border-gray-200 p-5">
+            <p class="font-bold text-gray-900">Nasiyaga olish mumkin</p>
+            <p class="mt-1 text-sm text-gray-500">Buyurtma berishda «Nasiya»ni tanlang, menejer siz bilan bog'lanadi.</p>
+        </div>
+        <a href="{% url 'register' %}" class="rounded-2xl bg-blue-50 border border-blue-100 p-5 hover:bg-blue-100 transition">
+            <p class="font-bold text-blue-800">Sotuvchi bo'lmoqchimisiz?</p>
+            <p class="mt-1 text-sm text-blue-800/80">Do'kon oching va mahsulotlaringizni joylang.</p>
         </a>
-        {% for cat in categories %}
-        <a href="?category={{ cat.slug }}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex-shrink-0 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all duration-300 {% if current_category == cat.slug %}bg-blue-600 text-white shadow-lg shadow-blue-100{% else %}text-gray-400 hover:text-blue-600 hover:bg-blue-50/50{% endif %}">
-            {{ cat.name }}
-        </a>
-        {% endfor %}
     </div>
+</section>
+{% endif %}
+
+<!-- Kategoriyalar -->
+<div id="category-scroll" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-6">
+    <a href="{% url 'marketplace' %}" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition {% if not current_category %}bg-blue-600 border-blue-600 text-white{% else %}bg-white border-gray-200 text-gray-700 hover:border-blue-600 hover:text-blue-600{% endif %}">Barchasi</a>
+    {% for cat in categories %}
+    <a href="?category={{ cat.slug }}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition {% if current_category == cat.slug %}bg-blue-600 border-blue-600 text-white{% else %}bg-white border-gray-200 text-gray-700 hover:border-blue-600 hover:text-blue-600{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
 </div>
 
 <div class="flex flex-col lg:flex-row gap-8">
@@ -159,23 +48,23 @@
             <input type="hidden" name="category" value="{{ current_category }}">
 
             <!-- Price Filter Redesign -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-50 p-6">
-                <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest mb-6">Narx (so'm)</h3>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-6">
+                <h3 class="text-xs font-bold text-gray-900   mb-6">Narx (so'm)</h3>
                 <div class="space-y-4">
                     <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">DAN</span>
-                        <input type="number" name="min_price" value="{{ min_price }}" class="w-full bg-gray-50 border-none rounded-2xl pl-12 pr-4 py-3 text-sm font-black text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="0">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">DAN</span>
+                        <input type="number" name="min_price" value="{{ min_price }}" class="w-full bg-gray-50 border-none rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="0">
                     </div>
                     <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">GACHA</span>
-                        <input type="number" name="max_price" value="{{ max_price }}" class="w-full bg-gray-50 border-none rounded-2xl pl-12 pr-4 py-3 text-sm font-black text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="999+">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">GACHA</span>
+                        <input type="number" name="max_price" value="{{ max_price }}" class="w-full bg-gray-50 border-none rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="999+">
                     </div>
                 </div>
             </div>
 
             <!-- Brand Filter -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-50 p-6">
-                <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest mb-6">Brendlar</h3>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-6">
+                <h3 class="text-xs font-bold text-gray-900   mb-6">Brendlar</h3>
                 <div class="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                     {% for brand in brands %}
                     <label class="flex items-center gap-3 group cursor-pointer">
@@ -192,8 +81,8 @@
             </div>
 
             <!-- Delivery Region Filter -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-50 p-6">
-                <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest mb-6">Yetkazib berish hududi</h3>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-6">
+                <h3 class="text-xs font-bold text-gray-900   mb-6">Yetkazib berish hududi</h3>
                 <div class="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                     {% for region in regions %}
                     <label class="flex items-center gap-3 group cursor-pointer">
@@ -210,10 +99,10 @@
             </div>
 
             <div class="space-y-3">
-                <button type="submit" class="w-full py-5 bg-blue-600 text-white rounded-3xl text-xs font-black uppercase tracking-[0.2em] hover:bg-blue-700 hover:translate-y-[-2px] transition-all shadow-xl shadow-blue-100">
+                <button type="submit" class="w-full py-5 bg-blue-600 text-white rounded-2xl text-xs font-bold   hover:bg-blue-700 hover:translate-y-[-2px] transition-all shadow-sm shadow-blue-100">
                     Saralash
                 </button>
-                <a href="{% url 'marketplace' %}" class="block text-center w-full py-4 bg-gray-50 text-gray-400 rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-50 hover:text-red-500 transition-all">
+                <a href="{% url 'marketplace' %}" class="block text-center w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] font-bold   hover:bg-red-50 hover:text-red-500 transition-all">
                     Filtrni tozalash
                 </a>
             </div>
@@ -224,67 +113,50 @@
     <!-- Product Grid -->
     <div class="flex-grow">
         <!-- Results Header -->
-        <div class="flex items-center justify-between mb-6 sm-results-head">
-            <div>
-                <h2 class="text-2xl font-black text-gray-900">Barcha mahsulotlar</h2>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{{ products|length }} ta mahsulot topildi</p>
-            </div>
-            <div class="hidden sm:flex items-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-50 text-xs font-black uppercase tracking-widest text-gray-500">
-                Saralash: <span class="text-blue-600">Eng yangilar</span>
-            </div>
-        </div>
+<div id="mahsulotlar" class="flex items-baseline justify-between mb-4 scroll-mt-24">
+<h2 class="text-xl font-extrabold text-gray-900">{% if request.GET.q %}«{{ request.GET.q }}» bo'yicha natijalar{% else %}Mahsulotlar{% endif %}</h2>
+<p class="text-sm text-gray-500">{{ products|length }} ta mahsulot</p>
+</div>
 
-        {% if products %}
-        <div class="grid grid-cols-2 sm:grid-cols-2 {% if current_category %}xl:grid-cols-3{% else %}xl:grid-cols-4{% endif %} gap-4 sm:gap-5 sm-product-grid">
-            {% for product in products %}
-            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden group hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-500 sm-product-card">
-                <div class="aspect-[4/5] overflow-hidden relative sm-product-image">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                    {% else %}
-                        <div class="w-full h-full bg-gray-50 flex items-center justify-center text-gray-200 uppercase font-black tracking-widest text-xs">Rasm mavjud emas</div>
-                    {% endif %}
-                    
-                    <div class="absolute top-6 left-6 flex flex-col gap-2">
-                        {% if product.is_top %}
-                            <span class="bg-amber-400 text-white text-[9px] font-black px-4 py-1.5 rounded-full shadow-lg shadow-amber-200 uppercase tracking-widest">TOP</span>
-                        {% endif %}
-                        <span class="bg-white/80 backdrop-blur-md text-gray-800 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">{{ product.store.region.name|default:"O'zbekiston" }}</span>
-                    </div>
-                </div>
-                <div class="p-5 sm:p-5 sm-product-info">
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">{{ product.category.name|default:"Umumiy" }}</p>
-                        <div class="flex items-center gap-1 group">
-                             <svg class="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-.135-.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                             <span class="text-[10px] font-black text-gray-400 group-hover:text-amber-500 transition-colors">{{ product.avg_rating }}</span>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-gray-900 text-base mb-2 leading-snug sm-product-name">{{ product.name }}</h3>
-                    <p class="text-gray-400 text-xs line-clamp-2 mb-6 leading-relaxed font-medium">{{ product.description }}</p>
-                    
-                    <div class="flex items-center justify-between pt-6 border-t border-gray-50">
-                        <div>
-                            <p class="text-2xl font-black text-gray-900 italic tracking-tighter">{{ product.price|floatformat:0 }} <span class="text-[10px] font-bold not-italic ml-1">SO'M</span></p>
-                            <p class="text-[9px] font-black text-gray-300 uppercase tracking-[0.2em] mt-1">{{ product.brand.name|default:"No Brand" }}</p>
-                        </div>
-                        <a href="{% url 'product_detail' product.pk %}" class="w-14 h-14 bg-gray-900 text-white rounded-[1.25rem] flex items-center justify-center shadow-2xl shadow-gray-200 hover:bg-blue-600 hover:translate-y-[-4px] hover:rotate-6 transition-all duration-500 group">
-                            <svg class="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="bg-white rounded-[3rem] p-32 text-center border border-gray-50 shadow-sm">
-            <div class="w-24 h-24 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-gray-200">
-                <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
-            <h3 class="text-2xl font-black text-gray-900 italic mb-3">Natija topilmadi</h3>
-            <p class="text-gray-400 max-w-xs mx-auto text-sm font-medium leading-relaxed">Siz tanlagan filtrlar bo'yicha mahsulotlar topilmadi. Iltimos, boshqa parametrlarni sinab ko'ring.</p>
-        </div>
-        {% endif %}
+{% if products %}
+        <div class="grid grid-cols-2 md:grid-cols-3 {% if current_category %}xl:grid-cols-3{% else %}lg:grid-cols-4 xl:grid-cols-5{% endif %} gap-3 sm:gap-4">
+{% for product in products %}
+<a href="{% url 'product_detail' product.pk %}" class="group flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-blue-600 hover:shadow-md transition">
+<div class="aspect-square bg-gray-50 relative overflow-hidden">
+{% if product.image %}
+<img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+{% else %}
+<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">Rasm yo'q</div>
+{% endif %}
+<div class="absolute top-2 left-2 flex flex-col gap-1 items-start">
+{% if product.is_top %}<span class="bg-blue-600 text-white text-[11px] font-bold px-2 py-0.5 rounded">TOP</span>{% endif %}
+{% if product.stock <= 0 %}<span class="bg-gray-900 text-white text-[11px] font-bold px-2 py-0.5 rounded">Tugagan</span>{% endif %}
+</div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-sm text-gray-800 line-clamp-2 min-h-[2.5rem] leading-snug">{{ product.name }}</h3>
+<div class="flex items-center gap-1 mt-1.5 text-xs text-gray-500">
+<svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 00.95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 00-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 00-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 00-.36-1.12L2.98 8.72c-.78-.57-.38-1.81.59-1.81h3.46a1 1 0 00.95-.69l1.07-3.29z"/></svg>
+<span class="font-semibold text-gray-700">{{ product.avg_rating }}</span>
+<span class="truncate">{{ product.store.name }}</span>
+</div>
+<div class="mt-auto pt-3">
+<p class="text-lg font-extrabold text-gray-900 leading-none">{{ product.price|floatformat:0 }} <span class="text-xs font-semibold">so'm</span></p>
+{% if product.price >= 300000 %}
+<p class="mt-1.5 inline-block text-[11px] font-semibold text-blue-800 bg-blue-50 rounded px-1.5 py-0.5">Nasiya: ~{% widthratio product.price 6 1 %} so'm/oy</p>
+{% endif %}
+</div>
+</div>
+</a>
+{% endfor %}
+</div>
+{% else %}
+        <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+<h3 class="text-lg font-bold text-gray-900">Hech narsa topilmadi</h3>
+<p class="text-sm text-gray-500 mt-2">Qidiruv so'zini qisqartiring yoki filtrlarni tozalang.</p>
+<a href="{% url 'marketplace' %}" class="inline-block mt-5 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">Barcha mahsulotlar</a>
+</div>
+{% endif %}
     </div>
 </div>
 
@@ -310,27 +182,6 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-
-    /* Marketplace polish: editorial category strip, calmer cards, better mobile rhythm */
-    #category-scroll { padding:8px 4px 14px; gap:8px!important; border:0!important; }
-    #category-scroll a { border-radius:999px!important; padding:12px 20px!important; letter-spacing:.06em!important; }
-    #category-scroll a:not(.bg-blue-600) { background:#fff!important; border:1px solid #e6ebe4!important; color:#59645c!important; }
-    #category-scroll a:not(.bg-blue-600):hover { background:#edf4ec!important; border-color:#cbdaca!important; }
-    #filter-form > div { border-radius:20px!important; box-shadow:0 8px 28px -24px rgba(23,35,29,.35)!important; }
-    #filter-form h3 { letter-spacing:.08em; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background:#dce4d9!important; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#aebfac!important; }
-    /* Product grid cards are kept compatible with existing Django template logic */
-    .group\/product, .product-card { transition:transform .25s ease,box-shadow .25s ease; }
-    .group\/product:hover, .product-card:hover { transform:translateY(-4px); }
-    .bg-white.rounded-\\[2rem\\], .bg-white.rounded-\\[2\\.5rem\\], .bg-white.rounded-\\[3rem\\] { border:1px solid #e9ede6; box-shadow:0 10px 32px -25px rgba(23,35,29,.3); }
-    .text-2xl.font-black { letter-spacing:-.045em!important; }
-    @media(max-width:640px) {
-      #category-scroll a { padding:10px 15px!important; font-size:10px!important; }
-      .bg-white.rounded-\\[3rem\\].p-32 { padding:3rem 1.5rem!important; }
-      #filter-form { position:static!important; }
-    }
-
 </style>
 
 <script>

@@ -7,7 +7,7 @@ from .models import User, Store, Product, Cart, CartItem, Order, NasiyaApplicati
 class NasiyaCheckoutTests(TestCase):
     def setUp(self):
         seller = User.objects.create_user('sotuvchi', password='x', is_seller=True)
-        store = Store.objects.create(owner=seller, name='Test do\'kon', status='approved')
+        store = Store.objects.create(owner=seller, name='Test do\'kon', status='active')
         self.product = Product.objects.create(store=store, name='Sement', price=50000, stock=100)
         self.manager = User.objects.create_superuser('menejer', password='x')
         self.buyer = User.objects.create_user('xaridor', password='x', is_buyer=True)
@@ -46,3 +46,32 @@ class NasiyaCheckoutTests(TestCase):
     def test_unknown_payment_method_rejected(self):
         self._post(payment_method='bitcoin')
         self.assertEqual(Order.objects.count(), 0)
+
+
+class PagesRenderTests(TestCase):
+    """Dizayn o'zgarganda shablonlar buzilmaganini tekshiradi."""
+    def setUp(self):
+        seller = User.objects.create_user('s', password='x', is_seller=True)
+        store = Store.objects.create(owner=seller, name="Do'kon", status='active')
+        self.p1 = Product.objects.create(store=store, name='Sement M400', price=65000, stock=10, is_top=True)
+        self.p2 = Product.objects.create(store=store, name='Laminat', price=450000, stock=0)
+
+    def test_marketplace_anonymous_and_search(self):
+        r = self.client.get(reverse('marketplace'))
+        self.assertContains(r, 'Sement M400')
+        self.assertContains(r, 'Tugagan')
+        self.assertContains(r, 'Nasiya: ~75000')       # 450000 / 6
+        r = self.client.get(reverse('marketplace'), {'q': 'sement'})
+        self.assertContains(r, 'natijalar')
+        r = self.client.get(reverse('marketplace'), {'q': 'yoq-narsa'})
+        self.assertContains(r, 'Hech narsa topilmadi')
+
+    def test_other_pages_render(self):
+        for name in ('login', 'register'):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200)
+        self.assertEqual(self.client.get(reverse('product_detail', args=[self.p1.pk])).status_code, 200)
+        buyer = User.objects.create_user('b', password='x', is_buyer=True)
+        self.client.login(username='b', password='x')
+        Cart.objects.create(user=buyer)
+        for name in ('cart', 'orders', 'notifications'):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)

@@ -4,66 +4,66 @@
 
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-        <h1 class="text-3xl font-black text-gray-900 mb-2 italic">{{ verbose_name_plural }}</h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2 ">{{ verbose_name_plural }}</h1>
         <p class="text-gray-500">Tizimdagi barcha {{ verbose_name_plural|lower }} ro'yxati</p>
     </div>
-    <a href="{% url 'admin_model_add' model_name %}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition shadow-xl shadow-blue-100 uppercase tracking-widest text-xs">
+    <a href="{% url 'admin_model_add' model_name %}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-sm shadow-blue-100   text-xs">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
         Yangi qo'shish
     </a>
 </div>
 
 <!-- Search Bar -->
-<div class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-50 p-4 mb-8">
+<div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-4 mb-8">
     <form method="GET" class="relative">
         <input type="text" name="q" value="{{ search_query }}" placeholder="Search..." class="w-full bg-gray-50 border-none rounded-2xl px-12 py-4 text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all font-medium placeholder:text-gray-300">
         <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition">Qidirish</button>
+        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold   hover:bg-gray-800 transition">Qidirish</button>
     </form>
 </div>
 
 <!-- Table Card -->
-<div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden">
+<div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-left">
             <thead class="bg-gray-50 border-b border-gray-100">
                 <tr>
-                    <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">ID</th>
+                    <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">ID</th>
                     {% if model_name == 'user' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">User</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Roles</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">User</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Roles</th>
                     {% elif model_name == 'store' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Store</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Owner</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Store</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Owner</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Status</th>
                     {% elif model_name == 'category' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Name</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Slug</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Name</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Slug</th>
                     {% elif model_name == 'product' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Product</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Brand</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Region</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Top</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Product</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Brand</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Region</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Price</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Top</th>
                     {% elif model_name == 'order' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">User</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">User</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Total</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Status</th>
                     {% elif model_name == 'review' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Product</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">User</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Rating</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Product</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">User</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Rating</th>
                     {% elif model_name == 'notification' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">User</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Message</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Read</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">User</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Message</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Read</th>
                     {% elif model_name == 'brand' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Brend</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Slug</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Brend</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Slug</th>
                     {% elif model_name == 'region' %}
-                        <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Viloyat nomi</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400  ">Viloyat nomi</th>
                     {% endif %}
-                    <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                    <th class="px-6 py-4 text-[10px] font-bold text-gray-400   text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -73,21 +73,21 @@
                     
                     {% if model_name == 'user' %}
                         <td class="px-6 py-4">
-                            <p class="font-black text-gray-900">{{ item.username }}</p>
+                            <p class="font-bold text-gray-900">{{ item.username }}</p>
                             <p class="text-[10px] text-gray-500">{{ item.email }}</p>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex gap-1">
-                                {% if item.is_seller %}<span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-[8px] font-black uppercase rounded">Seller</span>{% endif %}
-                                {% if item.is_buyer %}<span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black uppercase rounded">Buyer</span>{% endif %}
-                                {% if item.is_superuser %}<span class="px-2 py-0.5 bg-red-50 text-red-600 text-[8px] font-black uppercase rounded">Super</span>{% endif %}
+                                {% if item.is_seller %}<span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-[8px] font-bold  rounded">Seller</span>{% endif %}
+                                {% if item.is_buyer %}<span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-bold  rounded">Buyer</span>{% endif %}
+                                {% if item.is_superuser %}<span class="px-2 py-0.5 bg-red-50 text-red-600 text-[8px] font-bold  rounded">Super</span>{% endif %}
                             </div>
                         </td>
                     {% elif model_name == 'store' %}
-                        <td class="px-6 py-4 font-black text-gray-900">{{ item.name }}</td>
+                        <td class="px-6 py-4 font-bold text-gray-900">{{ item.name }}</td>
                         <td class="px-6 py-4 text-xs text-gray-600">{{ item.owner.username }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest
+                            <span class="px-3 py-1 rounded-full text-[9px] font-bold  
                                 {% if item.status == 'active' %}bg-green-50 text-green-600
                                 {% elif item.status == 'pending' %}bg-yellow-50 text-yellow-600
                                 {% else %}bg-red-50 text-red-600{% endif %}">
@@ -95,26 +95,26 @@
                             </span>
                         </td>
                     {% elif model_name == 'category' %}
-                        <td class="px-6 py-4 font-black text-gray-900">{{ item.name }}</td>
+                        <td class="px-6 py-4 font-bold text-gray-900">{{ item.name }}</td>
                         <td class="px-6 py-4 text-xs font-mono text-gray-500">{{ item.slug }}</td>
                     {% elif model_name == 'product' %}
                         <td class="px-6 py-4">
-                            <p class="font-black text-gray-900">{{ item.name }}</p>
+                            <p class="font-bold text-gray-900">{{ item.name }}</p>
                             <p class="text-[10px] text-gray-500">{{ item.store.name }}</p>
                         </td>
-                        <td class="px-6 py-4 text-[10px] font-black uppercase text-blue-600 tracking-widest italic">{{ item.brand.name|default:"—" }}</td>
-                        <td class="px-6 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">{{ item.store.region.name|default:"—" }}</td>
-                        <td class="px-6 py-4 font-black text-blue-600">{{ item.price|floatformat:0 }}</td>
+                        <td class="px-6 py-4 text-[10px] font-bold  text-blue-600  ">{{ item.brand.name|default:"—" }}</td>
+                        <td class="px-6 py-4 text-[10px] font-bold  text-gray-400 ">{{ item.store.region.name|default:"—" }}</td>
+                        <td class="px-6 py-4 font-bold text-blue-600">{{ item.price|floatformat:0 }}</td>
                         <td class="px-6 py-4">
                             <a href="{% url 'admin_toggle_top' item.pk %}" class="w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-300 {% if item.is_top %}bg-amber-400 text-white shadow-lg shadow-amber-200{% else %}bg-gray-100 text-gray-300 hover:bg-gray-200{% endif %}">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-.135-.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                             </a>
                         </td>
                     {% elif model_name == 'order' %}
-                        <td class="px-6 py-4 font-black text-gray-900">{{ item.user.username }}</td>
-                        <td class="px-6 py-4 font-black text-blue-600">{{ item.get_total_price|floatformat:0 }}</td>
+                        <td class="px-6 py-4 font-bold text-gray-900">{{ item.user.username }}</td>
+                        <td class="px-6 py-4 font-bold text-blue-600">{{ item.get_total_price|floatformat:0 }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest
+                            <span class="px-3 py-1 rounded-full text-[9px] font-bold  
                                 {% if item.status == 'delivered' %}bg-green-50 text-green-600
                                 {% elif item.status == 'cancelled' %}bg-red-50 text-red-600
                                 {% else %}bg-blue-50 text-blue-600{% endif %}">
@@ -122,11 +122,11 @@
                             </span>
                         </td>
                     {% elif model_name == 'review' %}
-                        <td class="px-6 py-4 text-xs font-black text-gray-900 truncate max-w-[150px]">{{ item.product.name }}</td>
+                        <td class="px-6 py-4 text-xs font-bold text-gray-900 truncate max-w-[150px]">{{ item.product.name }}</td>
                         <td class="px-6 py-4 text-xs text-gray-600">{{ item.user.username }}</td>
-                        <td class="px-6 py-4 text-amber-500 font-black">{{ item.rating }}★</td>
+                        <td class="px-6 py-4 text-amber-500 font-bold">{{ item.rating }}★</td>
                     {% elif model_name == 'notification' %}
-                        <td class="px-6 py-4 text-xs font-black text-gray-900">{{ item.user.username }}</td>
+                        <td class="px-6 py-4 text-xs font-bold text-gray-900">{{ item.user.username }}</td>
                         <td class="px-6 py-4 text-xs text-gray-600 truncate max-w-[200px]">{{ item.message }}</td>
                         <td class="px-6 py-4">
                             {% if item.is_read %}
@@ -136,10 +136,10 @@
                             {% endif %}
                         </td>
                     {% elif model_name == 'brand' %}
-                        <td class="px-6 py-4 font-black text-gray-900">{{ item.name }}</td>
+                        <td class="px-6 py-4 font-bold text-gray-900">{{ item.name }}</td>
                         <td class="px-6 py-4 text-xs font-mono text-gray-500">{{ item.slug }}</td>
                     {% elif model_name == 'region' %}
-                        <td class="px-6 py-4 font-black text-gray-900">{{ item.name }}</td>
+                        <td class="px-6 py-4 font-bold text-gray-900">{{ item.name }}</td>
                     {% endif %}
 
                     <td class="px-6 py-4 text-right">

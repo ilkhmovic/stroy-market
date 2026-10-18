@@ -13,13 +13,13 @@
     <!-- Order Details -->
     <div class="lg:col-span-2 space-y-6">
         <!-- Status & Main Info -->
-        <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 p-8 italic">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-8 ">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h2 class="text-2xl font-black text-gray-900">Buyurtma #{{ order.pk }}</h2>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">{{ order.created_at|date:"d.m.Y H:i" }}</p>
+                    <h2 class="text-2xl font-bold text-gray-900">Buyurtma #{{ order.pk }}</h2>
+                    <p class="text-[10px] font-bold text-gray-400   mt-1">{{ order.created_at|date:"d.m.Y H:i" }}</p>
                 </div>
-                <span class="inline-flex items-center px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest 
+                <span class="inline-flex items-center px-6 py-2 rounded-full text-[10px] font-bold   
                     {% if order.status == 'pending' %}bg-yellow-50 text-yellow-600
                     {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-600
                     {% elif order.status == 'shipping' %}bg-purple-50 text-purple-600
@@ -31,24 +31,24 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
                 <div class="space-y-1">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Yetkazib berish manzili</p>
+                    <p class="text-[10px] font-bold text-gray-400  ">Yetkazib berish manzili</p>
                     <p class="font-bold text-gray-700 leading-relaxed">{{ order.address }}</p>
                 </div>
                 <div class="space-y-1">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">To'lov turi</p>
-                    <p class="font-bold text-gray-700 uppercase tracking-widest">{{ order.get_payment_method_display }}</p>
+                    <p class="text-[10px] font-bold text-gray-400  ">To'lov turi</p>
+                    <p class="font-bold text-gray-700  ">{{ order.get_payment_method_display }}</p>
                 </div>
                 {% if order.payment_method == 'nasiya' and order.nasiya %}
                 <div class="col-span-full p-4 bg-blue-50 border border-blue-100 rounded-2xl space-y-1">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Nasiya arizasi</p>
+                    <p class="text-[10px] font-bold text-blue-400  ">Nasiya arizasi</p>
                     <p class="font-bold text-gray-700">{{ order.nasiya.get_term_months_display }} &middot; taxminan {{ order.nasiya.monthly_payment|floatformat:0 }} so'm/oy</p>
                     <p class="text-xs text-gray-600">Holati: <b>{{ order.nasiya.get_status_display }}</b>. Menejerimiz {{ order.nasiya.phone }} raqamiga qo'ng'iroq qiladi.</p>
                 </div>
                 {% endif %}
                 {% if order.note %}
                 <div class="col-span-full space-y-1">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Izoh</p>
-                    <p class="font-bold text-gray-700 italic">"{{ order.note }}"</p>
+                    <p class="text-[10px] font-bold text-gray-400  ">Izoh</p>
+                    <p class="font-bold text-gray-700 ">"{{ order.note }}"</p>
                 </div>
                 {% endif %}
             </div>
@@ -56,17 +56,17 @@
 
         <!-- Grouped Items by Store -->
         <div class="space-y-6">
-            <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] px-4 italic">Mahsulotlar (Do'konlar bo'yicha)</h3>
+            <h3 class="text-xs font-bold text-gray-400   px-4 ">Mahsulotlar (Do'konlar bo'yicha)</h3>
             
             {% for data in stores_data %}
-            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
                 <!-- Store Header -->
                 <div class="px-8 py-6 bg-gray-50 flex items-center justify-between border-b border-gray-100">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm italic">{{ data.store.name|first|upper }}</div>
+                        <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-sm ">{{ data.store.name|first|upper }}</div>
                         <div>
-                            <p class="text-sm font-black text-gray-900">{{ data.store.name }}</p>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ data.items|length }} ta mahsulot</p>
+                            <p class="text-sm font-bold text-gray-900">{{ data.store.name }}</p>
+                            <p class="text-[10px] text-gray-400 font-bold  ">{{ data.items|length }} ta mahsulot</p>
                         </div>
                     </div>
                 </div>
@@ -79,14 +79,14 @@
                             {% if item.product.image %}
                                 <img src="{{ item.product.image.url }}" class="w-16 h-16 object-cover rounded-2xl shadow-lg shadow-blue-900/5">
                             {% else %}
-                                <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 italic text-[10px] font-black">NO IMAGE</div>
+                                <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300  text-[10px] font-bold">NO IMAGE</div>
                             {% endif %}
                             <div>
-                                <p class="font-black text-gray-900 italic leading-tight mb-1">{{ item.product_name }}</p>
-                                <p class="text-[10px] text-gray-400 font-bold tracking-[0.1em] uppercase">{{ item.quantity }} dona × {{ item.price|floatformat:0 }} so'm</p>
+                                <p class="font-bold text-gray-900  leading-tight mb-1">{{ item.product_name }}</p>
+                                <p class="text-[10px] text-gray-400 font-bold  ">{{ item.quantity }} dona × {{ item.price|floatformat:0 }} so'm</p>
                                 
                                 <div class="mt-2 flex items-center gap-2">
-                                    <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border
+                                    <span class="text-[9px] font-bold   px-3 py-1 rounded-full border
                                         {% if item.status == 'pending' %}bg-yellow-50 text-yellow-600 border-yellow-100
                                         {% elif item.status == 'shipped' %}bg-blue-50 text-blue-600 border-blue-100
                                         {% elif item.status == 'delivered' %}bg-green-50 text-green-600 border-green-100
@@ -94,17 +94,17 @@
                                         {{ item.get_status_display }}
                                     </span>
                                     {% if item.buyer_confirmed %}
-                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">Xaridor tasdiqladi</span>
+                                    <span class="text-[10px] font-bold   px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">Xaridor tasdiqladi</span>
                                     {% elif item.status == 'pending' %}
-                                    <a href="{% url 'cancel_order_item' item.pk %}" onclick="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')" class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">Bekor qilish</a>
+                                    <a href="{% url 'cancel_order_item' item.pk %}" onclick="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')" class="text-[9px] font-bold   px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">Bekor qilish</a>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="text-xl font-black text-gray-900 italic tracking-tighter">{{ item.get_total_price|floatformat:0 }} <span class="text-[10px] font-bold not-italic">SO'M</span></p>
+                            <p class="text-xl font-bold text-gray-900  tracking-tighter">{{ item.get_total_price|floatformat:0 }} <span class="text-[10px] font-bold ">SO'M</span></p>
                             {% if item.buyer_confirmed and item.product %}
-                            <a href="{% url 'add_review' item.product.pk %}" class="mt-3 inline-flex items-center gap-2 text-[9px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-800 transition">
+                            <a href="{% url 'add_review' item.product.pk %}" class="mt-3 inline-flex items-center gap-2 text-[9px] font-bold text-blue-600   hover:text-blue-800 transition">
                                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 Sharh qoldirish
                             </a>
@@ -117,8 +117,8 @@
                 <!-- Store Specific Confirmation Button -->
                 {% if data.can_confirm %}
                 <div class="p-8 bg-blue-50/30 border-t border-gray-100 text-center sm:text-left">
-                    <p class="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-4 italic">Ushbu do'kon mahsulotlari keldimi?</p>
-                    <a href="{% url 'confirm_store_receipt' order.pk data.store.pk %}" class="inline-flex items-center gap-2 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.2em] px-8 py-4 rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 hover:translate-y-[-2px] transition-all duration-300">
+                    <p class="text-[10px] font-bold text-blue-900   mb-4 ">Ushbu do'kon mahsulotlari keldimi?</p>
+                    <a href="{% url 'confirm_store_receipt' order.pk data.store.pk %}" class="inline-flex items-center gap-2 bg-blue-600 text-white font-bold text-[10px]   px-8 py-4 rounded-2xl shadow-sm shadow-blue-100 hover:bg-blue-700 hover:translate-y-[-2px] transition-all duration-300">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                         Qabul qildim
                     </a>
@@ -128,7 +128,7 @@
                     <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <p class="text-[10px] font-black text-green-600 uppercase tracking-widest italic">Ushbu do'kon bo'yicha buyurtma to'liq tasdiqlangan</p>
+                    <p class="text-[10px] font-bold text-green-600   ">Ushbu do'kon bo'yicha buyurtma to'liq tasdiqlangan</p>
                 </div>
                 {% endif %}
             </div>
@@ -138,43 +138,43 @@
 
     <!-- Summary Sidebar -->
     <div class="lg:col-span-1">
-        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-gray-50 p-8 sticky top-24 italic">
-            <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Xulosa</h3>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-8 sticky top-24 ">
+            <h3 class="text-xs font-bold text-gray-400   mb-8">Xulosa</h3>
             
             <div class="space-y-6 text-sm mb-8">
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
-                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mahsulotlar</span>
-                    <span class="font-black text-gray-900">{{ order.get_total_price|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
+                    <span class="text-[10px] font-bold text-gray-400  ">Mahsulotlar</span>
+                    <span class="font-bold text-gray-900">{{ order.get_total_price|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
                 </div>
                 <div class="flex justify-between items-center bg-green-50/50 p-4 rounded-2xl">
-                    <span class="text-[10px] font-black text-green-600 uppercase tracking-widest">Yetkazib berish</span>
-                    <span class="font-black text-green-600 text-[10px] uppercase tracking-widest">BEPUL</span>
+                    <span class="text-[10px] font-bold text-green-600  ">Yetkazib berish</span>
+                    <span class="font-bold text-green-600 text-[10px]  ">BEPUL</span>
                 </div>
                 {% if order.penalty_amount > 0 %}
                 <div class="flex justify-between items-center bg-red-50 p-4 rounded-2xl border border-red-100">
                     <div class="flex flex-col">
-                        <span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Jarima summasi</span>
-                        <span class="text-[8px] text-red-400 font-bold uppercase tracking-widest">(Naqd pulda bekor qilingani uchun)</span>
+                        <span class="text-[10px] font-bold text-red-600  ">Jarima summasi</span>
+                        <span class="text-[8px] text-red-400 font-bold  ">(Naqd pulda bekor qilingani uchun)</span>
                     </div>
-                    <span class="font-black text-red-600">{{ order.penalty_amount|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
+                    <span class="font-bold text-red-600">{{ order.penalty_amount|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
                 </div>
                 {% endif %}
             </div>
 
             <div class="pt-8 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">Jami to'lanadigan</span>
-                <span class="text-3xl font-black text-blue-700 italic tracking-tighter">{{ order.get_total_price|add:order.penalty_amount|floatformat:0 }} <span class="text-xs">SO'M</span></span>
+                <span class="text-xs font-bold text-gray-900  ">Jami to'lanadigan</span>
+                <span class="text-3xl font-bold text-blue-700  tracking-tighter">{{ order.get_total_price|add:order.penalty_amount|floatformat:0 }} <span class="text-xs">SO'M</span></span>
             </div>
 
             {% if order.buyer_confirmed %}
             <div class="mt-8 p-4 bg-blue-900 text-white rounded-2xl text-center">
-                <p class="text-[10px] font-black uppercase tracking-widest">To'liq tasdiqlangan</p>
+                <p class="text-[10px] font-bold  ">To'liq tasdiqlangan</p>
             </div>
             {% elif order.status == 'pending' or order.status == 'confirmed' %}
                 {% if order.items.all %}
                     {# Check if there are any pending items to show the bulk cancel button #}
                     <div class="mt-8">
-                        <button onclick="confirmCancel()" class="w-full py-4 bg-red-50 text-red-600 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
+                        <button onclick="confirmCancel()" class="w-full py-4 bg-red-50 text-red-600 font-bold text-[10px]   rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
                             Kutilayotganlarni bekor qilish
                         </button>
                     </div>
@@ -190,12 +190,12 @@
 
             <!-- Mini Timeline -->
             <div class="mt-12 space-y-4">
-                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-6">Buyurtma xaritasi</p>
+                <p class="text-[10px] font-bold text-gray-300   mb-6">Buyurtma xaritasi</p>
                 {% for label, status_key in order.STATUS_CHOICES %}
                 <div class="flex items-center gap-4 group">
                     <div class="w-1.5 h-1.5 rounded-full transition-all duration-500 
                         {% if order.status == status_key %}bg-blue-600 scale-150 shadow-[0_0_10px_rgba(37,99,235,0.5)]{% else %}bg-gray-200{% endif %}"></div>
-                    <span class="text-[10px] font-black uppercase tracking-widest 
+                    <span class="text-[10px] font-bold   
                         {% if order.status == status_key %}text-gray-900{% else %}text-gray-300{% endif %}">{{ label }}</span>
                 </div>
                 {% endfor %}

@@ -5,9 +5,9 @@
 <div class="flex flex-col lg:flex-row gap-8 min-h-[600px]">
     <!-- Admin Sidebar -->
     <div class="w-full lg:w-64 flex-shrink-0">
-        <div class="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-gray-50 overflow-hidden sticky top-24">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden sticky top-24">
             <div class="p-6 border-b border-gray-50 bg-gradient-to-r from-blue-600 to-indigo-700">
-                <h3 class="text-white font-black uppercase tracking-widest text-xs">Boshqaruv</h3>
+                <h3 class="text-white font-bold   text-xs">Boshqaruv</h3>
             </div>
             <nav class="p-4 space-y-2">
                 <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
@@ -16,7 +16,7 @@
                 </a>
                 
                 <div class="pt-4 pb-2">
-                    <p class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Modellar</p>
+                    <p class="px-4 text-[10px] font-bold text-gray-400   mb-2">Modellar</p>
                 </div>
 
                 <a href="{% url 'admin_model_list' 'user' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'user' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
