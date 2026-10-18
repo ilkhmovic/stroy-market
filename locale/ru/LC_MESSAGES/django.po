@@ -1,0 +1,1076 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: stroy-market\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(Naqd pulda bekor qilingani uchun)"
+msgstr "(за отмену при оплате наличными)"
+
+msgid "+ Mahsulot qo'shish"
+msgstr "+ Добавить товар"
+
+msgid "1 kun ichida"
+msgstr "в течение 1 дня"
+
+msgid "100,000 so'm"
+msgstr "100 000 сум"
+
+msgid "12 oy"
+msgstr "12 мес."
+
+msgid "3 oy"
+msgstr "3 мес."
+
+msgid "30 Kun"
+msgstr "30 дней"
+
+msgid "6 oy"
+msgstr "6 мес."
+
+msgid "7 Kun"
+msgstr "7 дней"
+
+msgid "90 Kun"
+msgstr "90 дней"
+
+msgid "AI Yordamchi • Onlayn"
+msgstr "ИИ-помощник • Онлайн"
+
+msgid "Admin Panel"
+msgstr "Админ-панель"
+
+msgid ""
+"Afsuski, sizning do'koningizni tasdiqlash so'rovi rad etildi. Qo'shimcha "
+"ma'lumot olish uchun biz bilan bog'laning."
+msgstr ""
+"К сожалению, заявка на подтверждение вашего магазина отклонена. Свяжитесь с "
+"нами для получения подробностей."
+
+msgid "Agar buyurtma summasi 1,000,000 so'mdan kam bo'lsa:"
+msgstr "Если сумма заказа меньше 1 000 000 сум:"
+
+msgid "Agar buyurtma summasi 1,000,000 so'mdan ko'p bo'lsa:"
+msgstr "Если сумма заказа больше 1 000 000 сум:"
+
+msgid "Akkaunt turini tanlang va ma'lumotlaringizni kiriting"
+msgstr "Выберите тип аккаунта и введите свои данные"
+
+msgid "Akkauntingiz yo'qmi?"
+msgstr "Нет аккаунта?"
+
+msgid "Aktiv mahsulotlar"
+msgstr "Активные товары"
+
+msgid "Allaqachon akkauntingiz bormi?"
+msgstr "Уже есть аккаунт?"
+
+msgid "Aloqa"
+msgstr "Контакты"
+
+msgid "Amallar"
+msgstr "Действия"
+
+msgid "Anora • Gemini AI bilan ishlaydi"
+msgstr "Anora • работает на Gemini AI"
+
+msgid "Anoraga yozing..."
+msgstr "Напишите Аноре..."
+
+msgid ""
+"Ariza ko'rib chiqilguncha buyurtma «Kutilmoqda» holatida turadi. Nasiya "
+"tasdiqlanishi kafolatlanmagan."
+msgstr ""
+"Пока заявка рассматривается, заказ будет в статусе «Ожидает». Одобрение "
+"рассрочки не гарантируется."
+
+msgid "Assalomu alaykum! 👋 Men"
+msgstr "Здравствуйте! 👋 Я"
+
+msgid "BEPUL"
+msgstr "БЕСПЛАТНО"
+
+msgid "Ball ("
+msgstr "Балл ("
+
+msgid "Barcha bildirishnomalar ro'yxati"
+msgstr "Список всех уведомлений"
+
+msgid "Barcha mahsulotlar"
+msgstr "Все товары"
+
+msgid "Barchasi"
+msgstr "Все"
+
+msgid "Bekor qilindi"
+msgstr "Отменён"
+
+msgid "Bekor qilish"
+msgstr "Отмена"
+
+msgid "Bepul"
+msgstr "Бесплатно"
+
+msgid "Bildirishnomalar"
+msgstr "Уведомления"
+
+msgid "Birinchi mahsulotni qo'shish →"
+msgstr "Добавить первый товар →"
+
+msgid "Bo'lib to'lash"
+msgstr "Оплата частями"
+
+msgid "Bo'sh qoldirsangiz, o'zbekcha matn ko'rsatiladi."
+msgstr "Если оставить пустым, будет показан узбекский текст."
+
+msgid "Bog'lanildi"
+msgstr "Связались"
+
+msgid "Boshqa tillar (ixtiyoriy)"
+msgstr "Другие языки (необязательно)"
+
+msgid "Boshqaruv paneli"
+msgstr "Панель управления"
+
+msgid "Bozor"
+msgstr "Маркет"
+
+msgid "Bozordan mahsulotlar qo'shing"
+msgstr "Добавьте товары из маркета"
+
+msgid "Bozorga o'tish"
+msgstr "Перейти в маркет"
+
+msgid "Bozorga qaytish"
+msgstr "Вернуться в маркет"
+
+msgid "Bozorni ko'ring"
+msgstr "Смотреть маркет"
+
+msgid "Brend (ixtiyoriy)"
+msgstr "Бренд (необязательно)"
+
+msgid "Brend:"
+msgstr "Бренд:"
+
+msgid "Brendlar"
+msgstr "Бренды"
+
+msgid ""
+"Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q."
+msgstr "Этот заказ нельзя отменить, или в нём нет ожидающих товаров."
+
+msgid "Bu do'kondan mahsulot topilmadi."
+msgstr "Товары этого магазина не найдены."
+
+msgid "Buyurtma #"
+msgstr "Заказ №"
+
+msgid "Buyurtma berish"
+msgstr "Оформить заказ"
+
+msgid "Buyurtma berishda «Nasiya»ni tanlang, menejer siz bilan bog'lanadi."
+msgstr "При оформлении выберите «Рассрочка», и менеджер свяжется с вами."
+
+msgid "Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi."
+msgstr "Заказ успешно принят! Продавцы уведомлены."
+
+msgid ""
+"Buyurtma va nasiya arizangiz qabul qilindi! Menejerimiz tez orada telefon "
+"orqali bog'lanadi."
+msgstr ""
+"Ваш заказ и заявка на рассрочку приняты! Менеджер скоро свяжется с вами по "
+"телефону."
+
+msgid "Buyurtma xaritasi"
+msgstr "Карта заказа"
+
+msgid "Buyurtma xulosasi"
+msgstr "Итого по заказу"
+
+msgid "Buyurtmalar"
+msgstr "Заказы"
+
+msgid "Buyurtmalar Soni"
+msgstr "Количество заказов"
+
+msgid "Buyurtmalar hali mavjud emas"
+msgstr "Заказов пока нет"
+
+msgid "Buyurtmalar yo'q"
+msgstr "Заказов нет"
+
+msgid "Buyurtmalarim"
+msgstr "Мои заказы"
+
+msgid "Buyurtmalarimga qaytish"
+msgstr "Вернуться к моим заказам"
+
+msgid "Buyurtmani asossiz bekor qilganingizda jarima qo'llaniladi."
+msgstr "При необоснованной отмене заказа применяется штраф."
+
+msgid "Buyurtmani rasmiylashtirish"
+msgstr "Оформление заказа"
+
+msgid "Buyurtmani tasdiqla"
+msgstr "Подтвердить заказ"
+
+msgid ""
+"Buyurtmani tasdiqlagandan so'ng, sotuvchi bu buyurtmani tasdiqlay samida "
+"yetkazib berishni boshlaydi."
+msgstr "После подтверждения заказа продавец подтвердит его и начнёт доставку."
+
+msgid "Checkout"
+msgstr "Оформление заказа"
+
+msgid "Chiqish"
+msgstr "Выйти"
+
+msgid "DAN"
+msgstr "ОТ"
+
+msgid "DONA"
+msgstr "ШТ."
+
+msgid "Dashboardga qaytish"
+msgstr "Вернуться в кабинет"
+
+msgid "Do'kon hali yaratilmagan"
+msgstr "Магазин ещё не создан"
+
+msgid "Do'kon logosi"
+msgstr "Логотип магазина"
+
+msgid "Do'kon ma'lumotlari yangilandi!"
+msgstr "Данные магазина обновлены!"
+
+msgid "Do'kon ma'lumotlarini tahrirlash"
+msgstr "Редактирование данных магазина"
+
+msgid "Do'kon manzili"
+msgstr "Адрес магазина"
+
+msgid "Do'kon muvaffaqiyatli yaratildi va tasdiqlash uchun yuborildi."
+msgstr "Магазин создан и отправлен на подтверждение."
+
+msgid "Do'kon nomi"
+msgstr "Название магазина"
+
+msgid "Do'kon nomi *"
+msgstr "Название магазина *"
+
+msgid "Do'kon oching va mahsulotlaringizni joylang."
+msgstr "Откройте магазин и разместите свои товары."
+
+msgid "Do'kon ochish"
+msgstr "Открыть магазин"
+
+msgid "Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting."
+msgstr "Перед открытием магазина укажите ИНН и номер телефона."
+
+msgid "Do'kon profili"
+msgstr "Профиль магазина"
+
+msgid "Do'kon tavsifi"
+msgstr "Описание магазина"
+
+msgid "Do'kon yaratish"
+msgstr "Создание магазина"
+
+msgid "Do'kon:"
+msgstr "Магазин:"
+
+msgid "Do'koningiz haqida qisqacha ma'lumot..."
+msgstr "Кратко о вашем магазине..."
+
+msgid "Do'koningiz haqida..."
+msgstr "О вашем магазине..."
+
+msgid "Do'koningiz ma'lumotlarini kiriting"
+msgstr "Введите данные вашего магазина"
+
+msgid "Do'koningiz samaradorligini tahlil qiling"
+msgstr "Анализируйте эффективность вашего магазина"
+
+msgid "Do'koningizga yangi mahsulot qo'shing"
+msgstr "Добавьте новый товар в ваш магазин"
+
+msgid "Eng Xaridorgir To'rtlik"
+msgstr "Топ-4 по спросу"
+
+msgid "Eng Yuqori Reytinglar"
+msgstr "Самые высокие рейтинги"
+
+msgid "F.I.Sh. *"
+msgstr "Ф.И.О. *"
+
+msgid "Familiya"
+msgstr "Фамилия"
+
+msgid "Familiya Ism Sharif"
+msgstr "Фамилия Имя Отчество"
+
+msgid "Familiya va ismingizni to'liq kiriting."
+msgstr "Введите фамилию и имя полностью."
+
+msgid "Familiyangiz"
+msgstr "Ваша фамилия"
+
+msgid "Faol"
+msgstr "Активен"
+
+msgid "Fikr bildirish"
+msgstr "Оставить отзыв"
+
+msgid ""
+"Fikr bildirish uchun avval bu mahsulotni sotib olishingiz va u yetkazib "
+"berilishi kerak!"
+msgstr "Чтобы оставить отзыв, нужно сначала купить этот товар и получить его!"
+
+msgid "Fikrlar hali yo'q"
+msgstr "Отзывов пока нет"
+
+msgid "Filtrni tozalash"
+msgstr "Сбросить фильтры"
+
+msgid "GACHA"
+msgstr "ДО"
+
+msgid "Ha, o'chirilsin"
+msgstr "Да, удалить"
+
+msgid "Hali buyurtma bermadingiz"
+msgstr "Вы ещё не делали заказов"
+
+msgid "Hali mahsulot qo'shilmagan"
+msgstr "Товары ещё не добавлены"
+
+msgid "Hammasi"
+msgstr "Все"
+
+msgid "Havolalar"
+msgstr "Ссылки"
+
+msgid "Hech narsa topilmadi"
+msgstr "Ничего не найдено"
+
+msgid "Holati:"
+msgstr "Статус:"
+
+msgid "Holati: Kutilmoqda..."
+msgstr "Статус: ожидает..."
+
+msgid "Hozir javob bera olmayman. Birozdan so'ng qayta urinib ko'ring."
+msgstr "Сейчас я не могу ответить. Попробуйте чуть позже."
+
+msgid "Hozircha sharhlar yo'q"
+msgstr "Пока нет отзывов"
+
+msgid "Hozircha xabarlar yo'q"
+msgstr "Пока нет сообщений"
+
+msgid "Hozirgi rasm"
+msgstr "Текущее фото"
+
+msgid "Ish joyi (ixtiyoriy)"
+msgstr "Место работы (необязательно)"
+
+msgid "Ism"
+msgstr "Имя"
+
+msgid "Ismingiz"
+msgstr "Ваше имя"
+
+msgid "Izoh"
+msgstr "Комментарий"
+
+msgid "Izoh (ixtiyoriy)"
+msgstr "Комментарий (необязательно)"
+
+msgid "Jami"
+msgstr "Итого"
+
+msgid "Jami mahsulotlar"
+msgstr "Всего товаров"
+
+msgid "Jami to'lanadigan"
+msgstr "Всего к оплате"
+
+msgid "Jami:"
+msgstr "Итого:"
+
+msgid "Jarima summasi"
+msgstr "Сумма штрафа"
+
+msgid "Javob berish"
+msgstr "Ответить"
+
+msgid "Javob matnini kiriting."
+msgstr "Введите текст ответа."
+
+msgid "Javobingiz muvaffaqiyatli saqlandi!"
+msgstr "Ваш ответ сохранён!"
+
+msgid "Jo'natildi"
+msgstr "Отправлен"
+
+msgid "Karta"
+msgstr "Карта"
+
+msgid "Kirish"
+msgstr "Войти"
+
+msgid "Ko'cha, uy raqami, xonadon..."
+msgstr "Улица, дом, квартира..."
+
+msgid "Kunlik daromad"
+msgstr "Дневной доход"
+
+msgid "Kutilayotgan mahsulotlar bekor qilindi."
+msgstr "Ожидающие товары отменены."
+
+msgid "Kutilayotganlarni bekor qilish"
+msgstr "Отменить ожидающие"
+
+msgid "Kutilmoqda"
+msgstr "Ожидает"
+
+msgid "Ma'lumotlar yo'q"
+msgstr "Нет данных"
+
+msgid ""
+"Ma'lumotlaringiz menejerga yuboriladi, u siz bilan telefon orqali bog'lanib,"
+" shartlarni kelishadi va rasmiylashtiradi. Pasport raqami va boshqa maxfiy "
+"ma'lumotlar saytda so'ralmaydi."
+msgstr ""
+"Ваши данные будут отправлены менеджеру: он свяжется с вами по телефону, "
+"согласует условия и оформит рассрочку. Номер паспорта и другие "
+"конфиденциальные данные на сайте не запрашиваются."
+
+msgid "Ma'lumotlaringiz yangilandi!"
+msgstr "Ваши данные обновлены!"
+
+msgid "Mahsulot"
+msgstr "Товар"
+
+msgid "Mahsulot haqida"
+msgstr "О товаре"
+
+msgid "Mahsulot haqida qo'shimcha ma'lumot..."
+msgstr "Дополнительная информация о товаре..."
+
+msgid "Mahsulot ma'lumotlarini yangilang"
+msgstr "Обновите данные о товаре"
+
+msgid "Mahsulot nomi *"
+msgstr "Название товара *"
+
+msgid "Mahsulot qidirish"
+msgstr "Поиск товаров"
+
+msgid "Mahsulot qo'shish"
+msgstr "Добавить товар"
+
+msgid "Mahsulot savatdan o'chirildi."
+msgstr "Товар удалён из корзины."
+
+msgid "Mahsulot sharxi"
+msgstr "Отзыв о товаре"
+
+msgid "Mahsulotga qaytish"
+msgstr "Вернуться к товару"
+
+msgid "Mahsulotlar"
+msgstr "Товары"
+
+msgid "Mahsulotlar ("
+msgstr "Товары ("
+
+msgid "Mahsulotlar (Do'konlar bo'yicha)"
+msgstr "Товары (по магазинам)"
+
+msgid "Mahsulotlarim"
+msgstr "Мои товары"
+
+msgid "Mahsulotlaringiz Buyurtmalari"
+msgstr "Заказы на ваши товары"
+
+msgid "Mahsulotlarni ko'rish"
+msgstr "Смотреть товары"
+
+msgid "Mahsulotni o'chirish?"
+msgstr "Удалить товар?"
+
+msgid "Mahsulotni qo'shish"
+msgstr "Добавить товар"
+
+msgid "Mahsulotni tahrirlash"
+msgstr "Редактирование товара"
+
+msgid "Mahsulotning sifati, qulayligi va xususiyatlari haqida yozing..."
+msgstr "Напишите о качестве, удобстве и характеристиках товара..."
+
+msgid "Manzil"
+msgstr "Адрес"
+
+msgid "Marketplace - ArzonMaterial"
+msgstr "Маркет - ArzonMaterial"
+
+msgid "Masalan: Aliyev Qurilish"
+msgstr "Например: Алиев Строй"
+
+msgid "Masalan: Portland sement M400"
+msgstr "Например: портландцемент М400"
+
+msgid "Masalan: kapotasi yoki pincode..."
+msgstr "Например: код домофона или подъезд..."
+
+msgid "Mavjud:"
+msgstr "В наличии:"
+
+msgid "Menejerimiz %(phone)s raqamiga qo'ng'iroq qiladi."
+msgstr "Наш менеджер позвонит на номер %(phone)s."
+
+msgid "Mening buyurtmalarim"
+msgstr "Мои заказы"
+
+msgid "Mening profilim"
+msgstr "Мой профиль"
+
+msgid "Mijozlar Sharhlari"
+msgstr "Отзывы покупателей"
+
+msgid "Mijozlar fikri"
+msgstr "Отзывы покупателей"
+
+msgid "Mijozlar mahsulotingizni sotib olishganda bu yerda paydo bo'ladi."
+msgstr "Здесь появятся заказы, когда покупатели купят ваши товары."
+
+msgid ""
+"Mijozlar tomonidan do'koningizdan sotib olingan barcha mahsulotlar ro'yxati."
+msgstr "Список всех товаров, купленных покупателями в вашем магазине."
+
+msgid "Model topilmadi."
+msgstr "Модель не найдена."
+
+msgid "Muddat *"
+msgstr "Срок *"
+
+msgid "NO IMAGE"
+msgstr "НЕТ ФОТО"
+
+msgid "Naqd"
+msgstr "Наличные"
+
+msgid "Naqd pul"
+msgstr "Наличные"
+
+msgid "Narx (so'm)"
+msgstr "Цена (сум)"
+
+msgid "Narxi"
+msgstr "Цена"
+
+msgid "Narxi (so'm) *"
+msgstr "Цена (сум) *"
+
+msgid "Nasiya"
+msgstr "Рассрочка"
+
+msgid "Nasiya arizasi"
+msgstr "Заявка на рассрочку"
+
+msgid "Nasiya arizasi."
+msgstr "Заявка на рассрочку."
+
+msgid "Nasiya arizasidagi ma'lumotlarni to'g'ri to'ldiring!"
+msgstr "Правильно заполните данные в заявке на рассрочку!"
+
+msgid "Nasiya: ~"
+msgstr "Рассрочка: ~"
+
+msgid "Nasiyaga olish mumkin"
+msgstr "Можно взять в рассрочку"
+
+msgid "Nomi (inglizcha)"
+msgstr "Название (на английском)"
+
+msgid "Nomi (ruscha)"
+msgstr "Название (на русском)"
+
+msgid "Noto'g'ri so'rov formati."
+msgstr "Неверный формат запроса."
+
+msgid "O'chirish"
+msgstr "Удалить"
+
+msgid "O'qildi deb belgilash"
+msgstr "Отметить как прочитанное"
+
+msgid "O'rtacha"
+msgstr "В среднем"
+
+msgid "O'tish →"
+msgstr "Перейти →"
+
+msgid "O'xshash mahsulotlar"
+msgstr "Похожие товары"
+
+msgid "Online to'lov"
+msgstr "Онлайн-оплата"
+
+msgid "Order #"
+msgstr "Заказ №"
+
+msgid "Oylik daromad (ixtiyoriy)"
+msgstr "Ежемесячный доход (необязательно)"
+
+msgid "Panelga qaytish"
+msgstr "Вернуться в панель"
+
+msgid "Parol"
+msgstr "Пароль"
+
+msgid "Plastik karta"
+msgstr "Банковская карта"
+
+msgid "Profil"
+msgstr "Профиль"
+
+msgid "Profil rasmi"
+msgstr "Фото профиля"
+
+msgid "Profilim"
+msgstr "Мой профиль"
+
+msgid "Qabul qildim"
+msgstr "Получил(а)"
+
+msgid "Qidirish"
+msgstr "Найти"
+
+msgid "Qidiruv so'zini qisqartiring yoki filtrlarni tozalang."
+msgstr "Сократите запрос или сбросьте фильтры."
+
+msgid "Qo'shilgan:"
+msgstr "Добавлено:"
+
+msgid "Qurilish mollari onlayn markazi. Barcha huquqlar himoyalangan."
+msgstr "Онлайн-центр строительных материалов. Все права защищены."
+
+msgid "Rad etildi"
+msgstr "Отклонено"
+
+msgid "Rad etildi - ArzonMaterial"
+msgstr "Отклонено - ArzonMaterial"
+
+msgid "Rasm (ixtiyoriy)"
+msgstr "Фото (необязательно)"
+
+msgid "Rasm yo'q"
+msgstr "Нет фото"
+
+msgid "Ro'yxatdan o'ting"
+msgstr "Зарегистрируйтесь"
+
+msgid "Ro'yxatdan o'tish"
+msgstr "Регистрация"
+
+msgid "SO'M"
+msgstr "СУМ"
+
+msgid "Saqlash"
+msgstr "Сохранить"
+
+msgid "Saralash"
+msgstr "Применить"
+
+msgid "Savat"
+msgstr "Корзина"
+
+msgid "Savat bo'sh"
+msgstr "Корзина пуста"
+
+msgid "Savatda mahsulot yo'q!"
+msgstr "В корзине нет товаров!"
+
+msgid "Savatdagi mahsulotlar"
+msgstr "Товары в корзине"
+
+msgid "Savatga qaytish"
+msgstr "Вернуться в корзину"
+
+msgid "Savatga qo'shish"
+msgstr "В корзину"
+
+msgid "Sement, g'isht, bo'yoq, plitka qidiring..."
+msgstr "Ищите цемент, кирпич, краску, плитку..."
+
+msgid ""
+"Sement, g'isht, bo'yoq, plitka va asboblar. Do'konlar narxini solishtirib, "
+"arzonini tanlang."
+msgstr ""
+"Цемент, кирпич, краска, плитка и инструменты. Сравнивайте цены магазинов и "
+"выбирайте выгодное."
+
+msgid "Sharh qoldirish"
+msgstr "Оставить отзыв"
+
+msgid "Sharhingiz"
+msgstr "Ваш отзыв"
+
+msgid "Sharhlar"
+msgstr "Отзывы"
+
+msgid "Sharhlar mavjud emas"
+msgstr "Отзывов нет"
+
+msgid "Sharhlar va Reyting"
+msgstr "Отзывы и рейтинг"
+
+msgid "Sharhni yuborish"
+msgstr "Отправить отзыв"
+
+msgid "Shaxsiy ma'lumotlarni tahrirlash"
+msgstr "Редактирование личных данных"
+
+msgid "Sifatli qurilish materiallari onlayn bozori"
+msgstr "Онлайн-маркет качественных стройматериалов"
+
+msgid "Siz bu mahsulotni sotib olgansiz!"
+msgstr "Вы уже купили этот товар!"
+
+msgid "Siz haqiqatan ham"
+msgstr "Вы действительно хотите удалить товар"
+
+msgid "Sizga yoqishi mumkin"
+msgstr "Вам может понравиться"
+
+msgid "Sizning bahoingiz"
+msgstr "Ваша оценка"
+
+msgid "Sizning javobingiz"
+msgstr "Ваш ответ"
+
+msgid "Sizning mahsulotlaringizga kelgan fikrlar"
+msgstr "Отзывы о ваших товарах"
+
+msgid ""
+"Sizning so'rovingiz qabul qilindi. Do'koningiz ma'lumotlari adminlar "
+"tomonidan"
+msgstr ""
+"Ваша заявка принята. Данные вашего магазина будут проверены администраторами"
+
+msgid "So'rov rad etildi"
+msgstr "Заявка отклонена"
+
+msgid "Soni"
+msgstr "Количество"
+
+msgid "Soni (dona) *"
+msgstr "Количество (шт.) *"
+
+msgid "Soni bo'yicha"
+msgstr "По количеству"
+
+msgid "Soni x Narxi"
+msgstr "Кол-во × Цена"
+
+msgid "Sotib oluvchi:"
+msgstr "Покупатель:"
+
+msgid "Sotilgan Tovarlar"
+msgstr "Проданные товары"
+
+msgid "Sotuvchi"
+msgstr "Продавец"
+
+msgid "Sotuvchi bo'lmoqchimisiz?"
+msgstr "Хотите стать продавцом?"
+
+msgid "Sotuvchi javobi"
+msgstr "Ответ продавца"
+
+msgid "Sotuvchi kabineti"
+msgstr "Кабинет продавца"
+
+msgid "Sotuvchilar fikr bildira olmaydi."
+msgstr "Продавцы не могут оставлять отзывы."
+
+msgid "Sotuvchilar savat ishlatа olmaydi."
+msgstr "Продавцы не могут пользоваться корзиной."
+
+msgid "Sotuvchilar tovar sotib ola olmaydi."
+msgstr "Продавцы не могут покупать товары."
+
+msgid "Sotuvlar Dinamikasi"
+msgstr "Динамика продаж"
+
+msgid "Statistika"
+msgstr "Статистика"
+
+msgid "Statistika Markazi"
+msgstr "Центр статистики"
+
+msgid "Statistika va Tahlil"
+msgstr "Статистика и аналитика"
+
+msgid "TOP"
+msgstr "ТОП"
+
+msgid "Ta'mirga kerakli hamma narsa bir joyda"
+msgstr "Всё для ремонта в одном месте"
+
+msgid "Tasdiq kutilmoqda"
+msgstr "Ожидает подтверждения"
+
+msgid "Tasdiqlandi"
+msgstr "Подтверждён"
+
+msgid "Tasdiqlash kutilmoqda - ArzonMaterial"
+msgstr "Ожидает подтверждения - ArzonMaterial"
+
+msgid "Tasdiqlash uchun yuborildi"
+msgstr "Отправлено на подтверждение"
+
+msgid "Tavsif"
+msgstr "Описание"
+
+msgid "Tavsif (inglizcha)"
+msgstr "Описание (на английском)"
+
+msgid "Tavsif (ruscha)"
+msgstr "Описание (на русском)"
+
+msgid "Telefon"
+msgstr "Телефон"
+
+msgid "Telefon *"
+msgstr "Телефон *"
+
+msgid "Telefon raqam"
+msgstr "Номер телефона"
+
+msgid "Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67)."
+msgstr "Введите номер телефона правильно (например: +998 90 123 45 67)."
+
+msgid "Tizimga kirish"
+msgstr "Вход в систему"
+
+msgid "To'liq tasdiqlangan"
+msgstr "Полностью подтверждён"
+
+msgid "To'lov turi"
+msgstr "Способ оплаты"
+
+msgid "To'lov turi noto'g'ri tanlangan!"
+msgstr "Неверный способ оплаты!"
+
+msgid "Toifa"
+msgstr "Категория"
+
+msgid "Top Sotilayotganlar"
+msgstr "Самые продаваемые"
+
+msgid "Tozalash"
+msgstr "Очистить"
+
+msgid "Tugagan"
+msgstr "Нет в наличии"
+
+msgid "Tungi/kunduzgi rejim"
+msgstr "Ночной/дневной режим"
+
+msgid "Umumiy Tushum"
+msgstr "Общая выручка"
+
+msgid "Umumiy summa"
+msgstr "Общая сумма"
+
+msgid "Username"
+msgstr "Имя пользователя"
+
+msgid "Ushbu do'kon bo'yicha buyurtma to'liq tasdiqlangan"
+msgstr "Заказ по этому магазину полностью подтверждён"
+
+msgid "Ushbu do'kon mahsulotlari keldimi?"
+msgstr "Вы получили товары этого магазина?"
+
+msgid "Ushbu mahsulotni bekor qilib bo'lmaydi."
+msgstr "Этот товар нельзя отменить."
+
+msgid "Vaqtinchalik to'xtatilgan"
+msgstr "Временно приостановлен"
+
+msgid "Xabar juda uzun. 1000 belgidan oshmasin."
+msgstr "Сообщение слишком длинное. Не более 1000 символов."
+
+msgid "Xabar kiriting."
+msgstr "Введите сообщение."
+
+msgid "Xabarlar"
+msgstr "Сообщения"
+
+msgid "Xabarlar - ArzonMaterial"
+msgstr "Уведомления - ArzonMaterial"
+
+msgid "Xaridor"
+msgstr "Покупатель"
+
+msgid "Xaridor qabul qildi"
+msgstr "Покупатель получил"
+
+msgid "Xaridor tasdiqladi"
+msgstr "Покупатель подтвердил"
+
+msgid "Xaridor tasdiqlashi kerak"
+msgstr "Покупатель должен подтвердить"
+
+msgid "Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!"
+msgstr "Покупатель должен подтвердить получение этого товара!"
+
+msgid "Xaridorga minnatdorchilik bildiring yoki savoliga javob bering..."
+msgstr "Поблагодарите покупателя или ответьте на его вопрос..."
+
+msgid "Xulosa"
+msgstr "Итог"
+
+msgid "YANGI"
+msgstr "НОВОЕ"
+
+msgid "Yangi"
+msgstr "Новая"
+
+msgid "Yaratilgan:"
+msgstr "Создано:"
+
+msgid "Yashash manzilingiz..."
+msgstr "Ваш адрес проживания..."
+
+msgid "Yetkazib berish"
+msgstr "Доставка"
+
+msgid "Yetkazib berish hududi"
+msgstr "Регион доставки"
+
+msgid "Yetkazib berish manzili"
+msgstr "Адрес доставки"
+
+msgid "Yetkazib berish manzili *"
+msgstr "Адрес доставки *"
+
+msgid "Yetkazib berish manzilini kiriting!"
+msgstr "Укажите адрес доставки!"
+
+msgid "Yetkazildi"
+msgstr "Доставлен"
+
+msgid "Yetkazilganda to'lash"
+msgstr "Оплата при доставке"
+
+msgid "Yetkazilmoqda"
+msgstr "Доставляется"
+
+msgid "Yil"
+msgstr "Год"
+
+msgid "avval"
+msgstr "назад"
+
+msgid "dona"
+msgstr "шт."
+
+msgid "dona sotilgan"
+msgstr "шт. продано"
+
+msgid "dona ×"
+msgstr "шт. ×"
+
+msgid "dona)"
+msgstr "шт.)"
+
+msgid "fikr)"
+msgstr "отзывов)"
+
+msgid "jarima."
+msgstr "штраф."
+
+msgid "ko'rib chiqiladi va tasdiqlanadi."
+msgstr "и подтверждены."
+
+msgid "mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi."
+msgstr "(это действие нельзя отменить)"
+
+msgid "so'm"
+msgstr "сум"
+
+msgid "so'm / dona"
+msgstr "сум / шт."
+
+msgid "so'm →"
+msgstr "сум →"
+
+msgid "so'm/oy"
+msgstr "сум/мес"
+
+msgid "ta jami"
+msgstr "всего"
+
+msgid "ta mahsulot"
+msgstr "товаров"
+
+msgid "taxminan"
+msgstr "примерно"
+
+msgid "» bo'yicha natijalar"
+msgstr "» — результаты поиска"
+
+msgid ""
+"— ArzonMaterial saytining AI yordamchisiman. Sizga qanday yordam bera "
+"olaman?"
+msgstr "— ИИ-помощник сайта ArzonMaterial. Чем могу помочь?"
+
+msgid "— Brendni tanlang —"
+msgstr "— Выберите бренд —"
+
+msgid "— Toifani tanlang —"
+msgstr "— Выберите категорию —"
+
+msgid "← Xaridni davom ettirish"
+msgstr "← Продолжить покупки"
+
+msgid "⚠️ Naqd pulda to'lash shartnomasi:"
+msgstr "⚠️ Условия оплаты наличными:"
+
+msgid "❓ Qanday ishlaydi"
+msgstr "❓ Как это работает"
+
+msgid "⭐ Eng yaxshi"
+msgstr "⭐ Лучшие"
+
+msgid "🏪 Rasmiylashtirish"
+msgstr "🏪 Оформление"
+
+msgid "💬 Sharhlar"
+msgstr "💬 Отзывы"
+
+msgid "💰 Eng arzon"
+msgstr "💰 Самые дешёвые"
+
+msgid "📈 Statistika"
+msgstr "📈 Статистика"
+
+msgid "📊 Bugungi sotuvlarim"
+msgstr "📊 Мои продажи сегодня"
+
+msgid "📦 Buyurtma rasmiylashtirish"
+msgstr "📦 Оформление заказа"
+
+msgid "📦 Kabinet"
+msgstr "📦 Кабинет"
+
+msgid "📦 Mahsulot qo'shish"
+msgstr "📦 Добавить товар"

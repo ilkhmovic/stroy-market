@@ -82,3 +82,58 @@ class ThemeToggleTests(TestCase):
         r = self.client.get(reverse('marketplace'))
         self.assertContains(r, 'id="theme-toggle"')
         self.assertContains(r, "localStorage.getItem('theme')")
+
+
+class I18nTests(TestCase):
+    def setUp(self):
+        seller = User.objects.create_user('s2', password='x', is_seller=True)
+        store = Store.objects.create(owner=seller, name="Do'kon", status='active')
+        self.p = Product.objects.create(store=store, name='Sement', price=65000, stock=0,
+                                        name_ru='Цемент', description='Yaxshi sement', description_en='Good cement')
+
+    def _lang(self, code):
+        self.client.post(reverse('set_language'), {'language': code, 'next': '/'})
+
+    def test_interface_switches_language(self):
+        r = self.client.get(reverse('marketplace'))
+        self.assertContains(r, 'Tugagan')
+        self._lang('ru')
+        r = self.client.get(reverse('marketplace'))
+        self.assertContains(r, 'Нет в наличии')
+        self.assertContains(r, '<html lang="ru"')
+        self._lang('en')
+        r = self.client.get(reverse('marketplace'))
+        self.assertContains(r, 'Sold out')
+        self.assertNotContains(r, 'Tugagan')
+
+    def test_all_public_pages_render_in_every_language(self):
+        for code in ('uz', 'ru', 'en'):
+            self._lang(code)
+            for name in ('marketplace', 'login', 'register'):
+                self.assertEqual(self.client.get(reverse(name)).status_code, 200, (code, name))
+            self.assertEqual(self.client.get(reverse('product_detail', args=[self.p.pk])).status_code, 200)
+
+    def test_product_text_falls_back_to_uzbek(self):
+        from django.utils import translation
+        with translation.override('ru'):
+            self.assertEqual(self.p.display_name, 'Цемент')
+            self.assertEqual(self.p.display_description, 'Yaxshi sement')   # ruscha tavsif yo'q
+        with translation.override('en'):
+            self.assertEqual(self.p.display_name, 'Sement')                 # inglizcha nom yo'q
+            self.assertEqual(self.p.display_description, 'Good cement')
+
+    def test_anora_gets_language_and_manual_fallback(self):
+        from .models import AnoraFallback
+        AnoraFallback.objects.create(title='Yetkazish', keywords='yetkazib, доставка, delivery',
+                                     answer_uz='Yetkazish 1-3 kun.', answer_ru='Доставка 1-3 дня.')
+        self._lang('ru')
+        failed = {'success': False, 'response': 'xato'}
+        with mock.patch('main.ai_assistant.get_ai_response', return_value=failed) as m:
+            r = self.client.post(reverse('ai_chat'), '{"message": "Как работает доставка?"}',
+                                 content_type='application/json')
+        self.assertEqual(m.call_args.kwargs['language'], 'ru')
+        self.assertEqual(r.json()['response'], 'Доставка 1-3 дня.')
+        with mock.patch('main.ai_assistant.get_ai_response', return_value=failed):
+            r = self.client.post(reverse('ai_chat'), '{"message": "salom"}', content_type='application/json')
+        self.assertFalse(r.json()['success'])
+        self.assertIn('Сейчас я не могу ответить', r.json()['response'])

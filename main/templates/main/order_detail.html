@@ -1,11 +1,12 @@
 {% extends 'main/base.html' %}
-{% block title %}Buyurtma #{{ order.pk }}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Buyurtma #" %}{{ order.pk }}{% endblock %}
 {% block content %}
 
 <div class="mb-6">
     <a href="{% url 'orders' %}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        Buyurtmalarimga qaytish
+        {% trans "Buyurtmalarimga qaytish" %}
     </a>
 </div>
 
@@ -16,7 +17,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-8 ">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Buyurtma #{{ order.pk }}</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">{% trans "Buyurtma #" %}{{ order.pk }}</h2>
                     <p class="text-[10px] font-bold text-gray-400   mt-1">{{ order.created_at|date:"d.m.Y H:i" }}</p>
                 </div>
                 <span class="inline-flex items-center px-6 py-2 rounded-full text-[10px] font-bold   
@@ -31,23 +32,23 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
                 <div class="space-y-1">
-                    <p class="text-[10px] font-bold text-gray-400  ">Yetkazib berish manzili</p>
+                    <p class="text-[10px] font-bold text-gray-400  ">{% trans "Yetkazib berish manzili" %}</p>
                     <p class="font-bold text-gray-700 leading-relaxed">{{ order.address }}</p>
                 </div>
                 <div class="space-y-1">
-                    <p class="text-[10px] font-bold text-gray-400  ">To'lov turi</p>
+                    <p class="text-[10px] font-bold text-gray-400  ">{% trans "To'lov turi" %}</p>
                     <p class="font-bold text-gray-700  ">{{ order.get_payment_method_display }}</p>
                 </div>
                 {% if order.payment_method == 'nasiya' and order.nasiya %}
                 <div class="col-span-full p-4 bg-blue-50 border border-blue-100 rounded-2xl space-y-1">
-                    <p class="text-[10px] font-bold text-blue-400  ">Nasiya arizasi</p>
-                    <p class="font-bold text-gray-700">{{ order.nasiya.get_term_months_display }} &middot; taxminan {{ order.nasiya.monthly_payment|floatformat:0 }} so'm/oy</p>
-                    <p class="text-xs text-gray-600">Holati: <b>{{ order.nasiya.get_status_display }}</b>. Menejerimiz {{ order.nasiya.phone }} raqamiga qo'ng'iroq qiladi.</p>
+                    <p class="text-[10px] font-bold text-blue-400  ">{% trans "Nasiya arizasi" %}</p>
+                    <p class="font-bold text-gray-700">{{ order.nasiya.get_term_months_display }} &middot; {% trans "taxminan" %} {{ order.nasiya.monthly_payment|floatformat:0 }} {% trans "so'm/oy" %}</p>
+                    <p class="text-xs text-gray-600">{% trans "Holati:" %} <b>{{ order.nasiya.get_status_display }}</b>. {% blocktrans with phone=order.nasiya.phone %}Menejerimiz {{ phone }} raqamiga qo'ng'iroq qiladi.{% endblocktrans %}</p>
                 </div>
                 {% endif %}
                 {% if order.note %}
                 <div class="col-span-full space-y-1">
-                    <p class="text-[10px] font-bold text-gray-400  ">Izoh</p>
+                    <p class="text-[10px] font-bold text-gray-400  ">{% trans "Izoh" %}</p>
                     <p class="font-bold text-gray-700 ">"{{ order.note }}"</p>
                 </div>
                 {% endif %}
@@ -56,7 +57,7 @@
 
         <!-- Grouped Items by Store -->
         <div class="space-y-6">
-            <h3 class="text-xs font-bold text-gray-400   px-4 ">Mahsulotlar (Do'konlar bo'yicha)</h3>
+            <h3 class="text-xs font-bold text-gray-400   px-4 ">{% trans "Mahsulotlar (Do'konlar bo'yicha)" %}</h3>
             
             {% for data in stores_data %}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
@@ -66,7 +67,7 @@
                         <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-sm ">{{ data.store.name|first|upper }}</div>
                         <div>
                             <p class="text-sm font-bold text-gray-900">{{ data.store.name }}</p>
-                            <p class="text-[10px] text-gray-400 font-bold  ">{{ data.items|length }} ta mahsulot</p>
+                            <p class="text-[10px] text-gray-400 font-bold  ">{{ data.items|length }} {% trans "ta mahsulot" %}</p>
                         </div>
                     </div>
                 </div>
@@ -79,11 +80,11 @@
                             {% if item.product.image %}
                                 <img src="{{ item.product.image.url }}" class="w-16 h-16 object-cover rounded-2xl shadow-lg shadow-blue-900/5">
                             {% else %}
-                                <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300  text-[10px] font-bold">NO IMAGE</div>
+                                <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300  text-[10px] font-bold">{% trans "NO IMAGE" %}</div>
                             {% endif %}
                             <div>
                                 <p class="font-bold text-gray-900  leading-tight mb-1">{{ item.product_name }}</p>
-                                <p class="text-[10px] text-gray-400 font-bold  ">{{ item.quantity }} dona × {{ item.price|floatformat:0 }} so'm</p>
+                                <p class="text-[10px] text-gray-400 font-bold  ">{{ item.quantity }} {% trans "dona ×" %} {{ item.price|floatformat:0 }} {% trans "so'm" %}</p>
                                 
                                 <div class="mt-2 flex items-center gap-2">
                                     <span class="text-[9px] font-bold   px-3 py-1 rounded-full border
@@ -94,19 +95,19 @@
                                         {{ item.get_status_display }}
                                     </span>
                                     {% if item.buyer_confirmed %}
-                                    <span class="text-[10px] font-bold   px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">Xaridor tasdiqladi</span>
+                                    <span class="text-[10px] font-bold   px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">{% trans "Xaridor tasdiqladi" %}</span>
                                     {% elif item.status == 'pending' %}
-                                    <a href="{% url 'cancel_order_item' item.pk %}" onclick="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')" class="text-[9px] font-bold   px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">Bekor qilish</a>
+                                    <a href="{% url 'cancel_order_item' item.pk %}" onclick="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')" class="text-[9px] font-bold   px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">{% trans "Bekor qilish" %}</a>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="text-xl font-bold text-gray-900  tracking-tighter">{{ item.get_total_price|floatformat:0 }} <span class="text-[10px] font-bold ">SO'M</span></p>
+                            <p class="text-xl font-bold text-gray-900  tracking-tighter">{{ item.get_total_price|floatformat:0 }} <span class="text-[10px] font-bold ">{% trans "SO'M" %}</span></p>
                             {% if item.buyer_confirmed and item.product %}
                             <a href="{% url 'add_review' item.product.pk %}" class="mt-3 inline-flex items-center gap-2 text-[9px] font-bold text-blue-600   hover:text-blue-800 transition">
                                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                Sharh qoldirish
+                                {% trans "Sharh qoldirish" %}
                             </a>
                             {% endif %}
                         </div>
@@ -117,10 +118,10 @@
                 <!-- Store Specific Confirmation Button -->
                 {% if data.can_confirm %}
                 <div class="p-8 bg-blue-50/30 border-t border-gray-100 text-center sm:text-left">
-                    <p class="text-[10px] font-bold text-blue-900   mb-4 ">Ushbu do'kon mahsulotlari keldimi?</p>
+                    <p class="text-[10px] font-bold text-blue-900   mb-4 ">{% trans "Ushbu do'kon mahsulotlari keldimi?" %}</p>
                     <a href="{% url 'confirm_store_receipt' order.pk data.store.pk %}" class="inline-flex items-center gap-2 bg-blue-600 text-white font-bold text-[10px]   px-8 py-4 rounded-2xl shadow-sm shadow-blue-100 hover:bg-blue-700 hover:translate-y-[-2px] transition-all duration-300">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                        Qabul qildim
+                        {% trans "Qabul qildim" %}
                     </a>
                 </div>
                 {% elif data.all_confirmed %}
@@ -128,7 +129,7 @@
                     <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <p class="text-[10px] font-bold text-green-600   ">Ushbu do'kon bo'yicha buyurtma to'liq tasdiqlangan</p>
+                    <p class="text-[10px] font-bold text-green-600   ">{% trans "Ushbu do'kon bo'yicha buyurtma to'liq tasdiqlangan" %}</p>
                 </div>
                 {% endif %}
             </div>
@@ -139,43 +140,43 @@
     <!-- Summary Sidebar -->
     <div class="lg:col-span-1">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-8 sticky top-24 ">
-            <h3 class="text-xs font-bold text-gray-400   mb-8">Xulosa</h3>
+            <h3 class="text-xs font-bold text-gray-400   mb-8">{% trans "Xulosa" %}</h3>
             
             <div class="space-y-6 text-sm mb-8">
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
-                    <span class="text-[10px] font-bold text-gray-400  ">Mahsulotlar</span>
-                    <span class="font-bold text-gray-900">{{ order.get_total_price|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
+                    <span class="text-[10px] font-bold text-gray-400  ">{% trans "Mahsulotlar" %}</span>
+                    <span class="font-bold text-gray-900">{{ order.get_total_price|floatformat:0 }} <span class="text-[9px]">{% trans "SO'M" %}</span></span>
                 </div>
                 <div class="flex justify-between items-center bg-green-50/50 p-4 rounded-2xl">
-                    <span class="text-[10px] font-bold text-green-600  ">Yetkazib berish</span>
-                    <span class="font-bold text-green-600 text-[10px]  ">BEPUL</span>
+                    <span class="text-[10px] font-bold text-green-600  ">{% trans "Yetkazib berish" %}</span>
+                    <span class="font-bold text-green-600 text-[10px]  ">{% trans "BEPUL" %}</span>
                 </div>
                 {% if order.penalty_amount > 0 %}
                 <div class="flex justify-between items-center bg-red-50 p-4 rounded-2xl border border-red-100">
                     <div class="flex flex-col">
-                        <span class="text-[10px] font-bold text-red-600  ">Jarima summasi</span>
-                        <span class="text-[8px] text-red-400 font-bold  ">(Naqd pulda bekor qilingani uchun)</span>
+                        <span class="text-[10px] font-bold text-red-600  ">{% trans "Jarima summasi" %}</span>
+                        <span class="text-[8px] text-red-400 font-bold  ">{% trans "(Naqd pulda bekor qilingani uchun)" %}</span>
                     </div>
-                    <span class="font-bold text-red-600">{{ order.penalty_amount|floatformat:0 }} <span class="text-[9px]">SO'M</span></span>
+                    <span class="font-bold text-red-600">{{ order.penalty_amount|floatformat:0 }} <span class="text-[9px]">{% trans "SO'M" %}</span></span>
                 </div>
                 {% endif %}
             </div>
 
             <div class="pt-8 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-xs font-bold text-gray-900  ">Jami to'lanadigan</span>
-                <span class="text-3xl font-bold text-blue-700  tracking-tighter">{{ order.get_total_price|add:order.penalty_amount|floatformat:0 }} <span class="text-xs">SO'M</span></span>
+                <span class="text-xs font-bold text-gray-900  ">{% trans "Jami to'lanadigan" %}</span>
+                <span class="text-3xl font-bold text-blue-700  tracking-tighter">{{ order.get_total_price|add:order.penalty_amount|floatformat:0 }} <span class="text-xs">{% trans "SO'M" %}</span></span>
             </div>
 
             {% if order.buyer_confirmed %}
             <div class="mt-8 p-4 bg-blue-900 text-white rounded-2xl text-center">
-                <p class="text-[10px] font-bold  ">To'liq tasdiqlangan</p>
+                <p class="text-[10px] font-bold  ">{% trans "To'liq tasdiqlangan" %}</p>
             </div>
             {% elif order.status == 'pending' or order.status == 'confirmed' %}
                 {% if order.items.all %}
                     {# Check if there are any pending items to show the bulk cancel button #}
                     <div class="mt-8">
                         <button onclick="confirmCancel()" class="w-full py-4 bg-red-50 text-red-600 font-bold text-[10px]   rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
-                            Kutilayotganlarni bekor qilish
+                            {% trans "Kutilayotganlarni bekor qilish" %}
                         </button>
                     </div>
                 {% endif %}
@@ -190,7 +191,7 @@
 
             <!-- Mini Timeline -->
             <div class="mt-12 space-y-4">
-                <p class="text-[10px] font-bold text-gray-300   mb-6">Buyurtma xaritasi</p>
+                <p class="text-[10px] font-bold text-gray-300   mb-6">{% trans "Buyurtma xaritasi" %}</p>
                 {% for label, status_key in order.STATUS_CHOICES %}
                 <div class="flex items-center gap-4 group">
                     <div class="w-1.5 h-1.5 rounded-full transition-all duration-500 

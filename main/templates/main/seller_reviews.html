@@ -1,15 +1,16 @@
 {% extends 'main/base.html' %}
-{% block title %}Mijozlar Sharhlari{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Mijozlar Sharhlari" %}{% endblock %}
 {% block content %}
 
 <div class="mb-8 flex items-center justify-between">
     <div>
-        <h1 class="text-3xl font-bold text-gray-900">Mijozlar Sharhlari</h1>
-        <p class="text-xs text-gray-400 font-bold   mt-1">Sizning mahsulotlaringizga kelgan fikrlar</p>
+        <h1 class="text-3xl font-bold text-gray-900">{% trans "Mijozlar Sharhlari" %}</h1>
+        <p class="text-xs text-gray-400 font-bold   mt-1">{% trans "Sizning mahsulotlaringizga kelgan fikrlar" %}</p>
     </div>
     <a href="{% url 'seller_dashboard' %}" class="px-5 py-2.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7"/></svg>
-        Panelga qaytish
+        {% trans "Panelga qaytish" %}
     </a>
 </div>
 
@@ -29,9 +30,9 @@
                     </div>
                     {% endif %}
                 </div>
-                <p class="text-[10px] text-gray-400 font-bold   mb-1">Mahsulot</p>
+                <p class="text-[10px] text-gray-400 font-bold   mb-1">{% trans "Mahsulot" %}</p>
                 <a href="{% url 'product_detail' review.product.pk %}" class="text-xs font-bold text-gray-900 hover:text-blue-600 transition line-clamp-2">
-                    {{ review.product.name }}
+                    {{ review.product.display_name }}
                 </a>
             </div>
 
@@ -59,7 +60,7 @@
                 {% if review.seller_reply %}
                 <div class="pl-8 border-l-2 border-blue-100">
                     <div class="flex items-center gap-2 mb-3">
-                        <p class="text-[10px] text-blue-600 font-bold  ">Sizning javobingiz</p>
+                        <p class="text-[10px] text-blue-600 font-bold  ">{% trans "Sizning javobingiz" %}</p>
                         <span class="text-[10px] text-gray-400 font-bold  ">— {{ review.replied_at|date:"d.m.Y" }}</span>
                     </div>
                     <p class="text-sm text-gray-600 font-medium bg-white p-4 rounded-2xl border border-gray-100">{{ review.seller_reply }}</p>
@@ -68,9 +69,9 @@
                 <form action="{% url 'add_review_reply' review.pk %}" method="POST">
                     {% csrf_token %}
                     <div class="flex gap-3">
-                        <textarea name="reply_text" required rows="2" class="flex-grow bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all font-medium placeholder:text-gray-300 shadow-inner" placeholder="Xaridorga minnatdorchilik bildiring yoki savoliga javob bering..."></textarea>
+                        <textarea name="reply_text" required rows="2" class="flex-grow bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all font-medium placeholder:text-gray-300 shadow-inner" placeholder="{% trans "Xaridorga minnatdorchilik bildiring yoki savoliga javob bering..." %}"></textarea>
                         <button type="submit" class="self-end px-6 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-100">
-                            Javob berish
+                            {% trans "Javob berish" %}
                         </button>
                     </div>
                 </form>
@@ -85,7 +86,7 @@
     <div class="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gray-200">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
     </div>
-    <p class="text-lg font-bold text-gray-400  ">Sharhlar mavjud emas</p>
+    <p class="text-lg font-bold text-gray-400  ">{% trans "Sharhlar mavjud emas" %}</p>
 </div>
 {% endif %}
 

@@ -1,8 +1,9 @@
 {% extends 'main/base.html' %}
+{% load i18n %}
 {% block content %}
 <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-    <h2 class="text-2xl font-bold text-center mb-2 text-gray-900">Ro'yxatdan o'tish</h2>
-    <p class="text-center text-gray-500 text-sm mb-6">Akkaunt turini tanlang va ma'lumotlaringizni kiriting</p>
+    <h2 class="text-2xl font-bold text-center mb-2 text-gray-900">{% trans "Ro'yxatdan o'tish" %}</h2>
+    <p class="text-center text-gray-500 text-sm mb-6">{% trans "Akkaunt turini tanlang va ma'lumotlaringizni kiriting" %}</p>
     <form method="POST" novalidate>
         {% csrf_token %}
         {% for field in form %}
@@ -26,10 +27,10 @@
         </div>
         {% endfor %}
         <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition mt-2">
-            Ro'yxatdan o'tish
+            {% trans "Ro'yxatdan o'tish" %}
         </button>
     </form>
-    <p class="text-center mt-4 text-sm text-gray-600">Allaqachon akkauntingiz bormi? <a href="{% url 'login' %}" class="text-blue-600 ml-1 hover:underline">Kirish</a></p>
+    <p class="text-center mt-4 text-sm text-gray-600">{% trans "Allaqachon akkauntingiz bormi?" %} <a href="{% url 'login' %}" class="text-blue-600 ml-1 hover:underline">{% trans "Kirish" %}</a></p>
 </div>
 
 <script>

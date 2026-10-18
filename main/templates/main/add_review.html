@@ -1,11 +1,12 @@
 {% extends 'main/base.html' %}
-{% block title %}{{ product.name }} - Sharh qo'shish{% endblock %}
+{% load i18n %}
+{% block title %}{{ product.display_name }} - Sharh qo'shish{% endblock %}
 {% block content %}
 
 <div class="mb-6">
     <a href="{% url 'product_detail' product.pk %}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        Mahsulotga qaytish
+        {% trans "Mahsulotga qaytish" %}
     </a>
 </div>
 
@@ -23,8 +24,8 @@
                 {% endif %}
             </div>
             <div>
-                <p class="text-[10px] text-gray-400 font-bold   mb-2">Mahsulot sharxi</p>
-                <h1 class="text-3xl font-bold text-gray-900 leading-tight mb-2">{{ product.name }}</h1>
+                <p class="text-[10px] text-gray-400 font-bold   mb-2">{% trans "Mahsulot sharxi" %}</p>
+                <h1 class="text-3xl font-bold text-gray-900 leading-tight mb-2">{{ product.display_name }}</h1>
                 <p class="text-lg font-bold text-blue-600">{{ product.price|floatformat:0 }} SO'M</p>
             </div>
         </div>
@@ -35,7 +36,7 @@
 
             <!-- Rating Section -->
             <div class="text-center md:text-left">
-                <label class="block text-sm font-bold text-gray-400   mb-6">Sizning bahoingiz</label>
+                <label class="block text-sm font-bold text-gray-400   mb-6">{% trans "Sizning bahoingiz" %}</label>
                 <div class="flex flex-row-reverse justify-center md:justify-start gap-4 mb-4">
                     {% for i in "54321" %}
                     <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required 
@@ -52,9 +53,9 @@
 
             <!-- Comment Section -->
             <div>
-                <label class="block text-sm font-bold text-gray-400   mb-4">Sharhingiz</label>
+                <label class="block text-sm font-bold text-gray-400   mb-4">{% trans "Sharhingiz" %}</label>
                 <textarea name="comment" required rows="6" class="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-gray-900 focus:ring-2 focus:ring-blue-500 transition-all font-medium placeholder:text-gray-300 shadow-inner"
-                    placeholder="Mahsulotning sifati, qulayligi va xususiyatlari haqida yozing...">{{ form.comment.value|default:"" }}</textarea>
+                    placeholder="{% trans "Mahsulotning sifati, qulayligi va xususiyatlari haqida yozing..." %}">{{ form.comment.value|default:"" }}</textarea>
                 {% if form.comment.errors %}
                 <p class="text-red-500 text-xs font-bold mt-2">{{ form.comment.errors.0 }}</p>
                 {% endif %}
@@ -63,10 +64,10 @@
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 pt-6">
                 <button type="submit" class="flex-grow bg-blue-600 text-white font-bold py-5 rounded-2xl shadow-sm shadow-blue-200 hover:bg-blue-700 hover:scale-[1.02] transition-all duration-300   text-sm">
-                    Sharhni yuborish
+                    {% trans "Sharhni yuborish" %}
                 </button>
                 <a href="{% url 'product_detail' product.pk %}" class="px-10 py-5 bg-gray-50 text-gray-400 font-bold rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all duration-300 text-center   text-sm">
-                    Bekor qilish
+                    {% trans "Bekor qilish" %}
                 </a>
             </div>
         </form>

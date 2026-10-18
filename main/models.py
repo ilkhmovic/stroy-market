@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _, get_language
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 import os
@@ -64,10 +65,10 @@ class Store(models.Model):
     status = models.CharField(
         max_length=20, 
         choices=[
-            ('pending', 'Kutilmoqda'), 
-            ('active', 'Faol'), 
-            ('rejected', 'Rad etildi'),
-            ('suspended', 'Vaqtinchalik to\'xtatilgan')
+            ('pending', _('Kutilmoqda')), 
+            ('active', _('Faol')), 
+            ('rejected', _('Rad etildi')),
+            ('suspended', _('Vaqtinchalik to\'xtatilgan'))
         ], 
         default='pending',
         verbose_name="Holati"
@@ -97,9 +98,25 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Narxi")
     stock = models.IntegerField(default=0, verbose_name="Soni")
     image = models.ImageField(upload_to=path_and_rename('products/'), blank=True, null=True, verbose_name="Rasm")
+    name_ru = models.CharField(max_length=255, blank=True, default='', verbose_name="Nomi (ruscha)")
+    name_en = models.CharField(max_length=255, blank=True, default='', verbose_name="Nomi (inglizcha)")
+    description_ru = models.TextField(blank=True, default='', verbose_name="Tavsif (ruscha)")
+    description_en = models.TextField(blank=True, default='', verbose_name="Tavsif (inglizcha)")
     is_top = models.BooleanField(default=False, verbose_name="Top mahsulot")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def _localized(self, base, ru, en):
+        lang = (get_language() or 'uz')[:2]
+        return (ru if lang == 'ru' and ru else en if lang == 'en' and en else base)
+
+    @property
+    def display_name(self):
+        return self._localized(self.name, self.name_ru, self.name_en)
+
+    @property
+    def display_description(self):
+        return self._localized(self.description, self.description_ru, self.description_en)
 
     def __str__(self):
         return self.name
@@ -158,17 +175,17 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending',   'Kutilmoqda'),
-        ('confirmed', 'Tasdiqlandi'),
-        ('shipping',  'Yetkazilmoqda'),
-        ('delivered', 'Yetkazildi'),
-        ('cancelled', 'Bekor qilindi'),
+        ('pending',   _('Kutilmoqda')),
+        ('confirmed', _('Tasdiqlandi')),
+        ('shipping',  _('Yetkazilmoqda')),
+        ('delivered', _('Yetkazildi')),
+        ('cancelled', _('Bekor qilindi')),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(
         max_length=10, 
-        choices=[('card', 'Karta'), ('cash', 'Naqd'), ('nasiya', 'Nasiya')], 
+        choices=[('card', _('Karta')), ('cash', _('Naqd')), ('nasiya', _('Nasiya'))], 
         default='card',
         verbose_name="To'lov turi"
     )
@@ -230,10 +247,10 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Kutilmoqda'),
-        ('shipped', 'Jo\'natildi'),
-        ('delivered', 'Yetkazildi'),
-        ('cancelled', 'Bekor qilindi'),
+        ('pending', _('Kutilmoqda')),
+        ('shipped', _('Jo\'natildi')),
+        ('delivered', _('Yetkazildi')),
+        ('cancelled', _('Bekor qilindi')),
     ]
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
@@ -258,12 +275,12 @@ class NasiyaApplication(models.Model):
     yuboriladi, menejer mijoz bilan bog'lanib, rasmiylashtirishni qo'lda bajaradi.
     Pasport/PINFL kabi maxfiy ma'lumotlar saytda SAQLANMAYDI, menejer ularni
     telefon yoki shaxsan olishi kerak."""
-    TERM_CHOICES = [(3, '3 oy'), (6, '6 oy'), (12, '12 oy')]
+    TERM_CHOICES = [(3, _('3 oy')), (6, _('6 oy')), (12, _('12 oy'))]
     STATUS_CHOICES = [
-        ('new', 'Yangi'),
-        ('contacted', "Bog'lanildi"),
-        ('approved', 'Tasdiqlandi'),
-        ('rejected', 'Rad etildi'),
+        ('new', _('Yangi')),
+        ('contacted', _("Bog'lanildi")),
+        ('approved', _('Tasdiqlandi')),
+        ('rejected', _('Rad etildi')),
     ]
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='nasiya')
     full_name = models.CharField(max_length=150, verbose_name="F.I.Sh.")
@@ -305,3 +322,28 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:20]}..."
+
+
+class AnoraFallback(models.Model):
+    """Gemini javob bermaganda Anora ishlatadigan qo'lda yozilgan javoblar (3 tilda)."""
+    title = models.CharField(max_length=150, verbose_name="Sarlavha (ichki)")
+    keywords = models.TextField(
+        verbose_name="Kalit so'zlar",
+        help_text="Vergul bilan ajrating, har uch tilda yozing: yetkazib, доставка, delivery"
+    )
+    answer_uz = models.TextField(verbose_name="Javob (o'zbekcha)")
+    answer_ru = models.TextField(blank=True, verbose_name="Javob (ruscha)")
+    answer_en = models.TextField(blank=True, verbose_name="Javob (inglizcha)")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Anora zaxira javobi"
+        verbose_name_plural = "Anora zaxira javoblari"
+
+    def __str__(self):
+        return self.title
+
+    def answer_for(self, lang):
+        return (self.answer_ru if lang == 'ru' and self.answer_ru else
+                self.answer_en if lang == 'en' and self.answer_en else self.answer_uz)

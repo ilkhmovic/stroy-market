@@ -208,7 +208,7 @@ def _get_seller_context(user):
     return "\n\n".join(context_parts)
 
 
-def get_ai_response(user, message, chat_history=None):
+def get_ai_response(user, message, chat_history=None, language='uz'):
     """Gemini API ga so'rov yuborish va javob olish."""
     try:
         client = _get_client()
@@ -248,8 +248,16 @@ Foydalanuvchi MEHMON (tizimga kirmagan). Unga quyidagilar bo'yicha yordam ber:
 - Mahsulotlar haqida umumiy ma'lumot
 """
 
+        lang_instruction = {
+            'ru': "Foydalanuvchi interfeysi tili: RUS. Barcha javoblaringni FAQAT rus tilida yoz (mahsulot nomlarini o'zgartirma). Bu qoida yuqoridagi barcha til talablaridan ustun.",
+            'en': "Foydalanuvchi interfeysi tili: INGLIZ. Barcha javoblaringni FAQAT ingliz tilida yoz (mahsulot nomlarini o'zgartirma). Bu qoida yuqoridagi barcha til talablaridan ustun.",
+        }.get(language, "Foydalanuvchi interfeysi tili: O'ZBEK. Javoblarni o'zbek tilida yoz.")
+
         # System prompt + kontekst
         full_system = f"""{ANORA_SYSTEM_PROMPT}
+
+## Javob tili
+{lang_instruction}
 
 ## Hozirgi foydalanuvchi: {role_label}
 {'' if not user.is_authenticated else f'Ismi: {user.get_full_name() or user.username}'}

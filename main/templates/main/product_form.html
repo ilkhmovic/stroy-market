@@ -1,4 +1,5 @@
 {% extends 'main/base.html' %}
+{% load i18n %}
 {% block content %}
 <div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
     <div class="flex items-center gap-3 mb-6">
@@ -8,64 +9,73 @@
             </svg>
         </a>
         <div>
-            <h1 class="text-xl font-extrabold text-gray-900">{% if edit %}Mahsulotni tahrirlash{% else %}Mahsulot qo'shish{% endif %}</h1>
-            <p class="text-sm text-gray-500">{% if edit %}Mahsulot ma'lumotlarini yangilang{% else %}Do'koningizga yangi mahsulot qo'shing{% endif %}</p>
+            <h1 class="text-xl font-extrabold text-gray-900">{% if edit %}{% trans "Mahsulotni tahrirlash" %}{% else %}{% trans "Mahsulot qo'shish" %}{% endif %}</h1>
+            <p class="text-sm text-gray-500">{% if edit %}{% trans "Mahsulot ma'lumotlarini yangilang" %}{% else %}{% trans "Do'koningizga yangi mahsulot qo'shing" %}{% endif %}</p>
         </div>
     </div>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Mahsulot nomi *</label>
-            <input type="text" name="name" required placeholder="Masalan: Portland sement M400" value="{{ form.name.value|default:'' }}"
+            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Mahsulot nomi *" %}</label>
+            <input type="text" name="name" required placeholder="{% trans "Masalan: Portland sement M400" %}" value="{{ form.name.value|default:'' }}"
                 class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Toifa</label>
+            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Toifa" %}</label>
             <select name="category" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm bg-white">
-                <option value="">— Toifani tanlang —</option>
+                <option value="">{% trans "— Toifani tanlang —" %}</option>
                 {% for cat in form.category.field.queryset %}
                 <option value="{{ cat.id }}" {% if form.category.value == cat.id|stringformat:"s" or form.category.value == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Brend (ixtiyoriy)</label>
+            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Brend (ixtiyoriy)" %}</label>
             <select name="brand" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm bg-white">
-                <option value="">— Brendni tanlang —</option>
+                <option value="">{% trans "— Brendni tanlang —" %}</option>
                 {% for b in form.brand.field.queryset %}
                 <option value="{{ b.id }}" {% if form.brand.value == b.id|stringformat:"s" or form.brand.value == b.id %}selected{% endif %}>{{ b.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Tavsif</label>
-            <textarea name="description" rows="3" placeholder="Mahsulot haqida qo'shimcha ma'lumot..."
+            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Tavsif" %}</label>
+            <textarea name="description" rows="3" placeholder="{% trans "Mahsulot haqida qo'shimcha ma'lumot..." %}"
                 class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm resize-none">{{ form.description.value|default:'' }}</textarea>
+        </div>
+
+        <div class="space-y-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+            <p class="text-sm font-bold text-gray-900">{% trans "Boshqa tillar (ixtiyoriy)" %}</p>
+            <p class="text-xs text-gray-500">{% trans "Bo'sh qoldirsangiz, o'zbekcha matn ko'rsatiladi." %}</p>
+            <input type="text" name="name_ru" maxlength="255" placeholder="{% trans "Nomi (ruscha)" %}" value="{{ form.name_ru.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <input type="text" name="name_en" maxlength="255" placeholder="{% trans "Nomi (inglizcha)" %}" value="{{ form.name_en.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <textarea name="description_ru" rows="2" placeholder="{% trans "Tavsif (ruscha)" %}" class="w-full px-3 py-2 border rounded-lg text-sm resize-none">{{ form.description_ru.value|default:'' }}</textarea>
+            <textarea name="description_en" rows="2" placeholder="{% trans "Tavsif (inglizcha)" %}" class="w-full px-3 py-2 border rounded-lg text-sm resize-none">{{ form.description_en.value|default:'' }}</textarea>
         </div>
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">Narxi (so'm) *</label>
+                <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Narxi (so'm) *" %}</label>
                 <input type="number" name="price" required min="0" step="1" placeholder="0" value="{{ form.price.value|default:'' }}"
                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
             </div>
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">Soni (dona) *</label>
+                <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Soni (dona) *" %}</label>
                 <input type="number" name="stock" required min="0" placeholder="0" value="{{ form.stock.value|default:'' }}"
                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm">
             </div>
         </div>
         <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Rasm (ixtiyoriy)</label>
+            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Rasm (ixtiyoriy)" %}</label>
             {% if product.image %}
                 <div class="mb-2">
                     <img src="{{ product.image.url }}" class="w-20 h-20 rounded-lg object-cover border">
-                    <p class="text-[10px] text-gray-400 mt-1">Hozirgi rasm</p>
+                    <p class="text-[10px] text-gray-400 mt-1">{% trans "Hozirgi rasm" %}</p>
                 </div>
             {% endif %}
             <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl   text-xs shadow-sm shadow-blue-100 hover:bg-blue-700 hover:translate-y-[-2px] transition-all">
-            {% if edit %}Saqlash{% else %}Mahsulotni qo'shish{% endif %}
+            {% if edit %}{% trans "Saqlash" %}{% else %}{% trans "Mahsulotni qo'shish" %}{% endif %}
         </button>
     </form>
 </div>

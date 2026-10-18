@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 import re
+from django.utils.translation import gettext_lazy as _
 from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region, NasiyaApplication
 
 class UserRegisterForm(UserCreationForm):
@@ -70,7 +71,7 @@ class StoreForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['category', 'brand', 'name', 'description', 'price', 'stock', 'image']
+        fields = ['category', 'brand', 'name', 'description', 'name_ru', 'name_en', 'description_ru', 'description_en', 'price', 'stock', 'image']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
@@ -126,7 +127,7 @@ class NasiyaApplicationForm(forms.ModelForm):
     def clean_full_name(self):
         name = ' '.join(self.cleaned_data['full_name'].split())
         if len(name) < 5 or ' ' not in name:
-            raise forms.ValidationError("Familiya va ismingizni to'liq kiriting.")
+            raise forms.ValidationError(_("Familiya va ismingizni to'liq kiriting."))
         return name
 
     def clean_phone(self):
@@ -136,5 +137,5 @@ class NasiyaApplicationForm(forms.ModelForm):
         if len(digits) == 9:
             digits = '998' + digits
         if not (len(digits) == 12 and digits.startswith('998')):
-            raise forms.ValidationError("Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67).")
+            raise forms.ValidationError(_("Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67)."))
         return '+' + digits

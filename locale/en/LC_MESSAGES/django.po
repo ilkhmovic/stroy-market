@@ -1,0 +1,1079 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: stroy-market\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(Naqd pulda bekor qilingani uchun)"
+msgstr "(for cancelling a cash order)"
+
+msgid "+ Mahsulot qo'shish"
+msgstr "+ Add product"
+
+msgid "1 kun ichida"
+msgstr "within 1 day"
+
+msgid "100,000 so'm"
+msgstr "100,000 UZS"
+
+msgid "12 oy"
+msgstr "12 months"
+
+msgid "3 oy"
+msgstr "3 months"
+
+msgid "30 Kun"
+msgstr "30 days"
+
+msgid "6 oy"
+msgstr "6 months"
+
+msgid "7 Kun"
+msgstr "7 days"
+
+msgid "90 Kun"
+msgstr "90 days"
+
+msgid "AI Yordamchi • Onlayn"
+msgstr "AI assistant • Online"
+
+msgid "Admin Panel"
+msgstr "Admin panel"
+
+msgid ""
+"Afsuski, sizning do'koningizni tasdiqlash so'rovi rad etildi. Qo'shimcha "
+"ma'lumot olish uchun biz bilan bog'laning."
+msgstr ""
+"Unfortunately, your store approval request was rejected. Contact us for more"
+" details."
+
+msgid "Agar buyurtma summasi 1,000,000 so'mdan kam bo'lsa:"
+msgstr "If the order total is under 1,000,000 UZS:"
+
+msgid "Agar buyurtma summasi 1,000,000 so'mdan ko'p bo'lsa:"
+msgstr "If the order total is over 1,000,000 UZS:"
+
+msgid "Akkaunt turini tanlang va ma'lumotlaringizni kiriting"
+msgstr "Choose an account type and enter your details"
+
+msgid "Akkauntingiz yo'qmi?"
+msgstr "Don't have an account?"
+
+msgid "Aktiv mahsulotlar"
+msgstr "Active products"
+
+msgid "Allaqachon akkauntingiz bormi?"
+msgstr "Already have an account?"
+
+msgid "Aloqa"
+msgstr "Contact"
+
+msgid "Amallar"
+msgstr "Actions"
+
+msgid "Anora • Gemini AI bilan ishlaydi"
+msgstr "Anora • powered by Gemini AI"
+
+msgid "Anoraga yozing..."
+msgstr "Message Anora..."
+
+msgid ""
+"Ariza ko'rib chiqilguncha buyurtma «Kutilmoqda» holatida turadi. Nasiya "
+"tasdiqlanishi kafolatlanmagan."
+msgstr ""
+"Until the application is reviewed, the order stays “Pending”. Approval of "
+"the installment plan is not guaranteed."
+
+msgid "Assalomu alaykum! 👋 Men"
+msgstr "Hello! 👋 I'm"
+
+msgid "BEPUL"
+msgstr "FREE"
+
+msgid "Ball ("
+msgstr "Score ("
+
+msgid "Barcha bildirishnomalar ro'yxati"
+msgstr "List of all notifications"
+
+msgid "Barcha mahsulotlar"
+msgstr "All products"
+
+msgid "Barchasi"
+msgstr "All"
+
+msgid "Bekor qilindi"
+msgstr "Cancelled"
+
+msgid "Bekor qilish"
+msgstr "Cancel"
+
+msgid "Bepul"
+msgstr "Free"
+
+msgid "Bildirishnomalar"
+msgstr "Notifications"
+
+msgid "Birinchi mahsulotni qo'shish →"
+msgstr "Add your first product →"
+
+msgid "Bo'lib to'lash"
+msgstr "Pay in parts"
+
+msgid "Bo'sh qoldirsangiz, o'zbekcha matn ko'rsatiladi."
+msgstr "If left empty, the Uzbek text is shown."
+
+msgid "Bog'lanildi"
+msgstr "Contacted"
+
+msgid "Boshqa tillar (ixtiyoriy)"
+msgstr "Other languages (optional)"
+
+msgid "Boshqaruv paneli"
+msgstr "Control panel"
+
+msgid "Bozor"
+msgstr "Market"
+
+msgid "Bozordan mahsulotlar qo'shing"
+msgstr "Add products from the market"
+
+msgid "Bozorga o'tish"
+msgstr "Go to the market"
+
+msgid "Bozorga qaytish"
+msgstr "Back to the market"
+
+msgid "Bozorni ko'ring"
+msgstr "Browse the market"
+
+msgid "Brend (ixtiyoriy)"
+msgstr "Brand (optional)"
+
+msgid "Brend:"
+msgstr "Brand:"
+
+msgid "Brendlar"
+msgstr "Brands"
+
+msgid ""
+"Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q."
+msgstr "This order can't be cancelled, or it has no pending items."
+
+msgid "Bu do'kondan mahsulot topilmadi."
+msgstr "No products found from this store."
+
+msgid "Buyurtma #"
+msgstr "Order #"
+
+msgid "Buyurtma berish"
+msgstr "Place order"
+
+msgid "Buyurtma berishda «Nasiya»ni tanlang, menejer siz bilan bog'lanadi."
+msgstr "Choose “Installments” at checkout and a manager will contact you."
+
+msgid "Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi."
+msgstr "Your order has been placed! Sellers have been notified."
+
+msgid ""
+"Buyurtma va nasiya arizangiz qabul qilindi! Menejerimiz tez orada telefon "
+"orqali bog'lanadi."
+msgstr ""
+"Your order and installment application have been received! Our manager will "
+"call you soon."
+
+msgid "Buyurtma xaritasi"
+msgstr "Order overview"
+
+msgid "Buyurtma xulosasi"
+msgstr "Order summary"
+
+msgid "Buyurtmalar"
+msgstr "Orders"
+
+msgid "Buyurtmalar Soni"
+msgstr "Number of orders"
+
+msgid "Buyurtmalar hali mavjud emas"
+msgstr "No orders yet"
+
+msgid "Buyurtmalar yo'q"
+msgstr "No orders"
+
+msgid "Buyurtmalarim"
+msgstr "My orders"
+
+msgid "Buyurtmalarimga qaytish"
+msgstr "Back to my orders"
+
+msgid "Buyurtmani asossiz bekor qilganingizda jarima qo'llaniladi."
+msgstr "A penalty applies if you cancel the order without a valid reason."
+
+msgid "Buyurtmani rasmiylashtirish"
+msgstr "Place your order"
+
+msgid "Buyurtmani tasdiqla"
+msgstr "Confirm order"
+
+msgid ""
+"Buyurtmani tasdiqlagandan so'ng, sotuvchi bu buyurtmani tasdiqlay samida "
+"yetkazib berishni boshlaydi."
+msgstr ""
+"After you confirm, the seller will confirm the order and start delivery."
+
+msgid "Checkout"
+msgstr "Checkout"
+
+msgid "Chiqish"
+msgstr "Log out"
+
+msgid "DAN"
+msgstr "FROM"
+
+msgid "DONA"
+msgstr "PCS"
+
+msgid "Dashboardga qaytish"
+msgstr "Back to dashboard"
+
+msgid "Do'kon hali yaratilmagan"
+msgstr "Store not created yet"
+
+msgid "Do'kon logosi"
+msgstr "Store logo"
+
+msgid "Do'kon ma'lumotlari yangilandi!"
+msgstr "Store details updated!"
+
+msgid "Do'kon ma'lumotlarini tahrirlash"
+msgstr "Edit store details"
+
+msgid "Do'kon manzili"
+msgstr "Store address"
+
+msgid "Do'kon muvaffaqiyatli yaratildi va tasdiqlash uchun yuborildi."
+msgstr "Your store has been created and sent for approval."
+
+msgid "Do'kon nomi"
+msgstr "Store name"
+
+msgid "Do'kon nomi *"
+msgstr "Store name *"
+
+msgid "Do'kon oching va mahsulotlaringizni joylang."
+msgstr "Open a store and list your products."
+
+msgid "Do'kon ochish"
+msgstr "Open store"
+
+msgid "Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting."
+msgstr "Enter your tax ID (STIR) and phone number before opening a store."
+
+msgid "Do'kon profili"
+msgstr "Store profile"
+
+msgid "Do'kon tavsifi"
+msgstr "Store description"
+
+msgid "Do'kon yaratish"
+msgstr "Create a store"
+
+msgid "Do'kon:"
+msgstr "Store:"
+
+msgid "Do'koningiz haqida qisqacha ma'lumot..."
+msgstr "A short description of your store..."
+
+msgid "Do'koningiz haqida..."
+msgstr "About your store..."
+
+msgid "Do'koningiz ma'lumotlarini kiriting"
+msgstr "Enter your store details"
+
+msgid "Do'koningiz samaradorligini tahlil qiling"
+msgstr "Analyze your store's performance"
+
+msgid "Do'koningizga yangi mahsulot qo'shing"
+msgstr "Add a new product to your store"
+
+msgid "Eng Xaridorgir To'rtlik"
+msgstr "Top 4 in demand"
+
+msgid "Eng Yuqori Reytinglar"
+msgstr "Highest ratings"
+
+msgid "F.I.Sh. *"
+msgstr "Full name *"
+
+msgid "Familiya"
+msgstr "Last name"
+
+msgid "Familiya Ism Sharif"
+msgstr "First and last name"
+
+msgid "Familiya va ismingizni to'liq kiriting."
+msgstr "Enter your full first and last name."
+
+msgid "Familiyangiz"
+msgstr "Your last name"
+
+msgid "Faol"
+msgstr "Active"
+
+msgid "Fikr bildirish"
+msgstr "Write a review"
+
+msgid ""
+"Fikr bildirish uchun avval bu mahsulotni sotib olishingiz va u yetkazib "
+"berilishi kerak!"
+msgstr ""
+"To leave a review, you must first buy this product and have it delivered!"
+
+msgid "Fikrlar hali yo'q"
+msgstr "No reviews yet"
+
+msgid "Filtrni tozalash"
+msgstr "Clear filters"
+
+msgid "GACHA"
+msgstr "TO"
+
+msgid "Ha, o'chirilsin"
+msgstr "Yes, delete"
+
+msgid "Hali buyurtma bermadingiz"
+msgstr "You haven't placed any orders yet"
+
+msgid "Hali mahsulot qo'shilmagan"
+msgstr "No products added yet"
+
+msgid "Hammasi"
+msgstr "All"
+
+msgid "Havolalar"
+msgstr "Links"
+
+msgid "Hech narsa topilmadi"
+msgstr "Nothing found"
+
+msgid "Holati:"
+msgstr "Status:"
+
+msgid "Holati: Kutilmoqda..."
+msgstr "Status: pending..."
+
+msgid "Hozir javob bera olmayman. Birozdan so'ng qayta urinib ko'ring."
+msgstr "I can't answer right now. Please try again in a moment."
+
+msgid "Hozircha sharhlar yo'q"
+msgstr "No reviews yet"
+
+msgid "Hozircha xabarlar yo'q"
+msgstr "No messages yet"
+
+msgid "Hozirgi rasm"
+msgstr "Current image"
+
+msgid "Ish joyi (ixtiyoriy)"
+msgstr "Workplace (optional)"
+
+msgid "Ism"
+msgstr "First name"
+
+msgid "Ismingiz"
+msgstr "Your first name"
+
+msgid "Izoh"
+msgstr "Note"
+
+msgid "Izoh (ixtiyoriy)"
+msgstr "Note (optional)"
+
+msgid "Jami"
+msgstr "Total"
+
+msgid "Jami mahsulotlar"
+msgstr "Total products"
+
+msgid "Jami to'lanadigan"
+msgstr "Total to pay"
+
+msgid "Jami:"
+msgstr "Total:"
+
+msgid "Jarima summasi"
+msgstr "Penalty amount"
+
+msgid "Javob berish"
+msgstr "Reply"
+
+msgid "Javob matnini kiriting."
+msgstr "Enter your reply."
+
+msgid "Javobingiz muvaffaqiyatli saqlandi!"
+msgstr "Your reply has been saved!"
+
+msgid "Jo'natildi"
+msgstr "Shipped"
+
+msgid "Karta"
+msgstr "Card"
+
+msgid "Kirish"
+msgstr "Log in"
+
+msgid "Ko'cha, uy raqami, xonadon..."
+msgstr "Street, house number, apartment..."
+
+msgid "Kunlik daromad"
+msgstr "Daily revenue"
+
+msgid "Kutilayotgan mahsulotlar bekor qilindi."
+msgstr "Pending items have been cancelled."
+
+msgid "Kutilayotganlarni bekor qilish"
+msgstr "Cancel pending items"
+
+msgid "Kutilmoqda"
+msgstr "Pending"
+
+msgid "Ma'lumotlar yo'q"
+msgstr "No data"
+
+msgid ""
+"Ma'lumotlaringiz menejerga yuboriladi, u siz bilan telefon orqali bog'lanib,"
+" shartlarni kelishadi va rasmiylashtiradi. Pasport raqami va boshqa maxfiy "
+"ma'lumotlar saytda so'ralmaydi."
+msgstr ""
+"Your details will be sent to a manager, who will call you, agree on the "
+"terms and arrange the installment plan. We never ask for passport numbers or"
+" other sensitive data on the site."
+
+msgid "Ma'lumotlaringiz yangilandi!"
+msgstr "Your details have been updated!"
+
+msgid "Mahsulot"
+msgstr "Product"
+
+msgid "Mahsulot haqida"
+msgstr "About this product"
+
+msgid "Mahsulot haqida qo'shimcha ma'lumot..."
+msgstr "More information about the product..."
+
+msgid "Mahsulot ma'lumotlarini yangilang"
+msgstr "Update the product details"
+
+msgid "Mahsulot nomi *"
+msgstr "Product name *"
+
+msgid "Mahsulot qidirish"
+msgstr "Search products"
+
+msgid "Mahsulot qo'shish"
+msgstr "Add product"
+
+msgid "Mahsulot savatdan o'chirildi."
+msgstr "Product removed from your cart."
+
+msgid "Mahsulot sharxi"
+msgstr "Product review"
+
+msgid "Mahsulotga qaytish"
+msgstr "Back to product"
+
+msgid "Mahsulotlar"
+msgstr "Products"
+
+msgid "Mahsulotlar ("
+msgstr "Products ("
+
+msgid "Mahsulotlar (Do'konlar bo'yicha)"
+msgstr "Products (by store)"
+
+msgid "Mahsulotlarim"
+msgstr "My products"
+
+msgid "Mahsulotlaringiz Buyurtmalari"
+msgstr "Orders for your products"
+
+msgid "Mahsulotlarni ko'rish"
+msgstr "Browse products"
+
+msgid "Mahsulotni o'chirish?"
+msgstr "Delete product?"
+
+msgid "Mahsulotni qo'shish"
+msgstr "Add product"
+
+msgid "Mahsulotni tahrirlash"
+msgstr "Edit product"
+
+msgid "Mahsulotning sifati, qulayligi va xususiyatlari haqida yozing..."
+msgstr "Write about the product's quality, convenience and features..."
+
+msgid "Manzil"
+msgstr "Address"
+
+msgid "Marketplace - ArzonMaterial"
+msgstr "Marketplace - ArzonMaterial"
+
+msgid "Masalan: Aliyev Qurilish"
+msgstr "e.g. Aliyev Construction"
+
+msgid "Masalan: Portland sement M400"
+msgstr "e.g. Portland cement M400"
+
+msgid "Masalan: kapotasi yoki pincode..."
+msgstr "e.g. door code or entrance..."
+
+msgid "Mavjud:"
+msgstr "In stock:"
+
+msgid "Menejerimiz %(phone)s raqamiga qo'ng'iroq qiladi."
+msgstr "Our manager will call %(phone)s."
+
+msgid "Mening buyurtmalarim"
+msgstr "My orders"
+
+msgid "Mening profilim"
+msgstr "My profile"
+
+msgid "Mijozlar Sharhlari"
+msgstr "Customer reviews"
+
+msgid "Mijozlar fikri"
+msgstr "Customer reviews"
+
+msgid "Mijozlar mahsulotingizni sotib olishganda bu yerda paydo bo'ladi."
+msgstr "Orders will appear here when customers buy your products."
+
+msgid ""
+"Mijozlar tomonidan do'koningizdan sotib olingan barcha mahsulotlar ro'yxati."
+msgstr "All products customers have bought from your store."
+
+msgid "Model topilmadi."
+msgstr "Model not found."
+
+msgid "Muddat *"
+msgstr "Term *"
+
+msgid "NO IMAGE"
+msgstr "NO IMAGE"
+
+msgid "Naqd"
+msgstr "Cash"
+
+msgid "Naqd pul"
+msgstr "Cash"
+
+msgid "Narx (so'm)"
+msgstr "Price (UZS)"
+
+msgid "Narxi"
+msgstr "Price"
+
+msgid "Narxi (so'm) *"
+msgstr "Price (UZS) *"
+
+msgid "Nasiya"
+msgstr "Installments"
+
+msgid "Nasiya arizasi"
+msgstr "Installment application"
+
+msgid "Nasiya arizasi."
+msgstr "Installment application."
+
+msgid "Nasiya arizasidagi ma'lumotlarni to'g'ri to'ldiring!"
+msgstr "Please fill in the installment application correctly!"
+
+msgid "Nasiya: ~"
+msgstr "Installments: ~"
+
+msgid "Nasiyaga olish mumkin"
+msgstr "Buy in installments"
+
+msgid "Nomi (inglizcha)"
+msgstr "Name (English)"
+
+msgid "Nomi (ruscha)"
+msgstr "Name (Russian)"
+
+msgid "Noto'g'ri so'rov formati."
+msgstr "Invalid request format."
+
+msgid "O'chirish"
+msgstr "Remove"
+
+msgid "O'qildi deb belgilash"
+msgstr "Mark as read"
+
+msgid "O'rtacha"
+msgstr "Average"
+
+msgid "O'tish →"
+msgstr "Go →"
+
+msgid "O'xshash mahsulotlar"
+msgstr "Similar products"
+
+msgid "Online to'lov"
+msgstr "Online payment"
+
+msgid "Order #"
+msgstr "Order #"
+
+msgid "Oylik daromad (ixtiyoriy)"
+msgstr "Monthly income (optional)"
+
+msgid "Panelga qaytish"
+msgstr "Back to dashboard"
+
+msgid "Parol"
+msgstr "Password"
+
+msgid "Plastik karta"
+msgstr "Bank card"
+
+msgid "Profil"
+msgstr "Profile"
+
+msgid "Profil rasmi"
+msgstr "Profile photo"
+
+msgid "Profilim"
+msgstr "My profile"
+
+msgid "Qabul qildim"
+msgstr "I received them"
+
+msgid "Qidirish"
+msgstr "Search"
+
+msgid "Qidiruv so'zini qisqartiring yoki filtrlarni tozalang."
+msgstr "Shorten your search or clear the filters."
+
+msgid "Qo'shilgan:"
+msgstr "Added:"
+
+msgid "Qurilish mollari onlayn markazi. Barcha huquqlar himoyalangan."
+msgstr "Online building materials center. All rights reserved."
+
+msgid "Rad etildi"
+msgstr "Rejected"
+
+msgid "Rad etildi - ArzonMaterial"
+msgstr "Rejected - ArzonMaterial"
+
+msgid "Rasm (ixtiyoriy)"
+msgstr "Image (optional)"
+
+msgid "Rasm yo'q"
+msgstr "No image"
+
+msgid "Ro'yxatdan o'ting"
+msgstr "Sign up"
+
+msgid "Ro'yxatdan o'tish"
+msgstr "Sign up"
+
+msgid "SO'M"
+msgstr "UZS"
+
+msgid "Saqlash"
+msgstr "Save"
+
+msgid "Saralash"
+msgstr "Apply"
+
+msgid "Savat"
+msgstr "Cart"
+
+msgid "Savat bo'sh"
+msgstr "Your cart is empty"
+
+msgid "Savatda mahsulot yo'q!"
+msgstr "Your cart has no products!"
+
+msgid "Savatdagi mahsulotlar"
+msgstr "Items in cart"
+
+msgid "Savatga qaytish"
+msgstr "Back to cart"
+
+msgid "Savatga qo'shish"
+msgstr "Add to cart"
+
+msgid "Sement, g'isht, bo'yoq, plitka qidiring..."
+msgstr "Search cement, bricks, paint, tiles..."
+
+msgid ""
+"Sement, g'isht, bo'yoq, plitka va asboblar. Do'konlar narxini solishtirib, "
+"arzonini tanlang."
+msgstr ""
+"Cement, bricks, paint, tiles and tools. Compare store prices and pick the "
+"cheapest."
+
+msgid "Sharh qoldirish"
+msgstr "Leave a review"
+
+msgid "Sharhingiz"
+msgstr "Your review"
+
+msgid "Sharhlar"
+msgstr "Reviews"
+
+msgid "Sharhlar mavjud emas"
+msgstr "No reviews"
+
+msgid "Sharhlar va Reyting"
+msgstr "Reviews & rating"
+
+msgid "Sharhni yuborish"
+msgstr "Submit review"
+
+msgid "Shaxsiy ma'lumotlarni tahrirlash"
+msgstr "Edit personal details"
+
+msgid "Sifatli qurilish materiallari onlayn bozori"
+msgstr "Online marketplace for quality building materials"
+
+msgid "Siz bu mahsulotni sotib olgansiz!"
+msgstr "You have purchased this product!"
+
+msgid "Siz haqiqatan ham"
+msgstr "Do you really want to delete the product"
+
+msgid "Sizga yoqishi mumkin"
+msgstr "You may also like"
+
+msgid "Sizning bahoingiz"
+msgstr "Your rating"
+
+msgid "Sizning javobingiz"
+msgstr "Your reply"
+
+msgid "Sizning mahsulotlaringizga kelgan fikrlar"
+msgstr "Feedback on your products"
+
+msgid ""
+"Sizning so'rovingiz qabul qilindi. Do'koningiz ma'lumotlari adminlar "
+"tomonidan"
+msgstr ""
+"Your request has been received. Your store details will be reviewed by "
+"admins"
+
+msgid "So'rov rad etildi"
+msgstr "Request rejected"
+
+msgid "Soni"
+msgstr "Quantity"
+
+msgid "Soni (dona) *"
+msgstr "Quantity (pcs) *"
+
+msgid "Soni bo'yicha"
+msgstr "By quantity"
+
+msgid "Soni x Narxi"
+msgstr "Qty × Price"
+
+msgid "Sotib oluvchi:"
+msgstr "Buyer:"
+
+msgid "Sotilgan Tovarlar"
+msgstr "Items sold"
+
+msgid "Sotuvchi"
+msgstr "Seller"
+
+msgid "Sotuvchi bo'lmoqchimisiz?"
+msgstr "Want to become a seller?"
+
+msgid "Sotuvchi javobi"
+msgstr "Seller's reply"
+
+msgid "Sotuvchi kabineti"
+msgstr "Seller dashboard"
+
+msgid "Sotuvchilar fikr bildira olmaydi."
+msgstr "Sellers can't leave reviews."
+
+msgid "Sotuvchilar savat ishlatа olmaydi."
+msgstr "Sellers can't use the cart."
+
+msgid "Sotuvchilar tovar sotib ola olmaydi."
+msgstr "Sellers can't buy products."
+
+msgid "Sotuvlar Dinamikasi"
+msgstr "Sales trend"
+
+msgid "Statistika"
+msgstr "Statistics"
+
+msgid "Statistika Markazi"
+msgstr "Statistics center"
+
+msgid "Statistika va Tahlil"
+msgstr "Statistics & analytics"
+
+msgid "TOP"
+msgstr "TOP"
+
+msgid "Ta'mirga kerakli hamma narsa bir joyda"
+msgstr "Everything for your renovation in one place"
+
+msgid "Tasdiq kutilmoqda"
+msgstr "Awaiting confirmation"
+
+msgid "Tasdiqlandi"
+msgstr "Confirmed"
+
+msgid "Tasdiqlash kutilmoqda - ArzonMaterial"
+msgstr "Awaiting approval - ArzonMaterial"
+
+msgid "Tasdiqlash uchun yuborildi"
+msgstr "Submitted for approval"
+
+msgid "Tavsif"
+msgstr "Description"
+
+msgid "Tavsif (inglizcha)"
+msgstr "Description (English)"
+
+msgid "Tavsif (ruscha)"
+msgstr "Description (Russian)"
+
+msgid "Telefon"
+msgstr "Phone"
+
+msgid "Telefon *"
+msgstr "Phone *"
+
+msgid "Telefon raqam"
+msgstr "Phone number"
+
+msgid "Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67)."
+msgstr "Enter a valid phone number (e.g. +998 90 123 45 67)."
+
+msgid "Tizimga kirish"
+msgstr "Log in"
+
+msgid "To'liq tasdiqlangan"
+msgstr "Fully confirmed"
+
+msgid "To'lov turi"
+msgstr "Payment method"
+
+msgid "To'lov turi noto'g'ri tanlangan!"
+msgstr "Invalid payment method!"
+
+msgid "Toifa"
+msgstr "Category"
+
+msgid "Top Sotilayotganlar"
+msgstr "Best sellers"
+
+msgid "Tozalash"
+msgstr "Clear"
+
+msgid "Tugagan"
+msgstr "Sold out"
+
+msgid "Tungi/kunduzgi rejim"
+msgstr "Dark/light mode"
+
+msgid "Umumiy Tushum"
+msgstr "Total revenue"
+
+msgid "Umumiy summa"
+msgstr "Total amount"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Ushbu do'kon bo'yicha buyurtma to'liq tasdiqlangan"
+msgstr "The order from this store is fully confirmed"
+
+msgid "Ushbu do'kon mahsulotlari keldimi?"
+msgstr "Did you receive this store's products?"
+
+msgid "Ushbu mahsulotni bekor qilib bo'lmaydi."
+msgstr "This item can't be cancelled."
+
+msgid "Vaqtinchalik to'xtatilgan"
+msgstr "Temporarily suspended"
+
+msgid "Xabar juda uzun. 1000 belgidan oshmasin."
+msgstr "Message too long. Max 1000 characters."
+
+msgid "Xabar kiriting."
+msgstr "Enter a message."
+
+msgid "Xabarlar"
+msgstr "Messages"
+
+msgid "Xabarlar - ArzonMaterial"
+msgstr "Notifications - ArzonMaterial"
+
+msgid "Xaridor"
+msgstr "Buyer"
+
+msgid "Xaridor qabul qildi"
+msgstr "Buyer received it"
+
+msgid "Xaridor tasdiqladi"
+msgstr "Buyer confirmed"
+
+msgid "Xaridor tasdiqlashi kerak"
+msgstr "Buyer must confirm"
+
+msgid "Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!"
+msgstr "The buyer must confirm receiving this product!"
+
+msgid "Xaridorga minnatdorchilik bildiring yoki savoliga javob bering..."
+msgstr "Thank the customer or answer their question..."
+
+msgid "Xulosa"
+msgstr "Summary"
+
+msgid "YANGI"
+msgstr "NEW"
+
+msgid "Yangi"
+msgstr "New"
+
+msgid "Yaratilgan:"
+msgstr "Created:"
+
+msgid "Yashash manzilingiz..."
+msgstr "Your home address..."
+
+msgid "Yetkazib berish"
+msgstr "Delivery"
+
+msgid "Yetkazib berish hududi"
+msgstr "Delivery region"
+
+msgid "Yetkazib berish manzili"
+msgstr "Delivery address"
+
+msgid "Yetkazib berish manzili *"
+msgstr "Delivery address *"
+
+msgid "Yetkazib berish manzilini kiriting!"
+msgstr "Enter the delivery address!"
+
+msgid "Yetkazildi"
+msgstr "Delivered"
+
+msgid "Yetkazilganda to'lash"
+msgstr "Pay on delivery"
+
+msgid "Yetkazilmoqda"
+msgstr "Shipping"
+
+msgid "Yil"
+msgstr "Year"
+
+msgid "avval"
+msgstr "ago"
+
+msgid "dona"
+msgstr "pcs"
+
+msgid "dona sotilgan"
+msgstr "pcs sold"
+
+msgid "dona ×"
+msgstr "pcs ×"
+
+msgid "dona)"
+msgstr "pcs)"
+
+msgid "fikr)"
+msgstr "reviews)"
+
+msgid "jarima."
+msgstr "penalty."
+
+msgid "ko'rib chiqiladi va tasdiqlanadi."
+msgstr "and approved."
+
+msgid "mahsulotini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi."
+msgstr "(this cannot be undone)?"
+
+msgid "so'm"
+msgstr "UZS"
+
+msgid "so'm / dona"
+msgstr "UZS / pc"
+
+msgid "so'm →"
+msgstr "UZS →"
+
+msgid "so'm/oy"
+msgstr "UZS/mo"
+
+msgid "ta jami"
+msgstr "total"
+
+msgid "ta mahsulot"
+msgstr "items"
+
+msgid "taxminan"
+msgstr "approx."
+
+msgid "» bo'yicha natijalar"
+msgstr "» — search results"
+
+msgid ""
+"— ArzonMaterial saytining AI yordamchisiman. Sizga qanday yordam bera "
+"olaman?"
+msgstr "— the AI assistant of ArzonMaterial. How can I help you?"
+
+msgid "— Brendni tanlang —"
+msgstr "— Select a brand —"
+
+msgid "— Toifani tanlang —"
+msgstr "— Select a category —"
+
+msgid "← Xaridni davom ettirish"
+msgstr "← Continue shopping"
+
+msgid "⚠️ Naqd pulda to'lash shartnomasi:"
+msgstr "⚠️ Cash payment terms:"
+
+msgid "❓ Qanday ishlaydi"
+msgstr "❓ How it works"
+
+msgid "⭐ Eng yaxshi"
+msgstr "⭐ Top rated"
+
+msgid "🏪 Rasmiylashtirish"
+msgstr "🏪 Set up my store"
+
+msgid "💬 Sharhlar"
+msgstr "💬 Reviews"
+
+msgid "💰 Eng arzon"
+msgstr "💰 Cheapest"
+
+msgid "📈 Statistika"
+msgstr "📈 Statistics"
+
+msgid "📊 Bugungi sotuvlarim"
+msgstr "📊 My sales today"
+
+msgid "📦 Buyurtma rasmiylashtirish"
+msgstr "📦 Placing your order"
+
+msgid "📦 Kabinet"
+msgstr "📦 Dashboard"
+
+msgid "📦 Mahsulot qo'shish"
+msgstr "📦 Add product"

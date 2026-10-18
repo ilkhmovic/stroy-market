@@ -1,4 +1,5 @@
 {% extends 'main/base.html' %}
+{% load i18n %}
 {% block content %}
 
 <div class="mb-8">
@@ -6,10 +7,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        Dashboardga qaytish
+        {% trans "Dashboardga qaytish" %}
     </a>
-    <h1 class="text-3xl font-bold text-gray-900">Mahsulotlaringiz Buyurtmalari</h1>
-    <p class="text-gray-500">Mijozlar tomonidan do'koningizdan sotib olingan barcha mahsulotlar ro'yxati.</p>
+    <h1 class="text-3xl font-bold text-gray-900">{% trans "Mahsulotlaringiz Buyurtmalari" %}</h1>
+    <p class="text-gray-500">{% trans "Mijozlar tomonidan do'koningizdan sotib olingan barcha mahsulotlar ro'yxati." %}</p>
 </div>
 
 <div class="space-y-6">
@@ -30,16 +31,16 @@
         <div class="flex-grow flex flex-col justify-between">
             <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div>
-                    <span class="text-[10px] font-bold text-blue-600   bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">Order #{{ item.order.id }}</span>
+                    <span class="text-[10px] font-bold text-blue-600   bg-blue-50 px-2 py-0.5 rounded-full mb-1 inline-block">{% trans "Order #" %}{{ item.order.id }}</span>
                     <h3 class="text-xl font-bold text-gray-900">{{ item.product_name }}</h3>
                     <p class="text-sm text-gray-500 mt-1">
-                        Sotib oluvchi: <span class="font-semibold text-gray-700">{{ item.order.user.username }}</span> ({{ item.order.user.phone|default:"Tel ko'rsatilmadi" }})
+                        {% trans "Sotib oluvchi:" %} <span class="font-semibold text-gray-700">{{ item.order.user.username }}</span> ({{ item.order.user.phone|default:"Tel ko'rsatilmadi" }})
                     </p>
                 </div>
                 <div class="text-left md:text-right">
-                    <p class="text-sm text-gray-400 font-medium">Soni x Narxi</p>
-                    <p class="text-lg font-bold text-gray-900">{{ item.quantity }} x {{ item.price|floatformat:0 }} so'm</p>
-                    <p class="text-2xl font-bold text-blue-600 mt-1">{{ item.get_total_price|floatformat:0 }} so'm</p>
+                    <p class="text-sm text-gray-400 font-medium">{% trans "Soni x Narxi" %}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ item.quantity }} x {{ item.price|floatformat:0 }} {% trans "so'm" %}</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1">{{ item.get_total_price|floatformat:0 }} {% trans "so'm" %}</p>
                 </div>
             </div>
 
@@ -59,12 +60,12 @@
                             {% if item.buyer_confirmed %}
                                 <span class="flex items-center gap-1 text-[9px] font-bold text-green-600  bg-green-50 px-2 py-0.5 rounded-full">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                    Xaridor qabul qildi
+                                    {% trans "Xaridor qabul qildi" %}
                                 </span>
                             {% else %}
                                 <span class="flex items-center gap-1 text-[9px] font-bold text-amber-600  bg-amber-50 px-2 py-0.5 rounded-full">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    Tasdiq kutilmoqda
+                                    {% trans "Tasdiq kutilmoqda" %}
                                 </span>
                             {% endif %}
                         </div>
@@ -73,7 +74,7 @@
                             <select name="status" class="text-[10px] font-bold   bg-gray-50 border border-gray-100 rounded-full px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 {% for code, label in item.STATUS_CHOICES %}
                                     <option value="{{ code }}" {% if item.status == code %}selected{% endif %}
-                                        {% if code == 'delivered' and not item.buyer_confirmed %}disabled title="Xaridor tasdiqlashi kerak"{% endif %}>
+                                        {% if code == 'delivered' and not item.buyer_confirmed %}disabled title="{% trans "Xaridor tasdiqlashi kerak" %}"{% endif %}>
                                         {{ label }}
                                     </option>
                                 {% endfor %}
@@ -96,8 +97,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
-        <p class="text-lg font-bold text-gray-900">Buyurtmalar hali mavjud emas</p>
-        <p class="text-sm text-gray-400 mt-1">Mijozlar mahsulotingizni sotib olishganda bu yerda paydo bo'ladi.</p>
+        <p class="text-lg font-bold text-gray-900">{% trans "Buyurtmalar hali mavjud emas" %}</p>
+        <p class="text-sm text-gray-400 mt-1">{% trans "Mijozlar mahsulotingizni sotib olishganda bu yerda paydo bo'ladi." %}</p>
     </div>
     {% endfor %}
 </div>

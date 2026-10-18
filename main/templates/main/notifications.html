@@ -1,15 +1,16 @@
 {% extends 'main/base.html' %}
-{% block title %}Xabarlar - ArzonMaterial{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Xabarlar - ArzonMaterial" %}{% endblock %}
 {% block content %}
 
 <div class="max-w-3xl mx-auto">
     <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 ">Xabarlar</h1>
-            <p class="text-[10px] font-bold text-gray-400   mt-1">Barcha bildirishnomalar ro'yxati</p>
+            <h1 class="text-3xl font-bold text-gray-900 ">{% trans "Xabarlar" %}</h1>
+            <p class="text-[10px] font-bold text-gray-400   mt-1">{% trans "Barcha bildirishnomalar ro'yxati" %}</p>
         </div>
         <div class="px-4 py-2 bg-blue-50 rounded-2xl border border-blue-100">
-            <p class="text-[10px] font-bold text-blue-600  ">{{ notifications.count }} ta jami</p>
+            <p class="text-[10px] font-bold text-blue-600  ">{{ notifications.count }} {% trans "ta jami" %}</p>
         </div>
     </div>
 
@@ -27,18 +28,18 @@
                             {{ notif.message }}
                         </p>
                         {% if not notif.is_read %}
-                        <span class="px-3 py-1 bg-blue-900 text-white text-[9px] font-bold   rounded-full shadow-lg">YANGI</span>
+                        <span class="px-3 py-1 bg-blue-900 text-white text-[9px] font-bold   rounded-full shadow-lg">{% trans "YANGI" %}</span>
                         {% endif %}
                     </div>
                     <div class="flex items-center justify-between">
                         <p class="text-[10px] text-gray-400 font-bold   flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {{ notif.created_at|timesince }} avval
+                            {{ notif.created_at|timesince }} {% trans "avval" %}
                         </p>
                         {% if not notif.is_read %}
-                        <a href="{% url 'mark_notification_read' notif.pk %}" class="text-[10px] font-bold text-blue-600   hover:text-blue-800 transition">O'qildi deb belgilash</a>
+                        <a href="{% url 'mark_notification_read' notif.pk %}" class="text-[10px] font-bold text-blue-600   hover:text-blue-800 transition">{% trans "O'qildi deb belgilash" %}</a>
                         {% elif notif.target_url %}
-                        <a href="{{ notif.target_url }}" class="text-[10px] font-bold text-gray-400   hover:text-gray-600 transition">O'tish →</a>
+                        <a href="{{ notif.target_url }}" class="text-[10px] font-bold text-gray-400   hover:text-gray-600 transition">{% trans "O'tish →" %}</a>
                         {% endif %}
                     </div>
                 </div>
@@ -47,7 +48,7 @@
         {% empty %}
         <div class="py-32 text-center bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm">
             <svg class="w-20 h-20 text-gray-100 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            <h3 class="text-xl font-bold text-gray-400">Hozircha xabarlar yo'q</h3>
+            <h3 class="text-xl font-bold text-gray-400">{% trans "Hozircha xabarlar yo'q" %}</h3>
         </div>
         {% endfor %}
     </div>

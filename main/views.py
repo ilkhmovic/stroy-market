@@ -9,6 +9,7 @@ import json
 from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
+from django.utils.translation import gettext, get_language
 from datetime import timedelta
 from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region, NasiyaApplication
 from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm
@@ -113,7 +114,7 @@ def buyer_profile(request):
         form = BuyerProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Ma'lumotlaringiz yangilandi!")
+            messages.success(request, gettext("Ma'lumotlaringiz yangilandi!"))
             return redirect('buyer_profile')
     else:
         form = BuyerProfileForm(instance=request.user)
@@ -132,7 +133,7 @@ def seller_profile(request):
             s = form.save(commit=False)
             s.owner = request.user
             s.save()
-            messages.success(request, "Do'kon ma'lumotlari yangilandi!")
+            messages.success(request, gettext("Do'kon ma'lumotlari yangilandi!"))
             return redirect('seller_profile')
     else:
         form = StoreForm(instance=store)
@@ -166,7 +167,7 @@ def create_store(request):
         
     # Check for missing info
     if not request.user.stir_pinfl or not request.user.phone:
-        messages.warning(request, "Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting.")
+        messages.warning(request, gettext("Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting."))
         return redirect('buyer_profile')
         
     if request.method == 'POST':
@@ -176,7 +177,7 @@ def create_store(request):
             store.owner = request.user
             store.save()
             form.save_m2m() # Save ManyToMany delivery_regions
-            messages.success(request, "Do'kon muvaffaqiyatli yaratildi va tasdiqlash uchun yuborildi.")
+            messages.success(request, gettext("Do'kon muvaffaqiyatli yaratildi va tasdiqlash uchun yuborildi."))
             return redirect('seller_dashboard')
     else:
         form = StoreForm()
@@ -244,7 +245,7 @@ def cart_view(request):
 @login_required
 def add_to_cart(request, pk):
     if request.user.is_seller:
-        messages.error(request, "Sotuvchilar savat ishlatа olmaydi.")
+        messages.error(request, gettext("Sotuvchilar savat ishlatа olmaydi."))
         return redirect('product_detail', pk=pk)
     product = get_object_or_404(Product, pk=pk)
     cart = _get_or_create_cart(request.user)
@@ -260,7 +261,7 @@ def add_to_cart(request, pk):
 def remove_from_cart(request, item_id):
     item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
     item.delete()
-    messages.success(request, "Mahsulot savatdan o'chirildi.")
+    messages.success(request, gettext("Mahsulot savatdan o'chirildi."))
     return redirect('cart')
 
 
@@ -287,7 +288,7 @@ def checkout(request):
     items = cart.items.select_related('product').all()
     
     if not items.exists():
-        messages.error(request, "Savatda mahsulot yo'q!")
+        messages.error(request, gettext("Savatda mahsulot yo'q!"))
         return redirect('cart')
     
     if request.method == 'POST':
@@ -309,14 +310,14 @@ def checkout(request):
             })
 
         if payment_method not in ('card', 'cash', 'nasiya'):
-            return _checkout_error("To'lov turi noto'g'ri tanlangan!")
+            return _checkout_error(gettext("To'lov turi noto'g'ri tanlangan!"))
 
         if not address:
-            return _checkout_error("Yetkazib berish manzilini kiriting!")
+            return _checkout_error(gettext("Yetkazib berish manzilini kiriting!"))
 
         # Nasiya tanlansa, ariza ma'lumotlari to'g'ri to'ldirilishi shart
         if payment_method == 'nasiya' and not nasiya_form.is_valid():
-            return _checkout_error("Nasiya arizasidagi ma'lumotlarni to'g'ri to'ldiring!")
+            return _checkout_error(gettext("Nasiya arizasidagi ma'lumotlarni to'g'ri to'ldiring!"))
 
         # Create order
         order = Order.objects.create(
@@ -364,11 +365,11 @@ def checkout(request):
             notify_managers(application)
             messages.success(
                 request,
-                "Buyurtma va nasiya arizangiz qabul qilindi! Menejerimiz tez orada telefon orqali bog'lanadi."
+                gettext("Buyurtma va nasiya arizangiz qabul qilindi! Menejerimiz tez orada telefon orqali bog'lanadi.")
             )
             return redirect('order_detail', order_id=order.pk)
 
-        messages.success(request, "Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi.")
+        messages.success(request, gettext("Buyurtma muvaffaqiyatli qabul qilindi! Sotuvchilar xabardor qilindi."))
         return redirect('order_detail', order_id=order.pk)
 
     return render(request, 'main/checkout.html', {
@@ -456,9 +457,9 @@ def cancel_order(request, order_id):
         # If all items are now cancelled, set order status to cancelled
         # If some were delivered/shipped, update_status (called in item.save) will handle it
         
-        messages.success(request, "Kutilayotgan mahsulotlar bekor qilindi.")
+        messages.success(request, gettext("Kutilayotgan mahsulotlar bekor qilindi."))
     else:
-        messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q.")
+        messages.error(request, gettext("Bu buyurtmani bekor qilib bo'lmaydi yoki kutilayotgan mahsulotlar yo'q."))
         
     return redirect('order_detail', order_id=order.pk)
 
@@ -489,7 +490,7 @@ def cancel_order_item(request, item_id):
             
         messages.success(request, f"'{item.product_name}' bekor qilindi.")
     else:
-        messages.error(request, "Ushbu mahsulotni bekor qilib bo'lmaydi.")
+        messages.error(request, gettext("Ushbu mahsulotni bekor qilib bo'lmaydi."))
         
     return redirect('order_detail', order_id=item.order.pk)
 
@@ -499,7 +500,7 @@ def cancel_order_item(request, item_id):
 @login_required
 def add_review(request, pk):
     if request.user.is_seller:
-        messages.error(request, "Sotuvchilar fikr bildira olmaydi.")
+        messages.error(request, gettext("Sotuvchilar fikr bildira olmaydi."))
         return redirect('product_detail', pk=pk)
     
     product = get_object_or_404(Product, pk=pk)
@@ -513,7 +514,7 @@ def add_review(request, pk):
     ).exists()
     
     if not has_delivered:
-        messages.error(request, "Fikr bildirish uchun avval bu mahsulotni sotib olishingiz va u yetkazib berilishi kerak!")
+        messages.error(request, gettext("Fikr bildirish uchun avval bu mahsulotni sotib olishingiz va u yetkazib berilishi kerak!"))
         return redirect('product_detail', pk=pk)
     
     # Check if user already reviewed
@@ -545,9 +546,9 @@ def add_review_reply(request, review_id):
             import django.utils.timezone as timezone
             review.replied_at = timezone.now()
             review.save()
-            messages.success(request, "Javobingiz muvaffaqiyatli saqlandi!")
+            messages.success(request, gettext("Javobingiz muvaffaqiyatli saqlandi!"))
         else:
-            messages.error(request, "Javob matnini kiriting.")
+            messages.error(request, gettext("Javob matnini kiriting."))
             
     return redirect('seller_reviews')
 
@@ -569,7 +570,7 @@ def update_order_item_status(request, item_id):
         if new_status in dict(OrderItem.STATUS_CHOICES):
             # Check for buyer confirmation if setting to delivered
             if new_status == 'delivered' and not item.buyer_confirmed:
-                messages.error(request, "Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!")
+                messages.error(request, gettext("Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!"))
             else:
                 item.status = new_status
                 item.save()
@@ -741,7 +742,7 @@ def admin_model_list(request, model_name):
     }
     
     if model_name not in model_map:
-        messages.error(request, "Model topilmadi.")
+        messages.error(request, gettext("Model topilmadi."))
         return redirect('admin_dashboard')
         
     model = model_map[model_name]
@@ -850,7 +851,7 @@ def confirm_store_receipt(request, order_id, store_id):
     items = order.items.filter(product__store_id=store_id)
     
     if not items.exists():
-        messages.error(request, "Bu do'kondan mahsulot topilmadi.")
+        messages.error(request, gettext("Bu do'kondan mahsulot topilmadi."))
         return redirect('order_detail', order_id=order.pk)
         
     items.update(buyer_confirmed=True)
@@ -877,24 +878,31 @@ def confirm_store_receipt(request, order_id, store_id):
 @csrf_exempt
 @require_POST
 def ai_chat(request):
-    """AJAX endpoint for Anora AI yordamchi."""
+    """AJAX endpoint for Anora AI yordamchi (UZ/RU/EN)."""
+    lang = (get_language() or 'uz')[:2]
+    from .anora_fallback import find_fallback
     try:
         data = json.loads(request.body)
         message = data.get('message', '').strip()
         chat_history = data.get('history', [])
 
         if not message:
-            return JsonResponse({'success': False, 'response': 'Xabar kiriting.'})
+            return JsonResponse({'success': False, 'response': gettext('Xabar kiriting.')})
 
         if len(message) > 1000:
-            return JsonResponse({'success': False, 'response': 'Xabar juda uzun. 1000 belgidan oshmasin.'})
+            return JsonResponse({'success': False, 'response': gettext('Xabar juda uzun. 1000 belgidan oshmasin.')})
 
         from .ai_assistant import get_ai_response
-        result = get_ai_response(request.user, message, chat_history)
-
-        return JsonResponse(result)
-
+        result = get_ai_response(request.user, message, chat_history, language=lang)
+        if result.get('success'):
+            return JsonResponse(result)
     except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'response': 'Noto\'g\'ri so\'rov formati.'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'response': 'Xatolik yuz berdi. Qayta urinib ko\'ring.'})
+        return JsonResponse({'success': False, 'response': gettext("Noto'g'ri so'rov formati.")})
+    except Exception:
+        message = locals().get('message', '')
+
+    # Gemini javob bermadi: avval qo'lda yozilgan javob, bo'lmasa umumiy xabar
+    manual = find_fallback(message, lang)
+    if manual:
+        return JsonResponse({'success': True, 'response': manual, 'source': 'manual'})
+    return JsonResponse({'success': False, 'response': gettext("Hozir javob bera olmayman. Birozdan so'ng qayta urinib ko'ring.")})

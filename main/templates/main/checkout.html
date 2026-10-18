@@ -1,15 +1,16 @@
 {% extends 'main/base.html' %}
-{% block title %}Checkout{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Checkout" %}{% endblock %}
 {% block content %}
 
 <div class="mb-6">
     <a href="{% url 'cart' %}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        Savatga qaytish
+        {% trans "Savatga qaytish" %}
     </a>
 </div>
 
-<h1 class="text-2xl font-extrabold text-gray-900 mb-6">Buyurtmani rasmiylashtirish</h1>
+<h1 class="text-2xl font-extrabold text-gray-900 mb-6">{% trans "Buyurtmani rasmiylashtirish" %}</h1>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -20,7 +21,7 @@
 
             <!-- Order Items Summary -->
             <div class="border-b border-gray-200 pb-6">
-                <h2 class="text-lg font-bold text-gray-900 mb-4">Mahsulotlar</h2>
+                <h2 class="text-lg font-bold text-gray-900 mb-4">{% trans "Mahsulotlar" %}</h2>
                 <div class="space-y-3">
                     {% for item in items %}
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -33,11 +34,11 @@
                                 </div>
                             {% endif %}
                             <div>
-                                <p class="font-semibold text-gray-800 text-sm">{{ item.product.name }}</p>
-                                <p class="text-xs text-gray-500">{{ item.quantity }} × {{ item.product.price|floatformat:0 }} so'm</p>
+                                <p class="font-semibold text-gray-800 text-sm">{{ item.product.display_name }}</p>
+                                <p class="text-xs text-gray-500">{{ item.quantity }} × {{ item.product.price|floatformat:0 }} {% trans "so'm" %}</p>
                             </div>
                         </div>
-                        <p class="font-bold text-gray-800 text-sm">{{ item.get_total_price|floatformat:0 }} so'm</p>
+                        <p class="font-bold text-gray-800 text-sm">{{ item.get_total_price|floatformat:0 }} {% trans "so'm" %}</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -45,46 +46,45 @@
 
             <!-- Payment Method -->
             <div class="border-b border-gray-200 pb-6">
-                <h2 class="text-lg font-bold text-gray-900 mb-4">To'lov turi</h2>
+                <h2 class="text-lg font-bold text-gray-900 mb-4">{% trans "To'lov turi" %}</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500">
                         <input type="radio" name="payment_method" value="card" {% if selected_payment == 'card' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">Plastik karta</p>
-                            <p class="text-xs text-gray-500">Online to'lov</p>
+                            <p class="text-sm font-bold text-gray-900">{% trans "Plastik karta" %}</p>
+                            <p class="text-xs text-gray-500">{% trans "Online to'lov" %}</p>
                         </div>
                     </label>
                     <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
                         <input type="radio" name="payment_method" value="cash" {% if selected_payment == 'cash' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">Naqd pul</p>
-                            <p class="text-xs text-gray-500">Yetkazilganda to'lash</p>
+                            <p class="text-sm font-bold text-gray-900">{% trans "Naqd pul" %}</p>
+                            <p class="text-xs text-gray-500">{% trans "Yetkazilganda to'lash" %}</p>
                         </div>
                     </label>
                     <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
                         <input type="radio" name="payment_method" value="nasiya" {% if selected_payment == 'nasiya' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">Nasiya</p>
-                            <p class="text-xs text-gray-500">Bo'lib to'lash</p>
+                            <p class="text-sm font-bold text-gray-900">{% trans "Nasiya" %}</p>
+                            <p class="text-xs text-gray-500">{% trans "Bo'lib to'lash" %}</p>
                         </div>
                     </label>
                 </div>
                 
                 <!-- Contract Info (Visible for Cash) -->
                 <div id="cash-contract" class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 hidden">
-                    <p class="font-bold mb-1">⚠️ Naqd pulda to'lash shartnomasi:</p>
+                    <p class="font-bold mb-1">{% trans "⚠️ Naqd pulda to'lash shartnomasi:" %}</p>
                     <ul class="list-disc ml-4 space-y-1">
-                        <li>Buyurtmani asossiz bekor qilganingizda jarima qo'llaniladi.</li>
-                        <li>Agar buyurtma summasi 1,000,000 so'mdan kam bo'lsa: <b>100,000 so'm</b> jarima.</li>
-                        <li>Agar buyurtma summasi 1,000,000 so'mdan ko'p bo'lsa: <b>10%</b> jarima.</li>
+                        <li>{% trans "Buyurtmani asossiz bekor qilganingizda jarima qo'llaniladi." %}</li>
+                        <li>{% trans "Agar buyurtma summasi 1,000,000 so'mdan kam bo'lsa:" %} <b>{% trans "100,000 so'm" %}</b> {% trans "jarima." %}</li>
+                        <li>{% trans "Agar buyurtma summasi 1,000,000 so'mdan ko'p bo'lsa:" %} <b>10%</b> {% trans "jarima." %}</li>
                     </ul>
                 </div>
 
                 <!-- Nasiya application (visible for Nasiya) -->
                 <div id="nasiya-block" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-4 {% if selected_payment != 'nasiya' %}hidden{% endif %}">
                     <p class="text-xs text-blue-800">
-                        <b>Nasiya arizasi.</b> Ma'lumotlaringiz menejerga yuboriladi, u siz bilan telefon orqali bog'lanib,
-                        shartlarni kelishadi va rasmiylashtiradi. Pasport raqami va boshqa maxfiy ma'lumotlar saytda so'ralmaydi.
+                        <b>{% trans "Nasiya arizasi." %}</b> {% trans "Ma'lumotlaringiz menejerga yuboriladi, u siz bilan telefon orqali bog'lanib, shartlarni kelishadi va rasmiylashtiradi. Pasport raqami va boshqa maxfiy ma'lumotlar saytda so'ralmaydi." %}
                     </p>
                     {% if nasiya_form.errors %}
                     <div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
@@ -93,17 +93,17 @@
                     {% endif %}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">F.I.Sh. *</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "F.I.Sh. *" %}</label>
                             <input type="text" name="nasiya-full_name" maxlength="150" data-nasiya-required value="{{ nasiya_form.full_name.value|default_if_none:'' }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Familiya Ism Sharif">
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="{% trans "Familiya Ism Sharif" %}">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Telefon *</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Telefon *" %}</label>
                             <input type="tel" name="nasiya-phone" maxlength="20" data-nasiya-required value="{{ nasiya_form.phone.value|default_if_none:'' }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="+998 90 123 45 67">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Muddat *</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Muddat *" %}</label>
                             <select name="nasiya-term_months" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
                                 {% for value, label in nasiya_form.fields.term_months.choices %}
                                 <option value="{{ value }}" {% if nasiya_form.term_months.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
@@ -111,17 +111,17 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Oylik daromad (ixtiyoriy)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Oylik daromad (ixtiyoriy)" %}</label>
                             <input type="number" name="nasiya-monthly_income" min="0" value="{{ nasiya_form.monthly_income.value|default_if_none:'' }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="so'm">
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="{% trans "so'm" %}">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Ish joyi (ixtiyoriy)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Ish joyi (ixtiyoriy)" %}</label>
                             <input type="text" name="nasiya-workplace" maxlength="200" value="{{ nasiya_form.workplace.value|default_if_none:'' }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                     </div>
-                    <p class="text-[11px] text-blue-700">Ariza ko'rib chiqilguncha buyurtma "Kutilmoqda" holatida turadi. Nasiya tasdiqlanishi kafolatlanmagan.</p>
+                    <p class="text-[11px] text-blue-700">{% trans "Ariza ko'rib chiqilguncha buyurtma «Kutilmoqda» holatida turadi. Nasiya tasdiqlanishi kafolatlanmagan." %}</p>
                 </div>
             </div>
 
@@ -143,22 +143,22 @@
 
             <!-- Delivery Address -->
             <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Yetkazib berish manzili *</label>
+                <label class="block text-sm font-bold text-gray-900 mb-2">{% trans "Yetkazib berish manzili *" %}</label>
                 <textarea name="address" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ko'cha, uy raqami, xonadon...">{{ user_address }}</textarea>
+                    placeholder="{% trans "Ko'cha, uy raqami, xonadon..." %}">{{ user_address }}</textarea>
             </div>
 
             <!-- Additional Note -->
             <div>
-                <label class="block text-sm font-bold text-gray-900 mb-2">Izoh (ixtiyoriy)</label>
+                <label class="block text-sm font-bold text-gray-900 mb-2">{% trans "Izoh (ixtiyoriy)" %}</label>
                 <textarea name="note" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Masalan: kapotasi yoki pincode..."></textarea>
+                    placeholder="{% trans "Masalan: kapotasi yoki pincode..." %}"></textarea>
             </div>
 
             <!-- Submit Button -->
             <div class="pt-4 border-t border-gray-200">
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition">
-                    Buyurtmani tasdiqla
+                    {% trans "Buyurtmani tasdiqla" %}
                 </button>
             </div>
         </form>
@@ -167,30 +167,30 @@
     <!-- Order Summary -->
     <div class="lg:col-span-1">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-20">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Buyurtma xulosasi</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-4">{% trans "Buyurtma xulosasi" %}</h2>
 
             <div class="space-y-3 text-sm text-gray-600 mb-4">
                 <div class="flex justify-between">
-                    <span>Mahsulotlar</span>
-                    <span class="font-semibold">{{ get_total_price|floatformat:0 }} so'm</span>
+                    <span>{% trans "Mahsulotlar" %}</span>
+                    <span class="font-semibold">{{ get_total_price|floatformat:0 }} {% trans "so'm" %}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span>Yetkazib berish</span>
-                    <span class="text-green-600 font-semibold">Bepul</span>
+                    <span>{% trans "Yetkazib berish" %}</span>
+                    <span class="text-green-600 font-semibold">{% trans "Bepul" %}</span>
                 </div>
             </div>
 
             <hr class="border-gray-100 my-4">
 
             <div class="flex justify-between text-base font-extrabold text-gray-900 mb-6">
-                <span>Jami</span>
-                <span class="text-blue-700 text-xl">{{ get_total_price|floatformat:0 }} so'm</span>
+                <span>{% trans "Jami" %}</span>
+                <span class="text-blue-700 text-xl">{{ get_total_price|floatformat:0 }} {% trans "so'm" %}</span>
             </div>
 
             <!-- Info Box -->
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs text-blue-700">
-                <p class="font-semibold mb-2">📦 Buyurtma rasmiylashtirish</p>
-                <p>Buyurtmani tasdiqlagandan so'ng, sotuvchi bu buyurtmani tasdiqlay samida yetkazib berishni boshlaydi.</p>
+                <p class="font-semibold mb-2">{% trans "📦 Buyurtma rasmiylashtirish" %}</p>
+                <p>{% trans "Buyurtmani tasdiqlagandan so'ng, sotuvchi bu buyurtmani tasdiqlay samida yetkazib berishni boshlaydi." %}</p>
             </div>
         </div>
     </div>
