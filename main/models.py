@@ -185,7 +185,11 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(
         max_length=10, 
-        choices=[('card', _('Karta')), ('cash', _('Naqd')), ('nasiya', _('Nasiya'))], 
+        choices=[
+            ('card', _("Kuryerga karta/terminal orqali to'lash")),
+            ('cash', _('Naqd')),
+            ('nasiya', _('Nasiya')),
+        ], 
         default='card',
         verbose_name="To'lov turi"
     )
@@ -206,9 +210,11 @@ class Order(models.Model):
 
         if all(s == 'delivered' for s in item_statuses):
             new_status = 'delivered'
+        elif all(s == 'cancelled' for s in item_statuses):
+            new_status = 'cancelled'
         elif any(s == 'shipped' for s in item_statuses):
             new_status = 'shipping'
-        elif any(s != 'pending' for s in item_statuses):
+        elif any(s not in ['pending', 'cancelled'] for s in item_statuses):
             new_status = 'confirmed'
         else:
             new_status = 'pending'
