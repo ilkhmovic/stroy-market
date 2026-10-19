@@ -62,11 +62,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'main',   # allauth'dan OLDIN bo'lishi shart: shablonlarni (allauth/...) o'zgartira oladi
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -228,6 +232,9 @@ EMAIL_BACKEND = (
 
 # Gemini AI API Key
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GEMINI_CHAT_MODEL = os.getenv('GEMINI_CHAT_MODEL', 'gemini-3.8-flash')
+GEMINI_CHAT_FALLBACK_MODEL = os.getenv('GEMINI_CHAT_FALLBACK_MODEL', 'gemini-3.5-flash-lite')
+GEMINI_PROJECT_MODEL = os.getenv('GEMINI_PROJECT_MODEL', 'gemini-3.8-flash')
 
 # Nasiya arizalarini menejerga Telegram orqali yuborish (ixtiyoriy)
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')

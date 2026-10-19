@@ -66,4 +66,6 @@ urlpatterns = [
 
     # ══════════ Anora AI (hamma rol uchun) ══════════
     path('api/ai/chat/', views.ai_chat, name='ai_chat'),
+    path('api/ai/project/estimate/', views.ai_project_estimate, name='ai_project_estimate'),
+    path('api/ai/project/add-to-cart/', views.ai_project_add_cart, name='ai_project_add_cart'),
 ]

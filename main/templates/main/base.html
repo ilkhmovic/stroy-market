@@ -339,19 +339,18 @@
 
         <!-- Input Area -->
         <div class="px-4 pb-4 flex-shrink-0">
-            <form id="anora-form" onsubmit="sendAnora(event)" class="flex gap-2">
-                <input 
-                    id="anora-input" 
-                    type="text" 
-                    placeholder="{% trans "Anoraga yozing..." %}" 
-                    autocomplete="off"
-                    class="flex-grow bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all outline-none placeholder:text-gray-300 font-medium"
-                >
-                <button type="submit" id="anora-send" class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center hover:scale-105 hover:shadow-lg hover:shadow-blue-200 transition-all duration-300 flex-shrink-0 disabled:opacity-50 disabled:hover:scale-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            <div id="anora-file-name" class="hidden mb-2 truncate rounded-lg bg-indigo-50 px-3 py-1.5 text-[11px] text-indigo-700"></div>
+            <form id="anora-form" onsubmit="sendAnora(event)" class="flex items-center gap-2">
+                <label for="anora-file" title="Smeta yoki loyiha rasmini/PDF faylini biriktirish" class="flex h-12 w-12 flex-shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l7.07-7.07a4 4 0 00-5.656-5.657L5.05 11.464a6 6 0 108.485 8.485L20 13.5"/></svg>
+                </label>
+                <input id="anora-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" class="hidden" onchange="anoraShowFile(this)">
+                <input id="anora-input" type="text" placeholder="{% trans "Anoraga yozing yoki o‘lchamlarni kiriting..." %}" autocomplete="off" class="min-w-0 flex-grow rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-300 focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500">
+                <button type="submit" id="anora-send" class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-200 disabled:opacity-50 disabled:hover:scale-100">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                 </button>
             </form>
-            <p class="text-[9px] text-gray-300 text-center mt-2 font-medium">{% trans "Anora • Gemini AI bilan ishlaydi" %}</p>
+            <p class="mt-2 text-center text-[9px] font-medium text-gray-300">Anora • Chat, o‘lcham hisobi va smeta rasm/PDF tahlili</p>
         </div>
     </div>
 </div>
@@ -459,71 +458,127 @@
         if (show) scrollMessages();
     }
 
+    function anoraCsrfToken() {
+        const cookie = document.cookie.split(';').map(x => x.trim()).find(x => x.startsWith('csrftoken='));
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || (cookie ? decodeURIComponent(cookie.slice('csrftoken='.length)) : '{{ csrf_token }}');
+    }
+
+    function anoraShowFile(input) {
+        const badge = document.getElementById('anora-file-name');
+        if (input.files && input.files[0]) {
+            badge.textContent = `Biriktirildi: ${input.files[0].name} (10 MB gacha)`;
+            badge.classList.remove('hidden');
+        } else {
+            badge.textContent = '';
+            badge.classList.add('hidden');
+        }
+    }
+
+    function isAnoraProjectRequest(message, file) {
+        if (file) return true;
+        return /(?:smeta|smetani|hisobla|hisob-kitob|qancha kerak|material(?:lar)? kerak|qurilish(?: loyihasi)?|hovuz|basseyn|beton|sement|pol quy|maydonni beton|poydevor|devor qur|project estimate|bill of quantities|pool|concrete slab|\bm[²2]\b|\bm[³3]\b|\d+(?:[.,]\d+)?\s*[x×*]\s*\d+(?:[.,]\d+)?)/i.test(message || '');
+    }
+
+    function anoraRenderProject(data) {
+        const container = document.getElementById('anora-messages');
+        const card = document.createElement('section');
+        card.className = 'anora-msg mx-1 rounded-2xl border border-indigo-100 bg-white p-3 shadow-sm';
+        const title = document.createElement('h4'); title.className = 'mb-2 text-sm font-bold text-indigo-900';
+        title.textContent = `${data.project_type || 'Loyiha'} — materiallar va hisob`; card.appendChild(title);
+        (data.assumptions || []).forEach(text => { const p = document.createElement('p'); p.className = 'mb-1 text-[11px] text-amber-800'; p.textContent = `Eslatma: ${text}`; card.appendChild(p); });
+        const selected = [];
+        (data.items || []).forEach(line => {
+            const group = document.createElement('div'); group.className = 'my-2 border-t border-gray-100 pt-2';
+            const label = document.createElement('p'); label.className = 'text-xs font-semibold text-gray-800'; label.textContent = `${line.query}: ${line.quantity} ${line.unit || ''}`; group.appendChild(label);
+            if (line.reason) { const reason = document.createElement('p'); reason.className='text-[10px] text-gray-500'; reason.textContent=line.reason; group.appendChild(reason); }
+            if (!line.matches || !line.matches.length) { const miss = document.createElement('p'); miss.className='text-[10px] text-rose-600'; miss.textContent='Katalogda mos mahsulot topilmadi.'; group.appendChild(miss); }
+            (line.matches || []).forEach((match, index) => {
+                const row = document.createElement('label'); row.className='mt-1 flex items-center gap-2 rounded-lg bg-gray-50 p-2 text-[11px]';
+                const check = document.createElement('input'); check.type='checkbox'; check.checked=index===0; check.className='anora-project-check';
+                const qty = Math.max(1, Math.ceil(Number(line.quantity) || 1));
+                check.dataset.productId=match.id; check.dataset.price=match.price; check.dataset.quantity=qty;
+                const text = document.createElement('span'); text.className='min-w-0 flex-1'; text.textContent=`${match.name} · ${match.store} · ${Number(match.price).toLocaleString()} so‘m · qoldiq ${match.stock}`;
+                const amount = document.createElement('input'); amount.type='number'; amount.min='1'; amount.max=String(match.stock); amount.step='1'; amount.value=String(Math.min(qty, match.stock)); amount.className='w-16 rounded border px-1 py-1 text-right'; amount.setAttribute('aria-label','Savatga qo‘shiladigan dona yoki qadoq');
+                check.dataset.quantity=amount.value; amount.addEventListener('input',()=>check.dataset.quantity=amount.value);
+                row.append(check,text,amount); group.appendChild(row);
+            });
+            card.appendChild(group);
+        });
+        const total = document.createElement('p'); total.className='my-2 text-right text-xs font-bold text-gray-800'; card.appendChild(total);
+        const updateTotal = () => { const sum=[...card.querySelectorAll('.anora-project-check:checked')].reduce((acc, check)=>acc+(Number(check.dataset.price)||0)*(Number(check.dataset.quantity)||0),0); total.textContent=`Tanlangan katalog mahsulotlari jami (taxminiy): ${sum.toLocaleString()} so‘m. Savatda miqdor dona/qadoq sifatida qo‘shiladi.`; };
+        card.querySelectorAll('.anora-project-check').forEach(check=>check.addEventListener('change',updateTotal));
+        card.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',updateTotal));
+        updateTotal();
+        const add = document.createElement('button'); add.type='button'; add.className='w-full rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700'; add.textContent='Tanlangan mahsulotlarni savatga qo‘shish';
+        add.addEventListener('click', async () => {
+            const items = [...card.querySelectorAll('.anora-project-check:checked')].map(check => ({product_id:Number(check.dataset.productId), quantity:Number(check.dataset.quantity)}));
+            if (!items.length || items.some(item=>!Number.isInteger(item.quantity)||item.quantity<1)) { total.textContent='Savat uchun kamida bitta mahsulot va butun dona miqdorini tanlang.'; return; }
+            add.disabled=true; add.textContent='Savat yangilanmoqda...';
+            try {
+                const response=await fetch('/api/ai/project/add-to-cart/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':anoraCsrfToken()},body:JSON.stringify({items})});
+                const result=await response.json(); if(!response.ok||!result.success) throw new Error(result.error||'Savatga qo‘shib bo‘lmadi.');
+                total.textContent=`Savatga qo‘shildi. Savatning joriy jami: ${Number(result.total).toLocaleString()} so‘m.`;
+                add.textContent='Savatni ochish'; add.onclick=()=>window.location.href=result.cart_url;
+            } catch(error) { total.textContent=error.message||'Savatga qo‘shib bo‘lmadi.'; add.disabled=false; add.textContent='Tanlangan mahsulotlarni savatga qo‘shish'; }
+        });
+        card.appendChild(add); container.appendChild(card); scrollMessages();
+    }
+
     async function sendAnora(event) {
         event.preventDefault();
         const input = document.getElementById('anora-input');
+        const fileInput = document.getElementById('anora-file');
+        const file = fileInput.files && fileInput.files[0];
         const message = input.value.trim();
-        if (!message || anoraLoading) return;
-
-        // Hide suggestions after first message
+        if ((!message && !file) || anoraLoading) return;
+        if (file && file.size > 10 * 1024 * 1024) {
+            addMessage('Fayl hajmi 10 MB dan oshmasin.', false);
+            return;
+        }
         document.getElementById('anora-suggestions').classList.add('hidden');
-
-        // Add user message
-        addMessage(message, true);
-        anoraHistory.push({ role: 'user', text: message });
+        const shownMessage = file ? `${message || 'Smetani tahlil qiling'}\n📎 ${file.name}` : message;
+        addMessage(shownMessage, true);
+        anoraHistory.push({ role: 'user', text: message || 'Smetadagi materiallarni tahlil qiling.' });
         input.value = '';
-
-        // Show typing
+        fileInput.value = '';
+        anoraShowFile(fileInput);
         anoraLoading = true;
         showTyping(true);
-        document.getElementById('anora-send').disabled = true;
-
+        const sendButton = document.getElementById('anora-send');
+        sendButton.disabled = true;
         try {
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
+            const csrfToken = anoraCsrfToken();
+            if (isAnoraProjectRequest(message, file)) {
+                const body = new FormData();
+                body.append('message', message);
+                if (file) body.append('estimate', file);
+                const response = await fetch('/api/ai/project/estimate/', {method: 'POST', headers: {'X-CSRFToken': csrfToken}, body});
+                const data = await response.json();
+                showTyping(false);
+                if (!response.ok || !data.success) throw new Error(data.error || 'Loyiha tahlili amalga oshmadi.');
+                anoraRenderProject(data);
+                anoraHistory.push({role: 'model', text: `${data.project_type}: ${(data.items || []).map(item => `${item.query} ${item.quantity} ${item.unit}`).join('; ') || (data.assumptions || []).join('; ')}`});
+            } else {
+                const response = await fetch('/api/ai/chat/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                    body: JSON.stringify({message, history: anoraHistory.slice(-10)}),
+                });
+                const data = await response.json();
+                showTyping(false);
+                if (!response.ok || !data.success) throw new Error(data.response || 'Anora hozir javob bera olmayapti.');
+                addMessage(data.response, false);
+                anoraHistory.push({role: 'model', text: data.response});
             }
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '{{ csrf_token }}';
-            
-            const response = await fetch('/api/ai/chat/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                },
-                body: JSON.stringify({
-                    message: message,
-                    history: anoraHistory.slice(-10),
-                }),
-            });
-
-            const data = await response.json();
-            
-            showTyping(false);
-            addMessage(data.response, false);
-            anoraHistory.push({ role: 'model', text: data.response });
-            
-            // Save to session
             sessionStorage.setItem('anoraHistory', JSON.stringify(anoraHistory.slice(-20)));
-
         } catch (err) {
             showTyping(false);
-            addMessage("{% trans "Tarmoq xatosi yuz berdi. Qayta urinib ko'ring." %}", false);
+            addMessage(err.message || 'Tahlil qilib bo‘lmadi. API kaliti va Gemini modelini tekshirib, qayta urinib ko‘ring.', false);
+        } finally {
+            anoraLoading = false;
+            sendButton.disabled = false;
+            input.focus();
         }
-
-        anoraLoading = false;
-        document.getElementById('anora-send').disabled = false;
-        input.focus();
     }
 
     function sendQuick(text) {

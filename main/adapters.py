@@ -10,7 +10,7 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     """
 
     def is_open_for_signup(self, request):
-        return False
+        return True
 
     def get_email_verification_redirect_url(self, email_address):
         user = email_address.user

@@ -1107,6 +1107,98 @@ def confirm_store_receipt(request, order_id, store_id):
 
 # ────────── ANORA AI CHAT ──────────
 
+@login_required
+@require_POST
+def ai_project_estimate(request):
+    """Parse a project estimate and match its materials to live catalog listings."""
+    if request.user.is_seller:
+        return JsonResponse({'success': False, 'error': gettext('Bu funksiya xaridorlar uchun.')}, status=403)
+    if not request.content_type.startswith('multipart/form-data'):
+        return JsonResponse({'success': False, 'error': gettext('Fayl va izoh yuboring.')}, status=400)
+    message = request.POST.get('message', '').strip()
+    if len(message) > 4000:
+        return JsonResponse({'success': False, 'error': gettext('Izoh 4000 belgidan oshmasin.')}, status=400)
+    upload = request.FILES.get('estimate')
+    if not message and not upload:
+        return JsonResponse({'success': False, 'error': gettext('Loyiha o‘lchamlari/izohi yoki smeta faylini kiriting.')}, status=400)
+    if upload:
+        suffix = upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
+        allowed = {'pdf', 'png', 'jpg', 'jpeg', 'webp'}
+        if suffix not in allowed or upload.size > 10 * 1024 * 1024:
+            return JsonResponse({'success': False, 'error': gettext('Faqat PDF/JPG/PNG/WEBP, eng ko‘pi 10 MB.')}, status=400)
+        if upload.content_type not in {'application/pdf', 'image/png', 'image/jpeg', 'image/webp'}:
+            return JsonResponse({'success': False, 'error': gettext('Fayl formati tekshiruvdan o‘tmadi.')}, status=400)
+    try:
+        from .ai_project import analyze_project, catalog_matches, normalize_quantity
+        estimate = analyze_project(message, upload)
+        rows = []
+        for line in estimate['items']:
+            query = str(line.get('query', '')).strip()[:180]
+            quantity = normalize_quantity(line.get('quantity'))
+            if not query or quantity is None:
+                continue
+            matches = catalog_matches(query)
+            rows.append({
+                'query': query, 'quantity': str(quantity),
+                'unit': str(line.get('unit', 'dona'))[:30],
+                'reason': str(line.get('reason', ''))[:300],
+                'matches': [{
+                    'id': p.pk, 'name': p.display_name,
+                    'store': p.store.name, 'price': str(p.price),
+                    'stock': p.stock, 'url': reverse('product_detail', args=[p.pk]),
+                } for p in matches],
+            })
+        return JsonResponse({'success': True, 'project_type': estimate['project_type'], 'assumptions': estimate['assumptions'], 'items': rows})
+    except Exception as exc:
+        logger.exception('Anora project estimate error: %s', type(exc).__name__)
+        return JsonResponse({'success': False, 'error': gettext('Smetani tahlil qilib bo‘lmadi. Birozdan so‘ng qayta urinib ko‘ring.')}, status=502)
+
+
+@login_required
+@require_POST
+def ai_project_add_cart(request):
+    """Add buyer-confirmed catalog lines to the existing cart atomically."""
+    if request.user.is_seller:
+        return JsonResponse({'success': False, 'error': gettext('Bu funksiya xaridorlar uchun.')}, status=403)
+    try:
+        payload = json.loads(request.body)
+        lines = payload.get('items', [])
+        if not isinstance(lines, list) or not 1 <= len(lines) <= 30:
+            raise ValueError
+        from .ai_project import normalize_quantity
+        cart = _get_or_create_cart(request.user)
+        normalized = {}
+        for line in lines:
+            if not isinstance(line, dict):
+                raise ValueError
+            product_id = int(line.get('product_id'))
+            quantity = normalize_quantity(line.get('quantity'))
+            if quantity is None or quantity != quantity.to_integral_value():
+                return JsonResponse({'success': False, 'error': gettext('Savat miqdori butun dona bo‘lishi kerak.')}, status=400)
+            normalized[product_id] = normalized.get(product_id, 0) + int(quantity)
+        with transaction.atomic():
+            products = {p.pk: p for p in Product.objects.select_for_update().filter(pk__in=normalized, store__status='active')}
+            if len(products) != len(normalized):
+                return JsonResponse({'success': False, 'error': gettext('Ayrim mahsulotlar endi mavjud emas.')}, status=409)
+            existing = {item.product_id: item for item in cart.items.filter(product_id__in=normalized)}
+            for product_id, quantity in normalized.items():
+                product = products[product_id]
+                total = quantity + (existing[product_id].quantity if product_id in existing else 0)
+                if total > product.stock or total > MAX_CART_QTY:
+                    return JsonResponse({'success': False, 'error': gettext('Ombordagi qoldiq savat uchun yetarli emas: %(name)s (qoldiq %(stock)s).') % {'name': product.display_name, 'stock': product.stock}}, status=409)
+            for product_id, quantity in normalized.items():
+                item = existing.get(product_id)
+                if item:
+                    item.quantity += quantity
+                    item.save(update_fields=['quantity'])
+                else:
+                    CartItem.objects.create(cart=cart, product=products[product_id], quantity=quantity)
+        total = sum((item.product.price * item.quantity for item in cart.items.select_related('product')), start=0)
+        return JsonResponse({'success': True, 'cart_url': reverse('cart'), 'total': str(total), 'currency': 'UZS'})
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return JsonResponse({'success': False, 'error': gettext('Savat so‘rovi noto‘g‘ri.')}, status=400)
+
+
 @require_POST
 def ai_chat(request):
     """AJAX endpoint for Anora AI yordamchi (UZ/RU/EN)."""
