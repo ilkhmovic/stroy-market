@@ -17,6 +17,7 @@ myenv/*
 
 # Database
 db.sqlite3
+db.sqlite3.backup
 
 # Media & Static
 media/
