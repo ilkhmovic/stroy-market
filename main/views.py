@@ -34,6 +34,23 @@ def role_home(request):
 
 # ────────── AUTH: har bir rol uchun alohida portal ──────────
 
+def _send_verification(request, user):
+    """Ro'yxatdan o'tgandan keyin tasdiqlash xatini yuboradi. Xato bo'lsa log yoziladi, sayt qulamaydi."""
+    from allauth.account.models import EmailAddress
+    address = EmailAddress.objects.filter(user=user, verified=False).first()
+    if not address:
+        return False
+    try:
+        address.send_confirmation(request, signup=True)
+        return True
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Tasdiqlash xati yuborilmadi: user=%s email=%s", user.pk, address.email)
+        messages.error(request, gettext(
+            "Tasdiqlash xatini yuborib bo'lmadi. Kirish sahifasida parolingizni kiriting, xat qayta yuboriladi."))
+        return False
+
+
 def register(request):
     """Xaridor ro'yxatdan o'tishi. Sotuvchilar /seller/register/ da."""
     if request.user.is_authenticated and get_role(request.user) == BUYER:
@@ -42,8 +59,8 @@ def register(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            return redirect('marketplace')
+            _send_verification(request, user)
+            return redirect('account_email_verification_sent')
     else:
         form = UserRegisterForm()
     return render(request, 'main/auth_page.html', {
@@ -78,6 +95,8 @@ class _PortalLogin(LoginView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        if self.request.method == 'GET' and self.request.GET.get('verified') == '1':
+            messages.success(self.request, gettext("Email tasdiqlandi! Endi tizimga kirishingiz mumkin."))
         ctx.update({
             'title': self.title, 'subtitle': self.subtitle,
             'submit_label': gettext("Kirish"),
@@ -135,8 +154,8 @@ def seller_register(request):
         form = SellerRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            return redirect('seller_dashboard')
+            _send_verification(request, user)
+            return redirect('account_email_verification_sent')
     else:
         form = SellerRegisterForm()
     return render(request, 'main/portal/auth_page.html', {

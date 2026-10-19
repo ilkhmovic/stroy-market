@@ -1,0 +1,24 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{# allauth sahifalarini (email tasdiqlash, parolni tiklash) sayt dizayniga o'tkazadi #}
+{% block title %}{% block head_title %}{% endblock %} - ArzonMaterial{% endblock %}
+{% block head_extra %}
+{% block extra_head %}{% endblock %}
+<style>
+    .auth-card input[type="text"], .auth-card input[type="email"], .auth-card input[type="password"] {
+        width: 100%; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: .6rem; outline: none; font-size: .9rem;
+    }
+    .auth-card input:focus { border-color: #E8590C; box-shadow: 0 0 0 2px rgba(232,89,12,.2); }
+    .auth-card label { display:block; font-size:.875rem; font-weight:700; color:#374151; margin-bottom:.35rem; }
+    .auth-card ul.errorlist { color:#dc2626; font-size:.75rem; margin:.25rem 0; list-style:none; padding:0; }
+    .auth-card form p { margin-bottom: 1rem; }
+</style>
+{% endblock %}
+{% block main_wrapper %}
+<main class="flex-grow w-full px-4 py-10">
+    <div class="auth-card max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+{% endblock %}
+{% block chatwidget %}{{ block.super }}{% block extra_body %}{% endblock %}{% endblock %}

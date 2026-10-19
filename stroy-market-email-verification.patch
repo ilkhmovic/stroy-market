@@ -1,0 +1,2568 @@
+diff --git a/.env.example b/.env.example
+index 00568d8..332dfad 100644
+--- a/.env.example
++++ b/.env.example
+@@ -6,7 +6,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
+ # ALLOWED_HOSTS vergul bilan: example.com,www.example.com
+ # DATABASE_URL=postgres://user:password@host:port/dbname
+ 
+-GEMINI_API_KEY=AIzaSyCQ7y_4xIoHJMx2hsEOSLrJHWIhQlQpJAM
++GEMINI_API_KEY=
+ TELEGRAM_BOT_TOKEN=
+ TELEGRAM_MANAGER_CHAT_ID=
+ 
+@@ -26,3 +26,11 @@ SECURE_HSTS_SECONDS=60
+ # Alohida domenlar (ixtiyoriy). ALLOWED_HOSTS ga ham qo'shing.
+ # SELLER_HOST=seller.example.uz
+ # ADMIN_HOST=admin.example.uz
++
++# ── Email (tasdiqlash xatlari). Bo'sh bo'lsa xatlar terminalga chop etiladi ──
++# Gmail: Google akkaunt -> Xavfsizlik -> 2 bosqichli tasdiqlash -> "App passwords" (oddiy parol ISHLAMAYDI)
++EMAIL_HOST=smtp.gmail.com
++EMAIL_PORT=587
++EMAIL_HOST_USER=
++EMAIL_HOST_PASSWORD=
++# DEFAULT_FROM_EMAIL=ArzonMaterial <sizning@gmail.com>
+diff --git a/config/settings.py b/config/settings.py
+index 57bcf6f..c73b4fa 100644
+--- a/config/settings.py
++++ b/config/settings.py
+@@ -58,15 +58,14 @@ ADMIN_HOST = os.getenv('ADMIN_HOST', '').strip()
+ INSTALLED_APPS = [
+     'django.contrib.admin',
+     'django.contrib.auth',
+-    'django.contrib.sites',
+     'django.contrib.contenttypes',
+     'django.contrib.sessions',
+     'django.contrib.messages',
+     'django.contrib.staticfiles',
++    'main',   # allauth'dan OLDIN bo'lishi shart: shablonlarni (allauth/...) o'zgartira oladi
+     'allauth',
+     'allauth.account',
+     'allauth.socialaccount',
+-    'main',
+ ]
+ 
+ MIDDLEWARE = [
+@@ -197,19 +196,35 @@ AUTH_USER_MODEL = 'main.User'
+ LOGIN_REDIRECT_URL = '/home/'
+ LOGOUT_REDIRECT_URL = '/login/'
+ LOGIN_URL = '/login/'
+-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
++
++# ── Email tasdiqlash (allauth faqat xat/token mexanizmi sifatida ishlatiladi) ──
++# Ro'yxatdan o'tish va kirish sahifalari o'zimizniki (/register/, /seller/register/, /login/...),
++# allauth'ning o'z signup/login sahifalari yopilgan (main/adapters.py va config/urls.py).
++ACCOUNT_ADAPTER = 'main.adapters.CustomAccountAdapter'
+ ACCOUNT_LOGIN_METHODS = {'email', 'username'}
++ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+-ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Stroy Market] '
+-
+-# Gmail SMTP sozlamalari (.env fayldan o'qiydi)
+-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+-EMAIL_HOST = 'smtp.gmail.com'
+-EMAIL_PORT = 587
+-EMAIL_USE_TLS = True
+-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
++ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
++ACCOUNT_EMAIL_SUBJECT_PREFIX = '[ArzonMaterial] '
++ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http' if DEBUG else 'https'
++
++# ── Email yuborish (.env dan) ──
++# EMAIL_HOST_USER / EMAIL_HOST_PASSWORD bo'sh bo'lsa xatlar TERMINALGA chop etiladi.
++# Tekshirish: python manage.py test_email sizning@gmail.com
++EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
++EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
++EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
++EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '').replace(' ', '')  # Gmail app password bo'shliqlari
++EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True' if EMAIL_PORT == 465 else 'False') == 'True'
++EMAIL_USE_TLS = (not EMAIL_USE_SSL) and os.getenv('EMAIL_USE_TLS', 'True') == 'True'
++EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '10'))
++DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@arzonmaterial.uz')
++SERVER_EMAIL = DEFAULT_FROM_EMAIL
++EMAIL_BACKEND = (
++    'django.core.mail.backends.smtp.EmailBackend'
++    if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
++    else 'django.core.mail.backends.console.EmailBackend'
++)
+ 
+ # Gemini AI API Key
+ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+diff --git a/config/urls.py b/config/urls.py
+index d947640..609a9dd 100644
+--- a/config/urls.py
++++ b/config/urls.py
+@@ -1,12 +1,16 @@
+ from django.contrib import admin
+ from django.urls import path, include
++from django.views.generic import RedirectView
+ from django.conf import settings
+ from django.conf.urls.static import static
+ 
+ urlpatterns = [
+     path('i18n/', include('django.conf.urls.i18n')),
+     path(settings.ADMIN_URL, admin.site.urls),
+-    path('accounts/', include('allauth.urls')),
++    # allauth'ning o'z kirish/ro'yxatdan o'tish sahifalari o'rniga bizning portallar:
++    path('accounts/login/', RedirectView.as_view(pattern_name='login', query_string=True)),
++    path('accounts/signup/', RedirectView.as_view(pattern_name='register')),
++    path('accounts/', include('allauth.urls')),   # tasdiqlash havolasi, parolni tiklash
+     path('', include("main.urls"))
+ ]
+ 
+diff --git a/main/adapters.py b/main/adapters.py
+index 62829b1..600fe31 100644
+--- a/main/adapters.py
++++ b/main/adapters.py
+@@ -1,14 +1,21 @@
+ from allauth.account.adapter import DefaultAccountAdapter
++from django.urls import reverse
++
+ 
+ class CustomAccountAdapter(DefaultAccountAdapter):
+-    def save_user(self, request, user, form, commit=True):
+-        user = super().save_user(request, user, form, commit=False)
+-        
+-        # Bazadagi xatolikni chetlab o'tish uchun shu yerda ham qiymat berib ketamiz
+-        user.stir_verified = False  
+-        user.is_buyer = True
+-        user.is_seller = False
+-        
+-        if commit:
+-            user.save()
+-        return user
+\ No newline at end of file
++    """allauth faqat tasdiqlash xatlari uchun ishlatiladi.
++
++    - allauth'ning o'z ro'yxatdan o'tish sahifasi yopiq (hamma /register/ yoki /seller/register/ dan o'tadi);
++    - tasdiqlangandan keyin foydalanuvchi o'z portalining kirish sahifasiga yuboriladi.
++    """
++
++    def is_open_for_signup(self, request):
++        return False
++
++    def get_email_verification_redirect_url(self, email_address):
++        user = email_address.user
++        if user.is_superuser:
++            return reverse('admin_login')
++        if user.is_seller:
++            return reverse('seller_login') + '?verified=1'
++        return reverse('login') + '?verified=1'
+diff --git a/main/forms.py b/main/forms.py
+index 3c4a560..61534ce 100644
+--- a/main/forms.py
++++ b/main/forms.py
+@@ -2,33 +2,72 @@ from django import forms
+ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+ import re
+ from django.utils.translation import gettext_lazy as _
++from django.core.cache import cache
++from django.utils.translation import gettext
+ from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region, NasiyaApplication
+ 
+-class UserRegisterForm(UserCreationForm):
++
++def _email_taken(email):
++    from allauth.account.models import EmailAddress
++    return (User.objects.filter(email__iexact=email).exists()
++            or EmailAddress.objects.filter(email__iexact=email).exists())
++
++
++class _EmailFieldMixin:
++    """Ro'yxatdan o'tishda email majburiy va noyob."""
++
++    def clean_email(self):
++        email = self.cleaned_data['email'].strip().lower()
++        if _email_taken(email):
++            raise forms.ValidationError(_("Bu email bilan akkaunt allaqachon mavjud."))
++        return email
++
++
++def email_needs_verification(user):
++    """Faqat tasdiqlanmagan EmailAddress yozuvi bor va tasdiqlangani yo'q akkauntlar bloklanadi.
++
++    Email yozuvi umuman yo'q eski akkauntlar (va adminlar) ta'sirlanmaydi.
++    """
++    from allauth.account.models import EmailAddress
++    qs = EmailAddress.objects.filter(user=user)
++    return qs.exists() and not qs.filter(verified=True).exists()
++
++
++def create_unverified_email(user, email):
++    from allauth.account.models import EmailAddress
++    return EmailAddress.objects.create(user=user, email=email, primary=True, verified=False)
++
++
++class UserRegisterForm(_EmailFieldMixin, UserCreationForm):
++    email = forms.EmailField(label=_("Email manzilingiz"), help_text=_("Tasdiqlash xati shu manzilga yuboriladi"))
++
+     """Xaridor ro'yxatdan o'tishi (faqat xarid qilish). Sotuvchilar alohida portalda."""
+     class Meta(UserCreationForm.Meta):
+         model = User
+-        fields = UserCreationForm.Meta.fields + ('phone',)
++        fields = UserCreationForm.Meta.fields + ('email', 'phone')
+         labels = {'phone': 'Telefon raqamingiz'}
+ 
+     def save(self, commit=True):
+         user = super().save(commit=False)
++        user.email = self.cleaned_data['email']
+         user.phone = self.cleaned_data.get('phone', '')
+         user.is_seller = False
+         user.is_buyer = True
+         if commit:
+             user.save()
++            create_unverified_email(user, user.email)
+         return user
+ 
+ 
+-class SellerRegisterForm(UserCreationForm):
++class SellerRegisterForm(_EmailFieldMixin, UserCreationForm):
++    email = forms.EmailField(label=_("Email manzilingiz"), help_text=_("Tasdiqlash xati shu manzilga yuboriladi"))
+     """Sotuvchi portalida ro'yxatdan o'tish: telefon va STIR/PINFL majburiy."""
+     phone = forms.CharField(max_length=20, label="Telefon raqamingiz")
+     stir_pinfl = forms.CharField(max_length=14, label="STIR / PINFL")
+ 
+     class Meta(UserCreationForm.Meta):
+         model = User
+-        fields = UserCreationForm.Meta.fields + ('phone', 'stir_pinfl')
++        fields = UserCreationForm.Meta.fields + ('email', 'phone', 'stir_pinfl')
+ 
+     def clean_stir_pinfl(self):
+         value = re.sub(r'\D', '', self.cleaned_data['stir_pinfl'])
+@@ -38,12 +77,14 @@ class SellerRegisterForm(UserCreationForm):
+ 
+     def save(self, commit=True):
+         user = super().save(commit=False)
++        user.email = self.cleaned_data['email']
+         user.phone = self.cleaned_data['phone']
+         user.stir_pinfl = self.cleaned_data['stir_pinfl']
+         user.is_seller = True
+         user.is_buyer = False
+         if commit:
+             user.save()
++            create_unverified_email(user, user.email)
+         return user
+ 
+ 
+@@ -57,6 +98,27 @@ class _PortalAuthForm(AuthenticationForm):
+         from .roles import get_role
+         if get_role(user) != self.portal:
+             raise forms.ValidationError(self.wrong_portal_message, code='wrong_portal')
++        if self.portal != 'admin' and email_needs_verification(user):
++            self._resend_verification(user)
++            raise forms.ValidationError(
++                gettext("Emailingiz hali tasdiqlanmagan. Pochtangizga yuborilgan havolani bosing "
++                        "(Spam papkasini ham tekshiring). Yangi tasdiqlash xati yuborildi."),
++                code='email_not_verified')
++
++    def _resend_verification(self, user):
++        """Parol to'g'ri kiritilgan bo'lsagina xat qayta yuboriladi; 2 daqiqada ko'pi bilan 1 marta."""
++        from allauth.account.models import EmailAddress
++        key = f'verif-resend:{user.pk}'
++        if cache.get(key):
++            return
++        address = EmailAddress.objects.filter(user=user, verified=False).order_by('-primary').first()
++        if address:
++            try:
++                address.send_confirmation(self.request, signup=False)
++                cache.set(key, 1, 120)
++            except Exception:
++                import logging
++                logging.getLogger(__name__).exception("Tasdiqlash xatini yuborib bo'lmadi: user=%s", user.pk)
+ 
+ 
+ class BuyerAuthForm(_PortalAuthForm):
+diff --git a/main/management/commands/test_email.py b/main/management/commands/test_email.py
+new file mode 100644
+index 0000000..616b76a
+--- /dev/null
++++ b/main/management/commands/test_email.py
+@@ -0,0 +1,69 @@
++"""Email sozlamalarini tekshirish va xato sababini aniq ko'rsatish.
++
++    python manage.py test_email sizning@gmail.com
++"""
++import smtplib
++import socket
++import ssl
++
++from django.conf import settings
++from django.core.mail import send_mail
++from django.core.management.base import BaseCommand, CommandError
++
++
++def explain(exc):
++    """Xatoga mos aniq maslahat."""
++    if isinstance(exc, smtplib.SMTPAuthenticationError):
++        return ("Login/parol rad etildi. Gmail bo'lsa: oddiy parol ISHLAMAYDI. Google akkaunt -> Xavfsizlik -> "
++                "2 bosqichli tasdiqlashni yoqing -> 'App passwords' dan 16 belgili parol oling va "
++                "EMAIL_HOST_PASSWORD ga qo'ying. EMAIL_HOST_USER to'liq manzil bo'lsin (name@gmail.com).")
++    if isinstance(exc, (ConnectionRefusedError, smtplib.SMTPConnectError)):
++        return ("Serverga ulanib bo'lmadi. EMAIL_HOST/EMAIL_PORT to'g'riligini tekshiring (Gmail: smtp.gmail.com, 587). "
++                "Agar EMAIL_HOST sozlanmagan bo'lsa Django localhost:25 ga urinadi - aynan shu xato chiqadi.")
++    if isinstance(exc, (socket.timeout, TimeoutError)):
++        return ("Vaqt tugadi. Ehtimol hosting/provayder SMTP portini (25/465/587) bloklagan. "
++                "Render/Railway/PythonAnywhere(bepul) kabi joylarda SMTP yopiq bo'ladi: HTTPS API ishlatadigan "
++                "xizmatlarga (Resend, Brevo, SendGrid) o'ting.")
++    if isinstance(exc, socket.gaierror):
++        return "EMAIL_HOST nomi noto'g'ri yoki internet yo'q (DNS topilmadi)."
++    if isinstance(exc, (ssl.SSLError, smtplib.SMTPServerDisconnected)):
++        return ("TLS/SSL nomuvofiq. 587 port -> EMAIL_USE_TLS=True, EMAIL_USE_SSL=False. "
++                "465 port -> EMAIL_USE_SSL=True (EMAIL_PORT=465).")
++    if isinstance(exc, smtplib.SMTPNotSupportedError):
++        return ("Server login (AUTH) ni qabul qilmayapti: ulanish shifrlanmagan. 587 port uchun EMAIL_USE_TLS=True, "
++                "465 port uchun EMAIL_USE_SSL=True bo'lishi kerak.")
++    if isinstance(exc, smtplib.SMTPSenderRefused):
++        return "Yuboruvchi manzil (DEFAULT_FROM_EMAIL) rad etildi. U EMAIL_HOST_USER bilan bir xil bo'lishi kerak."
++    if isinstance(exc, smtplib.SMTPRecipientsRefused):
++        return "Qabul qiluvchi manzil rad etildi. Manzilni tekshiring."
++    return "Noma'lum xato. Yuqoridagi xato matnini tekshiring."
++
++
++class Command(BaseCommand):
++    help = "Test xat yuboradi va muammo sababini tushuntiradi."
++
++    def add_arguments(self, parser):
++        parser.add_argument('to', help="Xat boradigan email manzil")
++
++    def handle(self, *args, **opts):
++        s = settings
++        self.stdout.write("Email sozlamalari:")
++        self.stdout.write(f"  backend : {s.EMAIL_BACKEND}")
++        self.stdout.write(f"  host    : {s.EMAIL_HOST}:{s.EMAIL_PORT}  (TLS={s.EMAIL_USE_TLS}, SSL={s.EMAIL_USE_SSL})")
++        self.stdout.write(f"  user    : {s.EMAIL_HOST_USER or '(bo`sh)'}")
++        self.stdout.write(f"  parol   : {'berilgan (' + str(len(s.EMAIL_HOST_PASSWORD)) + ' belgi)' if s.EMAIL_HOST_PASSWORD else '(bo`sh)'}")
++        self.stdout.write(f"  from    : {s.DEFAULT_FROM_EMAIL}")
++        if 'console' in s.EMAIL_BACKEND:
++            self.stdout.write(self.style.WARNING(
++                "\nEMAIL_HOST_USER/EMAIL_HOST_PASSWORD bo'sh, shuning uchun xat HAQIQATDA yuborilmaydi, "
++                "terminalga chop etiladi. .env faylini to'ldiring.\n"))
++        try:
++            n = send_mail("ArzonMaterial: test xat", "Email sozlamalari to'g'ri ishlayapti.",
++                          s.DEFAULT_FROM_EMAIL, [opts['to']], fail_silently=False)
++        except Exception as exc:
++            self.stdout.write(self.style.ERROR(f"\nYuborilmadi: {type(exc).__name__}: {exc}"))
++            raise CommandError("Sabab: " + explain(exc))
++        if 'console' in s.EMAIL_BACKEND:
++            self.stdout.write(self.style.WARNING("\nXat terminalga chop etildi (haqiqiy yuborilmadi)."))
++        else:
++            self.stdout.write(self.style.SUCCESS(f"\nYuborildi ({n}). Pochta qutingizni (Spam papkasini ham) tekshiring."))
+diff --git a/main/templates/account/email/base_message.txt b/main/templates/account/email/base_message.txt
+new file mode 100644
+index 0000000..52b419a
+--- /dev/null
++++ b/main/templates/account/email/base_message.txt
+@@ -0,0 +1,5 @@
++{% load i18n %}{% autoescape off %}{% block content %}{% endblock content %}
++
++— ArzonMaterial
++{{ current_site.domain }}
++{% endautoescape %}
+diff --git a/main/templates/account/email/email_confirmation_message.txt b/main/templates/account/email/email_confirmation_message.txt
+new file mode 100644
+index 0000000..fb8081a
+--- /dev/null
++++ b/main/templates/account/email/email_confirmation_message.txt
+@@ -0,0 +1,9 @@
++{% extends "account/email/base_message.txt" %}
++{% load account i18n %}
++{% block content %}{% autoescape off %}{% user_display user as user_display %}{% blocktrans with domain=current_site.domain %}Assalomu alaykum, {{ user_display }}!
++
++Siz {{ domain }} saytida ro'yxatdan o'tdingiz. Email manzilingizni tasdiqlash uchun quyidagi havolani oching:
++
++{{ activate_url }}
++
++Agar bu siz bo'lmasangiz, ushbu xatga e'tibor bermang.{% endblocktrans %}{% endautoescape %}{% endblock content %}
+diff --git a/main/templates/account/email/email_confirmation_signup_message.txt b/main/templates/account/email/email_confirmation_signup_message.txt
+new file mode 100644
+index 0000000..9996f7e
+--- /dev/null
++++ b/main/templates/account/email/email_confirmation_signup_message.txt
+@@ -0,0 +1 @@
++{% include "account/email/email_confirmation_message.txt" %}
+diff --git a/main/templates/account/email/email_confirmation_signup_subject.txt b/main/templates/account/email/email_confirmation_signup_subject.txt
+new file mode 100644
+index 0000000..4c85ebb
+--- /dev/null
++++ b/main/templates/account/email/email_confirmation_signup_subject.txt
+@@ -0,0 +1 @@
++{% include "account/email/email_confirmation_subject.txt" %}
+diff --git a/main/templates/account/email/email_confirmation_subject.txt b/main/templates/account/email/email_confirmation_subject.txt
+new file mode 100644
+index 0000000..56f5687
+--- /dev/null
++++ b/main/templates/account/email/email_confirmation_subject.txt
+@@ -0,0 +1 @@
++{% load i18n %}{% autoescape off %}{% trans "Email manzilingizni tasdiqlang" %}{% endautoescape %}
+diff --git a/main/templates/allauth/elements/button.html b/main/templates/allauth/elements/button.html
+new file mode 100644
+index 0000000..1957d31
+--- /dev/null
++++ b/main/templates/allauth/elements/button.html
+@@ -0,0 +1,7 @@
++{% load allauth %}
++<{% if attrs.href %}a href="{{ attrs.href }}"{% else %}button{% endif %}
++{% if attrs.id %}id="{{ attrs.id }}"{% endif %}
++{% if attrs.name %}name="{{ attrs.name }}"{% endif %}
++{% if attrs.value %}value="{{ attrs.value }}"{% endif %}
++{% if attrs.type %}type="{{ attrs.type }}"{% endif %}
++class="inline-block w-full text-center bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition cursor-pointer">{% slot %}{% endslot %}</{% if attrs.href %}a{% else %}button{% endif %}>
+diff --git a/main/templates/allauth/elements/form.html b/main/templates/allauth/elements/form.html
+new file mode 100644
+index 0000000..50e31f1
+--- /dev/null
++++ b/main/templates/allauth/elements/form.html
+@@ -0,0 +1,5 @@
++{% load allauth %}
++<form method="{{ attrs.method }}" {% if attrs.action %}action="{{ attrs.action }}"{% endif %} class="space-y-2">
++    {% slot body %}{% endslot %}
++    {% slot actions %}{% endslot %}
++</form>
+diff --git a/main/templates/allauth/elements/h1.html b/main/templates/allauth/elements/h1.html
+new file mode 100644
+index 0000000..4310a75
+--- /dev/null
++++ b/main/templates/allauth/elements/h1.html
+@@ -0,0 +1 @@
++{% load allauth %}<h1 class="text-2xl font-bold text-center mb-4 text-gray-900">{% slot %}{% endslot %}</h1>
+diff --git a/main/templates/allauth/elements/p.html b/main/templates/allauth/elements/p.html
+new file mode 100644
+index 0000000..5943ffc
+--- /dev/null
++++ b/main/templates/allauth/elements/p.html
+@@ -0,0 +1 @@
++{% load allauth %}<p class="text-sm text-gray-600 leading-relaxed mb-4">{% slot %}{% endslot %}</p>
+diff --git a/main/templates/allauth/layouts/base.html b/main/templates/allauth/layouts/base.html
+new file mode 100644
+index 0000000..caefbb0
+--- /dev/null
++++ b/main/templates/allauth/layouts/base.html
+@@ -0,0 +1,24 @@
++{% extends 'main/base.html' %}
++{% load i18n %}
++{# allauth sahifalarini (email tasdiqlash, parolni tiklash) sayt dizayniga o'tkazadi #}
++{% block title %}{% block head_title %}{% endblock %} - ArzonMaterial{% endblock %}
++{% block head_extra %}
++{% block extra_head %}{% endblock %}
++<style>
++    .auth-card input[type="text"], .auth-card input[type="email"], .auth-card input[type="password"] {
++        width: 100%; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: .6rem; outline: none; font-size: .9rem;
++    }
++    .auth-card input:focus { border-color: #E8590C; box-shadow: 0 0 0 2px rgba(232,89,12,.2); }
++    .auth-card label { display:block; font-size:.875rem; font-weight:700; color:#374151; margin-bottom:.35rem; }
++    .auth-card ul.errorlist { color:#dc2626; font-size:.75rem; margin:.25rem 0; list-style:none; padding:0; }
++    .auth-card form p { margin-bottom: 1rem; }
++</style>
++{% endblock %}
++{% block main_wrapper %}
++<main class="flex-grow w-full px-4 py-10">
++    <div class="auth-card max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
++        {% block content %}{% endblock %}
++    </div>
++</main>
++{% endblock %}
++{% block chatwidget %}{{ block.super }}{% block extra_body %}{% endblock %}{% endblock %}
+diff --git a/main/tests.py b/main/tests.py
+index c234176..5e6c4f2 100644
+--- a/main/tests.py
++++ b/main/tests.py
+@@ -336,24 +336,6 @@ class PortalTests(TestCase):
+                              reverse('admin_login') + '?next=/panel/', fetch_redirect_response=False)
+ 
+     # --- ro'yxatdan o'tish ---
+-    def test_buyer_register_creates_only_buyer(self):
+-        r = self.client.post(reverse('register'), {
+-            'username': 'newbuyer', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234', 'phone': '+998901234567'})
+-        self.assertRedirects(r, '/', fetch_redirect_response=False)
+-        u = User.objects.get(username='newbuyer')
+-        self.assertTrue(u.is_buyer and not u.is_seller)
+-
+-    def test_seller_register_requires_stir_and_creates_seller(self):
+-        data = {'username': 'newseller', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234',
+-                'phone': '+998901234567', 'stir_pinfl': ''}
+-        self.assertEqual(self.client.post(reverse('seller_register'), data).status_code, 200)
+-        self.assertFalse(User.objects.filter(username='newseller').exists())
+-        data['stir_pinfl'] = '123456789'
+-        r = self.client.post(reverse('seller_register'), data)
+-        self.assertRedirects(r, reverse('seller_dashboard'), fetch_redirect_response=False)
+-        u = User.objects.get(username='newseller')
+-        self.assertTrue(u.is_seller and not u.is_buyer)
+-
+     # --- ajratish ---
+     def test_seller_and_admin_cannot_open_marketplace(self):
+         for user, home in ((self.seller, reverse('seller_dashboard')), (self.admin, reverse('admin_dashboard'))):
+@@ -422,6 +404,108 @@ class PortalTests(TestCase):
+         self.assertNotIn('Sotuvchi kabiniga kirish', r.content.decode())
+ 
+ 
++class EmailVerificationTests(TestCase):
++    """Ro'yxatdan o'tish -> xat -> havola -> kirish."""
++    PW = 'Str0ngPass!234'
++
++    def setUp(self):
++        from django.core.cache import cache
++        cache.clear()
++
++    def _register(self, url_name, **extra):
++        data = {'username': 'newuser', 'email': 'New@Example.com', 'password1': self.PW, 'password2': self.PW,
++                'phone': '+998901234567'}
++        data.update(extra)
++        return self.client.post(reverse(url_name), data)
++
++    def _link(self, message):
++        import re
++        m = re.search(r'https?://[^\s]+/accounts/confirm-email/[^\s/]+/', message.body)
++        self.assertIsNotNone(m, message.body)
++        return m.group(0).split('://', 1)[1].split('/', 1)[1].join(['/', ''])
++
++    def _confirm(self, message):
++        path = self._link(message)
++        page = self.client.get(path)
++        self.assertEqual(page.status_code, 200)
++        return self.client.post(path)
++
++    def test_buyer_flow(self):
++        from django.core import mail
++        r = self._register('register')
++        self.assertRedirects(r, reverse('account_email_verification_sent'), fetch_redirect_response=False)
++        u = User.objects.get(username='newuser')
++        self.assertTrue(u.is_buyer and not u.is_seller)
++        self.assertEqual(u.email, 'new@example.com')
++        self.assertEqual(len(mail.outbox), 1)
++        self.assertIn('/accounts/confirm-email/', mail.outbox[0].body)
++        # tasdiqlanmaguncha kira olmaydi (va yangi xat ketadi)
++        r = self.client.post(reverse('login'), {'username': 'newuser', 'password': self.PW})
++        self.assertFalse(r.wsgi_request.user.is_authenticated)
++        self.assertIn('tasdiqlanmagan', r.content.decode())
++        self.assertEqual(len(mail.outbox), 2)
++        # 2 daqiqa ichida takroriy urinish xatni ko'paytirmaydi
++        self.client.post(reverse('login'), {'username': 'newuser', 'password': self.PW})
++        self.assertEqual(len(mail.outbox), 2)
++        # havola -> tasdiqlanadi -> login sahifasiga
++        r = self._confirm(mail.outbox[1])
++        self.assertRedirects(r, reverse('login') + '?verified=1', fetch_redirect_response=False)
++        r = self.client.post(reverse('login'), {'username': 'newuser', 'password': self.PW})
++        self.assertRedirects(r, '/', fetch_redirect_response=False)
++
++    def test_seller_flow(self):
++        from django.core import mail
++        r = self._register('seller_register', username='newseller', email='s@example.com', stir_pinfl='123456789')
++        self.assertRedirects(r, reverse('account_email_verification_sent'), fetch_redirect_response=False)
++        r = self.client.post(reverse('seller_login'), {'username': 'newseller', 'password': self.PW})
++        self.assertFalse(r.wsgi_request.user.is_authenticated)
++        r = self._confirm(mail.outbox[0])
++        self.assertRedirects(r, reverse('seller_login') + '?verified=1', fetch_redirect_response=False)
++        r = self.client.post(reverse('seller_login'), {'username': 'newseller', 'password': self.PW})
++        self.assertRedirects(r, reverse('seller_dashboard'), fetch_redirect_response=False)
++
++    def test_seller_register_requires_stir(self):
++        self.assertEqual(self._register('seller_register', username='x1', stir_pinfl='').status_code, 200)
++        self.assertEqual(self._register('seller_register', username='x2', stir_pinfl='12').status_code, 200)
++        self.assertFalse(User.objects.filter(username__in=['x1', 'x2']).exists())
++
++    def test_email_required_and_unique(self):
++        self.assertEqual(self._register('register', email='').status_code, 200)
++        self.assertEqual(self._register('register', email='not-an-email').status_code, 200)
++        self._register('register')
++        r = self._register('register', username='other', email='new@example.com')   # shu email band
++        self.assertEqual(r.status_code, 200)
++        self.assertIn('allaqachon mavjud', r.content.decode())
++        self.assertFalse(User.objects.filter(username='other').exists())
++
++    def test_legacy_users_without_email_record_can_still_login(self):
++        User.objects.create_user('old', password=self.PW)
++        r = self.client.post(reverse('login'), {'username': 'old', 'password': self.PW})
++        self.assertRedirects(r, '/', fetch_redirect_response=False)
++
++    def test_admin_not_blocked(self):
++        User.objects.create_superuser('boss', 'b@b.uz', self.PW)
++        r = self.client.post(reverse('admin_login'), {'username': 'boss', 'password': self.PW})
++        self.assertRedirects(r, reverse('admin_dashboard'), fetch_redirect_response=False)
++
++    def test_mail_failure_does_not_crash_registration(self):
++        from unittest import mock
++        with mock.patch('allauth.account.models.EmailAddress.send_confirmation', side_effect=OSError('smtp down')):
++            r = self._register('register')
++        self.assertEqual(r.status_code, 302)
++        self.assertTrue(User.objects.filter(username='newuser').exists())
++
++    def test_allauth_own_pages_are_closed_or_redirected(self):
++        self.assertRedirects(self.client.get('/accounts/login/'), reverse('login'), fetch_redirect_response=False)
++        self.assertRedirects(self.client.get('/accounts/signup/'), reverse('register'), fetch_redirect_response=False)
++
++    def test_allauth_pages_use_site_design(self):
++        html = self.client.get(reverse('account_email_verification_sent')).content.decode()
++        self.assertIn('auth-card', html)
++        self.assertIn('ArzonMaterial', html)
++        self.assertEqual(self.client.get('/accounts/password/reset/').status_code, 200)
++
++
+ class OrderDetailRegressionTests(TestCase):
+     """Mahsulot o'chirilgandan keyin buyurtma sahifasi 500 bermasligi kerak."""
+ 
+diff --git a/main/views.py b/main/views.py
+index 3d319ab..eacaee4 100644
+--- a/main/views.py
++++ b/main/views.py
+@@ -34,6 +34,23 @@ def role_home(request):
+ 
+ # ────────── AUTH: har bir rol uchun alohida portal ──────────
+ 
++def _send_verification(request, user):
++    """Ro'yxatdan o'tgandan keyin tasdiqlash xatini yuboradi. Xato bo'lsa log yoziladi, sayt qulamaydi."""
++    from allauth.account.models import EmailAddress
++    address = EmailAddress.objects.filter(user=user, verified=False).first()
++    if not address:
++        return False
++    try:
++        address.send_confirmation(request, signup=True)
++        return True
++    except Exception:
++        import logging
++        logging.getLogger(__name__).exception("Tasdiqlash xati yuborilmadi: user=%s email=%s", user.pk, address.email)
++        messages.error(request, gettext(
++            "Tasdiqlash xatini yuborib bo'lmadi. Kirish sahifasida parolingizni kiriting, xat qayta yuboriladi."))
++        return False
++
++
+ def register(request):
+     """Xaridor ro'yxatdan o'tishi. Sotuvchilar /seller/register/ da."""
+     if request.user.is_authenticated and get_role(request.user) == BUYER:
+@@ -42,8 +59,8 @@ def register(request):
+         form = UserRegisterForm(request.POST)
+         if form.is_valid():
+             user = form.save()
+-            login(request, user)
+-            return redirect('marketplace')
++            _send_verification(request, user)
++            return redirect('account_email_verification_sent')
+     else:
+         form = UserRegisterForm()
+     return render(request, 'main/auth_page.html', {
+@@ -78,6 +95,8 @@ class _PortalLogin(LoginView):
+ 
+     def get_context_data(self, **kwargs):
+         ctx = super().get_context_data(**kwargs)
++        if self.request.method == 'GET' and self.request.GET.get('verified') == '1':
++            messages.success(self.request, gettext("Email tasdiqlandi! Endi tizimga kirishingiz mumkin."))
+         ctx.update({
+             'title': self.title, 'subtitle': self.subtitle,
+             'submit_label': gettext("Kirish"),
+@@ -135,8 +154,8 @@ def seller_register(request):
+         form = SellerRegisterForm(request.POST)
+         if form.is_valid():
+             user = form.save()
+-            login(request, user)
+-            return redirect('seller_dashboard')
++            _send_verification(request, user)
++            return redirect('account_email_verification_sent')
+     else:
+         form = SellerRegisterForm()
+     return render(request, 'main/portal/auth_page.html', {
+diff --git a/requirements.txt b/requirements.txt
+index c9abb1d5f1b598cb57e862561625fa4aa0add035..d0fbf370e8692d960a584d9a82a31a910a71f304 100644
+GIT binary patch
+literal 617
+zcmX|9!FJ>z47>9$@e3rG**WCa|CmP!lh9J2Kz5pb{mP`>ql_&}GCG7<b+t=Zk7Ua{
+z_jILR=y13=&m+l!QCVHKk9i(QN|M6ZT;0RXv+C7_6sbv=N5j;k-E2A+Te}eRhxYE<
+zW}Y1BDoj37jce9vJHUQH`&BHi)Qn}4ZWw-f(_sbTw^1w&b=rHq*A3N)6t7rgT)pki
+zqN4Fe>bJJqpdn4tRdM4UoQXL=>qP8jlaftJ@Qbb1gh$KWJ>44q;#c(tF5MFJX;~y~
+z-u3Fj3K||v&inYp7`!t)bP0|2Lc<Tbf5c_?XQCt2rNbnSrDee*iw@Np5E59X|AqT0
+z2%coC)-8r^iPeU`EE5Ywwx7E#6~|IE;3T31hxl8B4SxEzik(a#!K^l}BJmqZgo;bU
+zO6NjJ)>Ib}4zdRE`Ea*im?)@Y1Af2+hxL2W6=}4COR;C~-Rr;t*zwc8mT2BBOKQPB
+PHwTL73ZlKRzh3+Unew|e
+
+literal 1306
+zcmZ9M(Nd#e425&OGd>EArPZz%-uWJ#N-MA;RG?OU_}%?Z!oT272g>|OPEJme|IhEe
+zwfs68ZO?PGgJt}G+KKPM9{AnZwQYHB?8<)N)ncuQkZr^H%GL|(U?tX`=x6tkZN*P-
+z#TQt5GSt{>_sBuc?GBIJpWDgrdEue#i9ul%EPB`-!O5I`Z?Bv+AbvT%xGA&vZ700m
+zs~TZm61}Iwij$~9*`rQzJb*KR-A`4D{k?n0`e?sgg>tf{*p25oEUcMxYIvVPt3218
+z-GZc=Q$4~Frv~PVn0=+k#xv)R{oS*~zr{aP6vwSA7=0?iX|WYx_k5|&+;h*}s=PC@
+zh|S7-5YZKUM-+<aqem-){O+Ag^7wF@&U5?eDAK4#Lvc%e&;;oG#93i4yfq~)@8A_0
+zhDVJO4XiIy)|iT<)`_0&=}rq`Vy@`*gg;w%%tQx|vnxB#vSuRm6jtG!Vw(DYd_x7<
+z4`gf6LP`c#DJ4!Zr~muxzG)U6lybATCZPi}16zBiF1}B-rX7$H+MzetYY#`Blzr`!
+z9ePR!ZIX5=Hd47_=Y%nU&@3uUifIOeQRG)wYO=&WXx4=j6CJlfbSuNF1y#30;i{;T
+zggPs`jM?G)G1WOZPa!BKZVzz@y+^iJdh0HVYSYaS)t=Ervr*d<HHOEvPi=JnLZ&CM
+eJGi~@om5*+_67A-sZ{Uy(k&t+%~13;xcmjKkG}Z;
+
+diff --git a/stroy-market-v2.patch b/stroy-market-v2.patch
+deleted file mode 100644
+index c356913..0000000
+--- a/stroy-market-v2.patch
++++ /dev/null
+@@ -1,1872 +0,0 @@
+-diff --git a/.env.example b/.env.example
+-index 68163aa..00568d8 100644
+---- a/.env.example
+-+++ b/.env.example
+-@@ -22,3 +22,7 @@ SECURE_SSL_REDIRECT=True
+- SESSION_COOKIE_SECURE=True
+- CSRF_COOKIE_SECURE=True
+- SECURE_HSTS_SECONDS=60
+-+
+-+# Alohida domenlar (ixtiyoriy). ALLOWED_HOSTS ga ham qo'shing.
+-+# SELLER_HOST=seller.example.uz
+-+# ADMIN_HOST=admin.example.uz
+-diff --git a/config/settings.py b/config/settings.py
+-index 24ba680..2d91457 100644
+---- a/config/settings.py
+-+++ b/config/settings.py
+-@@ -47,6 +47,11 @@ else:
+- 
+- ADMIN_URL = os.getenv('ADMIN_URL', 'admin/').strip('/') + '/'
+- 
+-+# Ixtiyoriy: alohida domenlar (masalan seller.example.uz / admin.example.uz).
+-+# Bo'sh qoldirilsa portallar asosiy domenda /seller/ va /panel/ da ishlaydi.
+-+SELLER_HOST = os.getenv('SELLER_HOST', '').strip()
+-+ADMIN_HOST = os.getenv('ADMIN_HOST', '').strip()
+-+
+- 
+- # Application definition
+- 
+-@@ -63,11 +68,13 @@ INSTALLED_APPS = [
+- MIDDLEWARE = [
+-     'django.middleware.security.SecurityMiddleware',
+-     'whitenoise.middleware.WhiteNoiseMiddleware',
+-+    'main.middleware.PortalHostMiddleware',
+-     'django.contrib.sessions.middleware.SessionMiddleware',
+-     'django.middleware.locale.LocaleMiddleware',
+-     'django.middleware.common.CommonMiddleware',
+-     'django.middleware.csrf.CsrfViewMiddleware',
+-     'django.contrib.auth.middleware.AuthenticationMiddleware',
+-+    'main.middleware.RoleSeparationMiddleware',
+-     'django.contrib.messages.middleware.MessageMiddleware',
+-     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+- ]
+-@@ -85,6 +92,7 @@ TEMPLATES = [
+-                 'django.template.context_processors.i18n',
+-                 'django.contrib.auth.context_processors.auth',
+-                 'django.contrib.messages.context_processors.messages',
+-+                'main.roles.role_context',
+-             ],
+-         },
+-     },
+-@@ -177,7 +185,7 @@ STATIC_URL = 'static/'
+- AUTH_USER_MODEL = 'main.User'
+- 
+- # Auth Redirects
+--LOGIN_REDIRECT_URL = '/'
+-+LOGIN_REDIRECT_URL = '/home/'
+- LOGOUT_REDIRECT_URL = '/login/'
+- LOGIN_URL = '/login/'
+- 
+-diff --git a/main/ai_assistant.py b/main/ai_assistant.py
+-index c6cd19b..b6b0c56 100644
+---- a/main/ai_assistant.py
+-+++ b/main/ai_assistant.py
+-@@ -42,8 +42,9 @@ ANORA_SYSTEM_PROMPT = """Sen "Anora" — ArzonMaterial qurilish materiallari onl
+- - **Profil** (/profile/) — foydalanuvchi ma'lumotlari
+- - **Savat** (/cart/) — tanlangan mahsulotlar
+- - **Buyurtmalarim** (/orders/) — buyurtmalar tarixi
+--- **Sotuvchi kabineti** (/dashboard/) — sotuvchilar uchun
+-+- **Sotuvchi portali** (/seller/) — sotuvchilar uchun alohida kabinet (kirish: /seller/login/)
+- - **Statistika** (/seller/statistics/) — sotuvlar statistikasi
+-+- **Admin panel** (/panel/) — faqat administratorlar uchun
+- 
+- ## Qoidalar:
+- 1. Saytga aloqador bo'lmagan savollarga qisqacha javob berib, sayt mavzusiga qaytish.
+-@@ -214,13 +215,29 @@ def get_ai_response(user, message, chat_history=None, language='uz'):
+-         client = _get_client()
+- 
+-         # Rolga qarab kontekst
+--        if user.is_authenticated and user.is_seller:
+-+        if user.is_authenticated and user.is_superuser:
+-+            role_label = "Administrator"
+-+            from .models import Store, Product, Order, User, NasiyaApplication
+-+            context = (
+-+                f"📊 Platforma: {User.objects.count()} foydalanuvchi, {Store.objects.count()} do'kon "
+-+                f"({Store.objects.filter(status='pending').count()} tasdiqlanishini kutmoqda), "
+-+                f"{Product.objects.count()} mahsulot, {Order.objects.count()} buyurtma, "
+-+                f"{NasiyaApplication.objects.filter(status='new').count()} yangi nasiya arizasi."
+-+            )
+-+            role_instructions = """
+-+Foydalanuvchi ADMINISTRATOR. Unga quyidagilar bo'yicha yordam ber:
+-+- Do'konlarni tasdiqlash/rad etish: /panel/ dagi "Kutilayotgan do'konlar" bo'limi
+-+- Foydalanuvchi, mahsulot, buyurtma va sharhlarni boshqarish: /panel/m/<model>/ sahifalari
+-+- Nasiya arizalari: /panel/m/nasiya/ sahifasida holat va izoh qoldirish
+-+- Platforma statistikasi va umumiy holat haqida
+-+"""
+-+        elif user.is_authenticated and user.is_seller:
+-             role_label = "Sotuvchi"
+-             context = _get_seller_context(user)
+-             role_instructions = """
+- Foydalanuvchi SOTUVCHI. Unga quyidagilar bo'yicha yordam ber:
+- - Sotuvlar statistikasi va daromad haqida
+--- Mahsulot qo'shish qadamlari: /add-product/ sahifasiga borib, nomi, toifa, narx, soni kiritish
+-+- Mahsulot qo'shish qadamlari: /seller/products/add/ sahifasiga borib, nomi, toifa, narx, soni kiritish
+- - Do'kon rasmiylashtirilishi: STIR/PINFL kiritish kerak, admin tasdiqlaydi
+- - Buyurtmalarni boshqarish: /seller/orders/ sahifasida status o'zgartirish
+- - Sharhlarni ko'rish va javob berish: /seller/reviews/ sahifasida
+-diff --git a/main/forms.py b/main/forms.py
+-index 0de4d8f..3c4a560 100644
+---- a/main/forms.py
+-+++ b/main/forms.py
+-@@ -1,54 +1,77 @@
+- from django import forms
+--from django.contrib.auth.forms import UserCreationForm
+-+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+- import re
+- from django.utils.translation import gettext_lazy as _
+- from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region, NasiyaApplication
+- 
+- class UserRegisterForm(UserCreationForm):
+--    ROLE_CHOICES = (
+--        ('buyer', "Sotib oluvchi (Faqat xarid qilish)"),
+--        ('seller', "Sotuvchi (Do'kon ochish va sotish)"),
+--    )
+--    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect, initial='buyer', label="Kim bo'lib kirmisiz?")
+-+    """Xaridor ro'yxatdan o'tishi (faqat xarid qilish). Sotuvchilar alohida portalda."""
+-+    class Meta(UserCreationForm.Meta):
+-+        model = User
+-+        fields = UserCreationForm.Meta.fields + ('phone',)
+-+        labels = {'phone': 'Telefon raqamingiz'}
+-+
+-+    def save(self, commit=True):
+-+        user = super().save(commit=False)
+-+        user.phone = self.cleaned_data.get('phone', '')
+-+        user.is_seller = False
+-+        user.is_buyer = True
+-+        if commit:
+-+            user.save()
+-+        return user
+-+
+-+
+-+class SellerRegisterForm(UserCreationForm):
+-+    """Sotuvchi portalida ro'yxatdan o'tish: telefon va STIR/PINFL majburiy."""
+-+    phone = forms.CharField(max_length=20, label="Telefon raqamingiz")
+-+    stir_pinfl = forms.CharField(max_length=14, label="STIR / PINFL")
+- 
+-     class Meta(UserCreationForm.Meta):
+-         model = User
+--        fields = UserCreationForm.Meta.fields + ('role', 'phone', 'stir_pinfl')
+--        labels = {
+--            'phone': 'Telefon raqamingiz',
+--            'stir_pinfl': 'STIR / PINFL (Sotuvchilar uchun)',
+--        }
+-+        fields = UserCreationForm.Meta.fields + ('phone', 'stir_pinfl')
+-+
+-+    def clean_stir_pinfl(self):
+-+        value = re.sub(r'\D', '', self.cleaned_data['stir_pinfl'])
+-+        if len(value) not in (9, 14):
+-+            raise forms.ValidationError(_("STIR 9 ta, PINFL 14 ta raqamdan iborat bo'lishi kerak."))
+-+        return value
+- 
+-     def save(self, commit=True):
+-         user = super().save(commit=False)
+--        role = self.cleaned_data.get('role')
+--        user.phone = self.cleaned_data.get('phone')
+--        user.stir_pinfl = self.cleaned_data.get('stir_pinfl')
+--        if role == 'seller':
+--            user.is_seller = True
+--            user.is_buyer = False
+--            # Ensure STIR and Phone are provided
+--            if not user.phone or not user.stir_pinfl:
+--                raise forms.ValidationError("Sotuvchilar uchun telefon va STIR majburiy!")
+--        else:
+--            user.is_seller = False
+--            user.is_buyer = True
+-+        user.phone = self.cleaned_data['phone']
+-+        user.stir_pinfl = self.cleaned_data['stir_pinfl']
+-+        user.is_seller = True
+-+        user.is_buyer = False
+-         if commit:
+-             user.save()
+-         return user
+- 
+--    def clean(self):
+--        cleaned_data = super().clean()
+--        role = cleaned_data.get('role')
+--        phone = cleaned_data.get('phone')
+--        stir = cleaned_data.get('stir_pinfl')
+--        
+--        if role == 'seller':
+--            if not phone:
+--                self.add_error('phone', "Sotuvchilar uchun telefon raqami majburiy!")
+--            if not stir:
+--                self.add_error('stir_pinfl', "Sotuvchilar uchun STIR/PINFL majburiy!")
+--        return cleaned_data
+-+
+-+class _PortalAuthForm(AuthenticationForm):
+-+    """Har bir portal faqat o'z rolidagi akkauntlarni kiritadi."""
+-+    portal = None
+-+    wrong_portal_message = ''
+-+
+-+    def confirm_login_allowed(self, user):
+-+        super().confirm_login_allowed(user)
+-+        from .roles import get_role
+-+        if get_role(user) != self.portal:
+-+            raise forms.ValidationError(self.wrong_portal_message, code='wrong_portal')
+-+
+-+
+-+class BuyerAuthForm(_PortalAuthForm):
+-+    portal = 'buyer'
+-+    wrong_portal_message = _("Bu akkaunt xaridor akkaunti emas. Sotuvchi yoki admin portaliga kiring.")
+-+
+-+
+-+class SellerAuthForm(_PortalAuthForm):
+-+    portal = 'seller'
+-+    wrong_portal_message = _("Bu akkaunt sotuvchi akkaunti emas. Xaridor sifatida asosiy saytdan kiring.")
+-+
+-+
+-+class AdminAuthForm(_PortalAuthForm):
+-+    portal = 'admin'
+-+    wrong_portal_message = _("Bu akkauntda admin huquqi yo'q.")
+- 
+- class BuyerProfileForm(forms.ModelForm):
+-     class Meta:
+-@@ -139,3 +162,10 @@ class NasiyaApplicationForm(forms.ModelForm):
+-         if not (len(digits) == 12 and digits.startswith('998')):
+-             raise forms.ValidationError(_("Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67)."))
+-         return '+' + digits
+-+
+-+
+-+class NasiyaAdminForm(forms.ModelForm):
+-+    """Admin panelda nasiya arizasini ko'rib chiqish (status va menejer izohi)."""
+-+    class Meta:
+-+        model = NasiyaApplication
+-+        fields = ['status', 'manager_note']
+-diff --git a/main/management/__init__.py b/main/management/__init__.py
+-new file mode 100644
+-index 0000000..e69de29
+-diff --git a/main/management/commands/__init__.py b/main/management/commands/__init__.py
+-new file mode 100644
+-index 0000000..e69de29
+-diff --git a/main/management/commands/schema_doctor.py b/main/management/commands/schema_doctor.py
+-new file mode 100644
+-index 0000000..c95a86d
+---- /dev/null
+-+++ b/main/management/commands/schema_doctor.py
+-@@ -0,0 +1,49 @@
+-+"""Baza jadvallari modellarga mosligini tekshiradi.
+-+
+-+Misol xatolar:  NOT NULL constraint failed: main_user.stir_verified
+-+                NOT NULL constraint failed: main_orderitem.unit
+-+Bu bazada kodda yo'q ustun borligini bildiradi (baza boshqa versiya kodidan qolgan).
+-+
+-+  python manage.py schema_doctor          # faqat tekshiradi
+-+  python manage.py schema_doctor --drop   # ortiqcha ustunlarni o'chiradi (boshqa ma'lumotlar saqlanadi)
+-+"""
+-+from django.apps import apps
+-+from django.core.management.base import BaseCommand
+-+from django.db import connection
+-+
+-+
+-+class Command(BaseCommand):
+-+    help = "Baza ustunlarini modellar bilan solishtiradi (ortiqcha va yetishmayotgan ustunlar)."
+-+
+-+    def add_arguments(self, parser):
+-+        parser.add_argument('--drop', action='store_true',
+-+                            help="Modelda yo'q ortiqcha ustunlarni bazadan o'chiradi.")
+-+
+-+    def handle(self, *args, **opts):
+-+        qn = connection.ops.quote_name
+-+        tables = set(connection.introspection.table_names())
+-+        problems = 0
+-+        with connection.cursor() as cursor:
+-+            for model in apps.get_app_config('main').get_models():
+-+                table = model._meta.db_table
+-+                if table not in tables:
+-+                    self.stdout.write(self.style.ERROR(f"[{table}] jadval yo'q -> `python manage.py migrate` kerak"))
+-+                    problems += 1
+-+                    continue
+-+                db_cols = {c.name: c for c in connection.introspection.get_table_description(cursor, table)}
+-+                model_cols = {f.column for f in model._meta.local_concrete_fields}
+-+                for col in sorted(set(db_cols) - model_cols):
+-+                    problems += 1
+-+                    null = 'NULL bo\'lishi mumkin' if db_cols[col].null_ok else 'NOT NULL (xatoga sabab bo\'ladi!)'
+-+                    self.stdout.write(self.style.WARNING(f"[{table}] bazada ortiqcha ustun: {col}  -- {null}"))
+-+                    if opts['drop']:
+-+                        try:
+-+                            cursor.execute(f"ALTER TABLE {qn(table)} DROP COLUMN {qn(col)}")
+-+                            self.stdout.write(self.style.SUCCESS(f"    o'chirildi: {table}.{col}"))
+-+                        except Exception as exc:
+-+                            self.stdout.write(self.style.ERROR(f"    o'chirib bo'lmadi: {exc}"))
+-+                for col in sorted(model_cols - set(db_cols)):
+-+                    problems += 1
+-+                    self.stdout.write(self.style.ERROR(f"[{table}] bazada yetishmaydi: {col} -> `python manage.py migrate` kerak"))
+-+        if not problems:
+-+            self.stdout.write(self.style.SUCCESS("Baza modellarga to'liq mos."))
+-diff --git a/main/middleware.py b/main/middleware.py
+-new file mode 100644
+-index 0000000..0b93277
+---- /dev/null
+-+++ b/main/middleware.py
+-@@ -0,0 +1,63 @@
+-+"""Portallarni bir-biridan ajratish.
+-+
+-+1. PortalHostMiddleware (ixtiyoriy): SELLER_HOST / ADMIN_HOST berilsa (masalan
+-+   seller.example.uz, admin.example.uz) o'sha domenga kirgan odam to'g'ridan-to'g'ri
+-+   sotuvchi / admin portalini ko'radi (Uzum Market'dagi seller.uzum.uz kabi).
+-+2. RoleSeparationMiddleware: sotuvchi va admin xaridor sahifalariga
+-+   (bozor, savat, buyurtmalar...) kira olmaydi, o'z paneliga qaytariladi.
+-+"""
+-+from django.conf import settings
+-+from django.shortcuts import redirect
+-+from django.urls import resolve, Resolver404
+-+
+-+from .roles import get_role, home_url, SELLER, ADMIN
+-+
+-+BUYER_ONLY_URL_NAMES = {
+-+    'marketplace', 'product_detail', 'cart', 'add_to_cart', 'remove_from_cart',
+-+    'update_cart', 'checkout', 'orders', 'order_detail', 'cancel_order',
+-+    'cancel_order_item', 'confirm_store_receipt', 'add_review', 'buyer_profile',
+-+    'notifications',
+-+}
+-+
+-+# Domen rejimida prefiks qo'shilmaydigan yo'llar
+-+_SHARED_PREFIXES = ('/static/', '/media/', '/i18n/', '/api/ai/', '/notification/read/')
+-+
+-+
+-+class PortalHostMiddleware:
+-+    def __init__(self, get_response):
+-+        self.get_response = get_response
+-+
+-+    def __call__(self, request):
+-+        seller_host = getattr(settings, 'SELLER_HOST', '')
+-+        admin_host = getattr(settings, 'ADMIN_HOST', '')
+-+        if seller_host or admin_host:
+-+            host = request.get_host().split(':')[0].lower()
+-+            prefix = None
+-+            if seller_host and host == seller_host.lower():
+-+                prefix = '/seller'
+-+            elif admin_host and host == admin_host.lower():
+-+                prefix = '/panel'
+-+            if prefix:
+-+                path = request.path_info
+-+                already = path == prefix or path.startswith(prefix + '/')
+-+                if not already and not path.startswith(_SHARED_PREFIXES):
+-+                    request.path_info = prefix + path
+-+        return self.get_response(request)
+-+
+-+
+-+class RoleSeparationMiddleware:
+-+    def __init__(self, get_response):
+-+        self.get_response = get_response
+-+
+-+    def __call__(self, request):
+-+        user = getattr(request, 'user', None)
+-+        if user is not None and user.is_authenticated:
+-+            role = get_role(user)
+-+            if role in (SELLER, ADMIN):
+-+                try:
+-+                    match = resolve(request.path_info)
+-+                except Resolver404:
+-+                    match = None
+-+                if match and match.url_name in BUYER_ONLY_URL_NAMES:
+-+                    return redirect(home_url(user))
+-+        return self.get_response(request)
+-diff --git a/main/migrations/0014_payment_method_choices.py b/main/migrations/0014_payment_method_choices.py
+-new file mode 100644
+-index 0000000..2dc9bc0
+---- /dev/null
+-+++ b/main/migrations/0014_payment_method_choices.py
+-@@ -0,0 +1,18 @@
+-+# Generated by Django 6.0.4 on 2026-10-18 20:10
+-+
+-+from django.db import migrations, models
+-+
+-+
+-+class Migration(migrations.Migration):
+-+
+-+    dependencies = [
+-+        ('main', '0013_multilingual_anora'),
+-+    ]
+-+
+-+    operations = [
+-+        migrations.AlterField(
+-+            model_name='order',
+-+            name='payment_method',
+-+            field=models.CharField(choices=[('card', "Kuryerga karta/terminal orqali to'lash"), ('cash', 'Naqd'), ('nasiya', 'Nasiya')], default='card', max_length=10, verbose_name="To'lov turi"),
+-+        ),
+-+    ]
+-diff --git a/main/nasiya.py b/main/nasiya.py
+-index 3ccd1b8..5a8a06b 100644
+---- a/main/nasiya.py
+-+++ b/main/nasiya.py
+-@@ -68,8 +68,7 @@ def notify_managers(application):
+-         f"Yangi nasiya arizasi! Buyurtma #{order.pk}, {application.full_name}, "
+-         f"{application.phone}, {application.get_term_months_display()}."
+-     )
+--    admin_prefix = getattr(settings, 'ADMIN_URL', 'admin/').strip('/')
+--    target = f"/{admin_prefix}/main/nasiyaapplication/{application.pk}/change/"
+-+    target = f"/panel/m/nasiya/edit/{application.pk}/"
+-     Notification.objects.bulk_create([
+-         Notification(user=m, message=message, target_url=target) for m in _managers()
+-     ])
+-diff --git a/main/roles.py b/main/roles.py
+-new file mode 100644
+-index 0000000..16d77c8
+---- /dev/null
+-+++ b/main/roles.py
+-@@ -0,0 +1,74 @@
+-+"""Rollar: xaridor (asosiy sayt), sotuvchi (/seller/ portali), admin (/panel/ portali).
+-+
+-+Har bir rol o'z portaliga, o'z kirish sahifasiga va o'z dizayniga ega.
+-+"""
+-+from functools import wraps
+-+
+-+from django.conf import settings
+-+from django.contrib import messages
+-+from django.http import Http404
+-+from django.shortcuts import redirect
+-+from django.urls import reverse
+-+from django.utils.translation import gettext
+-+
+-+BUYER, SELLER, ADMIN = 'buyer', 'seller', 'admin'
+-+
+-+LOGIN_URL_NAME = {BUYER: 'login', SELLER: 'seller_login', ADMIN: 'admin_login'}
+-+
+-+
+-+def get_role(user):
+-+    if not user.is_authenticated:
+-+        return None
+-+    if user.is_superuser:
+-+        return ADMIN
+-+    if user.is_seller:
+-+        return SELLER
+-+    return BUYER
+-+
+-+
+-+def home_url(user):
+-+    """Foydalanuvchi o'z roliga mos bosh sahifasi."""
+-+    role = get_role(user)
+-+    if role == ADMIN:
+-+        return reverse('admin_dashboard')
+-+    if role == SELLER:
+-+        return reverse('seller_dashboard')
+-+    return reverse('marketplace')
+-+
+-+
+-+def role_required(role):
+-+    """Faqat berilgan rol kira oladi.
+-+
+-+    - Kirmagan foydalanuvchi shu rolning KIRISH sahifasiga yuboriladi.
+-+    - Admin paneliga boshqa rol kirsa 404 (panel borligi ham sezilmaydi).
+-+    - Sotuvchi/xaridor boshqa portalga kirsa o'z bosh sahifasiga qaytariladi.
+-+    """
+-+    def decorator(view):
+-+        @wraps(view)
+-+        def wrapper(request, *args, **kwargs):
+-+            if not request.user.is_authenticated:
+-+                from django.contrib.auth.views import redirect_to_login
+-+                return redirect_to_login(request.get_full_path(), reverse(LOGIN_URL_NAME[role]))
+-+            if get_role(request.user) != role:
+-+                if role == ADMIN:
+-+                    raise Http404
+-+                messages.error(request, gettext("Bu sahifa sizning rolingiz uchun emas."))
+-+                return redirect(home_url(request.user))
+-+            return view(request, *args, **kwargs)
+-+        return wrapper
+-+    return decorator
+-+
+-+
+-+buyer_required = role_required(BUYER)
+-+seller_required = role_required(SELLER)
+-+admin_required = role_required(ADMIN)
+-+
+-+
+-+def role_context(request):
+-+    """Shablonlar uchun: `user_role` va umumiy sahifalar uchun `base_template`."""
+-+    role = get_role(request.user)
+-+    base = {
+-+        SELLER: 'main/seller/seller_base.html',
+-+        ADMIN: 'main/admin/admin_base.html',
+-+    }.get(role, 'main/base.html')
+-+    return {'user_role': role, 'base_template': base, 'ADMIN_URL': settings.ADMIN_URL}
+-diff --git a/main/templates/main/_auth_form.html b/main/templates/main/_auth_form.html
+-new file mode 100644
+-index 0000000..0a23831
+---- /dev/null
+-+++ b/main/templates/main/_auth_form.html
+-@@ -0,0 +1,23 @@
+-+{% load i18n %}
+-+<form method="POST" novalidate class="space-y-4">
+-+    {% csrf_token %}
+-+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+-+    {% if form.non_field_errors %}
+-+    <div class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{{ form.non_field_errors|join:" " }}</div>
+-+    {% endif %}
+-+    {% for field in form %}
+-+    <div>
+-+        <label for="{{ field.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-1.5">{{ field.label }}</label>
+-+        {{ field }}
+-+        {% if field.help_text %}<p class="text-[11px] text-gray-400 mt-1">{{ field.help_text|safe }}</p>{% endif %}
+-+        {% for e in field.errors %}<p class="text-red-500 text-xs mt-1">{{ e }}</p>{% endfor %}
+-+    </div>
+-+    {% endfor %}
+-+    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition">{{ submit_label }}</button>
+-+</form>
+-+<style>
+-+    .auth-card input[type="text"], .auth-card input[type="email"], .auth-card input[type="password"], .auth-card input[type="tel"] {
+-+        width: 100%; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: .6rem; outline: none; font-size: .9rem;
+-+    }
+-+    .auth-card input:focus { border-color: #E8590C; box-shadow: 0 0 0 2px rgba(232,89,12,.2); }
+-+</style>
+-diff --git a/main/templates/main/_messages.html b/main/templates/main/_messages.html
+-new file mode 100644
+-index 0000000..1493d00
+---- /dev/null
+-+++ b/main/templates/main/_messages.html
+-@@ -0,0 +1,13 @@
+-+{% if messages %}
+-+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+-+    {% for msg in messages %}
+-+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 text-sm font-medium
+-+        {% if msg.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+-+        {% elif msg.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+-+        {% elif msg.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
+-+        {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+-+        <span>{{ msg }}</span>
+-+    </div>
+-+    {% endfor %}
+-+</div>
+-+{% endif %}
+-diff --git a/main/templates/main/admin/admin_base.html b/main/templates/main/admin/admin_base.html
+-index 57ef49b..e632cc0 100644
+---- a/main/templates/main/admin/admin_base.html
+-+++ b/main/templates/main/admin/admin_base.html
+-@@ -1,76 +1,27 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/portal/shell.html' %}
+- {% block title %}Admin Panel - ArzonMaterial{% endblock %}
+--{% block content %}
+--
+--<div class="flex flex-col lg:flex-row gap-8 min-h-[600px]">
+--    <!-- Admin Sidebar -->
+--    <div class="w-full lg:w-64 flex-shrink-0">
+--        <div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden sticky top-24">
+--            <div class="p-6 border-b border-gray-50 bg-gradient-to-r from-blue-600 to-indigo-700">
+--                <h3 class="text-white font-bold   text-xs">Boshqaruv</h3>
+--            </div>
+--            <nav class="p-4 space-y-2">
+--                <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+--                    Dashboard
+--                </a>
+--                
+--                <div class="pt-4 pb-2">
+--                    <p class="px-4 text-[10px] font-bold text-gray-400   mb-2">Modellar</p>
+--                </div>
+--
+--                <a href="{% url 'admin_model_list' 'user' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'user' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+--                    Foydalanuvchilar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'store' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'store' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+--                    Do'konlar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'category' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'category' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+--                    Toifalar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'brand' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'brand' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+--                    Brendlar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'region' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'region' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+--                    Viloyatlar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'product' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'product' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
+--                    Mahsulotlar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'order' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'order' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+--                    Buyurtmalar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'review' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'review' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+--                    Sharhlar
+--                </a>
+--
+--                <a href="{% url 'admin_model_list' 'notification' %}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {% if model_name == 'notification' %}bg-blue-50 text-blue-600 font-bold{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+--                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+--                    Bildirishnomalar
+--                </a>
+--            </nav>
+--        </div>
+--    </div>
+--
+--    <!-- Admin Content -->
+--    <div class="flex-grow">
+--        {% block admin_content %}{% endblock %}
+--    </div>
+--</div>
+--
+-+{% block panel_badge %}Admin{% endblock %}
+-+{% block panel_badge_side %}Admin panel{% endblock %}
+-+{% block notif_url_mobile %}{% url 'admin_notifications' %}{% endblock %}
+-+{% block home_url %}{% url 'admin_dashboard' %}{% endblock %}
+-+{% block logout_url %}{% url 'admin_logout' %}{% endblock %}
+-+
+-+{% block sidebar_nav %}
+-+<a href="{% url 'admin_dashboard' %}" class="nav-link {% if rn == 'admin_dashboard' %}active{% endif %}">🏠 Dashboard</a>
+-+<div class="nav-group">Boshqaruv</div>
+-+<a href="{% url 'admin_model_list' 'user' %}" class="nav-link {% if model_name == 'user' %}active{% endif %}">👥 Foydalanuvchilar</a>
+-+<a href="{% url 'admin_model_list' 'store' %}" class="nav-link {% if model_name == 'store' %}active{% endif %}">🏪 Do'konlar</a>
+-+<a href="{% url 'admin_model_list' 'product' %}" class="nav-link {% if model_name == 'product' %}active{% endif %}">📦 Mahsulotlar</a>
+-+<a href="{% url 'admin_model_list' 'order' %}" class="nav-link {% if model_name == 'order' %}active{% endif %}">🧾 Buyurtmalar</a>
+-+<a href="{% url 'admin_model_list' 'nasiya' %}" class="nav-link {% if model_name == 'nasiya' %}active{% endif %}">💳 Nasiya arizalari</a>
+-+<a href="{% url 'admin_model_list' 'review' %}" class="nav-link {% if model_name == 'review' %}active{% endif %}">💬 Sharhlar</a>
+-+<div class="nav-group">Sozlamalar</div>
+-+<a href="{% url 'admin_model_list' 'category' %}" class="nav-link {% if model_name == 'category' %}active{% endif %}">🏷️ Toifalar</a>
+-+<a href="{% url 'admin_model_list' 'brand' %}" class="nav-link {% if model_name == 'brand' %}active{% endif %}">🔖 Brendlar</a>
+-+<a href="{% url 'admin_model_list' 'region' %}" class="nav-link {% if model_name == 'region' %}active{% endif %}">📍 Viloyatlar</a>
+-+<a href="{% url 'admin_model_list' 'notification' %}" class="nav-link {% if model_name == 'notification' %}active{% endif %}">🔔 Bildirishnomalar</a>
+-+<div class="nav-group">Boshqa</div>
+-+<a href="/{{ ADMIN_URL }}" class="nav-link">⚙️ Django admin</a>
+- {% endblock %}
+-+
+-+{% block content %}{% block admin_content %}{% endblock %}{% endblock %}
+-diff --git a/main/templates/main/admin/model_list.html b/main/templates/main/admin/model_list.html
+-index 298056d..07b319c 100644
+---- a/main/templates/main/admin/model_list.html
+-+++ b/main/templates/main/admin/model_list.html
+-@@ -162,7 +162,7 @@
+- <script>
+-     function confirmDelete(model, pk) {
+-         if (confirm('Ishonchingiz komilmi? O\'chirilgan ma\'lumotni qaytarib bo\'lmaydi.')) {
+--            window.location.href = `/admin-dashboard/m/${model}/delete/${pk}/`;
+-+            window.location.href = `/panel/m/${model}/delete/${pk}/`;
+-         }
+-     }
+- </script>
+-diff --git a/main/templates/main/auth_page.html b/main/templates/main/auth_page.html
+-new file mode 100644
+-index 0000000..4506065
+---- /dev/null
+-+++ b/main/templates/main/auth_page.html
+-@@ -0,0 +1,14 @@
+-+{% extends 'main/base.html' %}
+-+{% load i18n %}
+-+{% block title %}{{ title }} - ArzonMaterial{% endblock %}
+-+{% block content %}
+-+<div class="auth-card max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+-+    <h1 class="text-2xl font-bold text-center mb-1 text-gray-900">{{ title }}</h1>
+-+    {% if subtitle %}<p class="text-center text-gray-500 text-sm mb-6">{{ subtitle }}</p>{% endif %}
+-+    {% include 'main/_auth_form.html' %}
+-+    <div class="mt-5 text-center text-sm text-gray-600 space-y-2">
+-+        {% if alt_url %}<p>{{ alt_text }} <a href="{{ alt_url }}" class="text-blue-600 ml-1 hover:underline">{{ alt_label }}</a></p>{% endif %}
+-+        <p class="pt-3 border-t border-gray-100">{% trans "Do'kon egasimisiz?" %} <a href="{% url 'seller_login' %}" class="text-blue-600 font-semibold hover:underline">{% trans "Sotuvchi portaliga kiring" %}</a></p>
+-+    </div>
+-+</div>
+-+{% endblock %}
+-diff --git a/main/templates/main/base.html b/main/templates/main/base.html
+-index d30997a..cc13c38 100644
+---- a/main/templates/main/base.html
+-+++ b/main/templates/main/base.html
+-@@ -47,10 +47,12 @@
+- 
+-         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+-     </style>
+-+    {% block head_extra %}{% endblock %}
+- </head>
+- <body class="flex flex-col min-h-screen bg-gray-100 text-gray-900">
+- 
+- <!-- NAVBAR -->
+-+{% block navbar %}
+- <nav class="bg-blue-900 text-white sticky top-0 z-50">
+-     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+-         <div class="flex items-center justify-between h-16">
+-@@ -82,6 +84,9 @@
+-                     <span class="theme-moon">🌙</span><span class="theme-sun">☀️</span>
+-                 </button>
+-                 <a href="{% url 'marketplace' %}" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition">{% trans "Bozor" %}</a>
+-+                {% if not user.is_authenticated or user_role == 'buyer' %}
+-+                <a href="{% url 'seller_login' %}" class="hidden md:inline-block px-3 py-2 rounded-lg text-sm font-medium text-orange-300 hover:bg-white/10 transition">{% trans "Sotuvchilar uchun" %}</a>
+-+                {% endif %}
+- 
+-                 {% if user.is_authenticated %}
+-                     {% if user.is_seller %}
+-@@ -183,12 +188,7 @@
+-                                 </svg>
+-                                {% trans "Profilim" %}
+-                             </a>
+--                            {% if user.is_superuser %}
+--                            <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-2 px-4 py-3 text-sm text-blue-700 font-bold hover:bg-blue-50 transition">
+--                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+--                                {% trans "Admin Panel" %}
+--                            </a>
+--                            {% endif %}
+-+                            
+-                             <hr class="border-gray-100">
+-                             <form action="{% url 'logout' %}" method="post">
+-                                 {% csrf_token %}
+-@@ -214,28 +214,20 @@
+-         </form>
+-     </div>
+- </nav>
+-+{% endblock navbar %}
+- 
+- <!-- Messages -->
+--{% if messages %}
+--<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+--    {% for msg in messages %}
+--    <div class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 text-sm font-medium
+--        {% if msg.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+--        {% elif msg.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+--        {% elif msg.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
+--        {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+--        <span>{{ msg }}</span>
+--    </div>
+--    {% endfor %}
+--</div>
+--{% endif %}
+-+{% block messages %}{% include 'main/_messages.html' %}{% endblock %}
+- 
+- <!-- MAIN CONTENT -->
+-+{% block main_wrapper %}
+- <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+-     {% block content %}{% endblock %}
+- </main>
+-+{% endblock main_wrapper %}
+- 
+- <!-- FOOTER -->
+-+{% block footer %}
+- <footer class="bg-gray-900 text-gray-400 mt-auto">
+-     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+-         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+-@@ -247,6 +239,7 @@
+-                 <h4 class="text-white font-semibold mb-2">{% trans "Havolalar" %}</h4>
+-                 <ul class="text-sm space-y-1">
+-                     <li><a href="{% url 'marketplace' %}" class="hover:text-white transition">{% trans "Bozor" %}</a></li>
+-+                    <li><a href="{% url 'seller_login' %}" class="hover:text-white transition">{% trans "Sotuvchi bo'lish" %}</a></li>
+-                     {% if user.is_authenticated %}
+-                         <li><a href="{% url 'profile' %}" class="hover:text-white transition">{% trans "Profil" %}</a></li>
+-                         {% if user.is_superuser %}
+-@@ -266,7 +259,9 @@
+-         </div>
+-     </div>
+- </footer>
+-+{% endblock footer %}
+- 
+-+{% block chatwidget %}
+- <!-- ══════════ ANORA AI CHATBOT ══════════ -->
+- <div id="anora-chat" class="fixed bottom-6 right-6 z-[9999]">
+-     <!-- Chat Toggle Button -->
+-@@ -563,8 +558,10 @@
+-     });
+- </script>
+- 
+-+{% endblock chatwidget %}
+-+
+- <script>
+--    document.getElementById('theme-toggle').addEventListener('click', function () {
+-+    var _tt = document.getElementById('theme-toggle'); if (_tt) _tt.addEventListener('click', function () {
+-         var dark = document.documentElement.classList.toggle('dark');
+-         try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+-     });
+-diff --git a/main/templates/main/login.html b/main/templates/main/login.html
+-deleted file mode 100644
+-index 4a8d146..0000000
+---- a/main/templates/main/login.html
+-+++ /dev/null
+-@@ -1,20 +0,0 @@
+--{% extends 'main/base.html' %}
+--{% load i18n %}
+--{% block content %}
+--<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+--    <h2 class="text-2xl font-bold text-center mb-6 text-gray-900">{% trans "Tizimga kirish" %}</h2>
+--    <form method="POST">
+--        {% csrf_token %}
+--        <div class="mb-4">
+--            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Username" %}</label>
+--            <input type="text" name="username" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+--        </div>
+--        <div class="mb-6">
+--            <label class="block text-gray-700 text-sm font-bold mb-2">{% trans "Parol" %}</label>
+--            <input type="password" name="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+--        </div>
+--        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">{% trans "Kirish" %}</button>
+--    </form>
+--    <p class="text-center mt-4 text-sm text-gray-600">{% trans "Akkauntingiz yo'qmi?" %} <a href="{% url 'register' %}" class="text-blue-600 ml-1 hover:underline">{% trans "Ro'yxatdan o'ting" %}</a></p>
+--</div>
+--{% endblock %}
+-diff --git a/main/templates/main/notifications.html b/main/templates/main/notifications.html
+-index 484a3fc..3b3d8c6 100644
+---- a/main/templates/main/notifications.html
+-+++ b/main/templates/main/notifications.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends base_template %}
+- {% load i18n %}
+- {% block title %}{% trans "Xabarlar - ArzonMaterial" %}{% endblock %}
+- {% block content %}
+-diff --git a/main/templates/main/portal/auth_page.html b/main/templates/main/portal/auth_page.html
+-new file mode 100644
+-index 0000000..d71e334
+---- /dev/null
+-+++ b/main/templates/main/portal/auth_page.html
+-@@ -0,0 +1,26 @@
+-+{% extends 'main/base.html' %}
+-+{% load i18n %}
+-+{% block title %}{{ title }} - ArzonMaterial{% endblock %}
+-+{% block navbar %}{% endblock %}
+-+{% block footer %}{% endblock %}
+-+{% block messages %}{% endblock %}
+-+{% block main_wrapper %}
+-+<div class="flex-1 flex items-center justify-center px-4 py-10" style="background:linear-gradient(135deg,#161A23 0%,#2A1D14 100%)">
+-+    <div class="w-full max-w-md">
+-+        <div class="text-center mb-6 text-white">
+-+            <p class="text-3xl font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span></p>
+-+            <p class="mt-2 inline-block text-[11px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-300 rounded-md px-3 py-1">{{ portal_name }}</p>
+-+        </div>
+-+        <div class="auth-card bg-white p-8 rounded-2xl shadow-xl">
+-+            {% include 'main/_messages.html' %}
+-+            <h1 class="text-xl font-bold text-center mb-1 text-gray-900">{{ title }}</h1>
+-+            {% if subtitle %}<p class="text-center text-gray-500 text-sm mb-5">{{ subtitle }}</p>{% endif %}
+-+            {% include 'main/_auth_form.html' %}
+-+            <div class="mt-5 text-center text-sm text-gray-600 space-y-2">
+-+                {% if alt_url %}<p>{{ alt_text }} <a href="{{ alt_url }}" class="text-blue-600 ml-1 hover:underline">{{ alt_label }}</a></p>{% endif %}
+-+                {% if show_buyer_link %}<p class="pt-3 border-t border-gray-100"><a href="{% url 'marketplace' %}" class="text-gray-500 hover:underline">← {% trans "Xaridor saytiga qaytish" %}</a></p>{% endif %}
+-+            </div>
+-+        </div>
+-+    </div>
+-+</div>
+-+{% endblock %}
+-diff --git a/main/templates/main/portal/shell.html b/main/templates/main/portal/shell.html
+-new file mode 100644
+-index 0000000..320b7b9
+---- /dev/null
+-+++ b/main/templates/main/portal/shell.html
+-@@ -0,0 +1,75 @@
+-+{% extends 'main/base.html' %}
+-+{% load i18n %}
+-+{# Sotuvchi va admin panellari uchun umumiy qobiq: chap menyu + ish maydoni. Marketplace navbari YO'Q. #}
+-+
+-+{% block head_extra %}
+-+<style>
+-+    .nav-link { display:flex; align-items:center; gap:.75rem; padding:.65rem .9rem; border-radius:.75rem; font-size:.875rem; font-weight:500; color:#B6BECC; transition:all .15s; }
+-+    .nav-link:hover { background:rgba(255,255,255,.08); color:#fff; }
+-+    .nav-link.active { background:#E8590C; color:#fff; font-weight:700; }
+-+    .nav-group { padding:.9rem .9rem .35rem; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#7E889A; }
+-+    #portal-sidebar { background:#161A23; }
+-+    @media (max-width: 1023px) {
+-+        #portal-sidebar { position:fixed; inset:0 auto 0 0; z-index:60; width:16rem; transform:translateX(-100%); transition:transform .2s; display:flex; }
+-+        #portal-sidebar.open { transform:translateX(0); }
+-+    }
+-+</style>
+-+{% endblock %}
+-+
+-+{% block navbar %}
+-+<header class="lg:hidden bg-blue-900 text-white sticky top-0 z-50">
+-+    <div class="flex items-center justify-between h-14 px-4">
+-+        <button type="button" onclick="document.getElementById('portal-sidebar').classList.toggle('open')" class="w-10 h-10 rounded-lg hover:bg-white/10 text-xl" aria-label="Menu">☰</button>
+-+        <span class="font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span> <span class="ml-1 text-[11px] font-bold uppercase bg-white/15 rounded px-2 py-0.5">{% block panel_badge %}{% endblock %}</span></span>
+-+        <a href="{% block notif_url_mobile %}{% endblock %}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10">🔔</a>
+-+    </div>
+-+</header>
+-+{% endblock %}
+-+
+-+{% block messages %}{% endblock %}
+-+{% block footer %}{% endblock %}
+-+
+-+{% block main_wrapper %}
+-+<div class="flex flex-1 min-h-0">
+-+    <aside id="portal-sidebar" class="lg:flex flex-col w-64 shrink-0 text-white lg:sticky lg:top-0 lg:h-screen overflow-y-auto">
+-+        <div class="px-5 py-5 flex items-center justify-between">
+-+            <a href="{% block home_url %}{% endblock %}" class="text-xl font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span></a>
+-+            <button type="button" class="lg:hidden text-xl" onclick="document.getElementById('portal-sidebar').classList.remove('open')">✕</button>
+-+        </div>
+-+        <div class="px-5 pb-3"><span class="inline-block text-[11px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-300 rounded-md px-2 py-1">{{ self_badge|default:'' }}{% block panel_badge_side %}{% endblock %}</span></div>
+-+        {% with rn=request.resolver_match.url_name %}
+-+        <nav class="px-3 pb-4 flex-1 space-y-1">{% block sidebar_nav %}{% endblock %}</nav>
+-+        {% endwith %}
+-+        <div class="p-4 border-t border-white/10 space-y-3">
+-+            {% get_current_language as LANG %}
+-+            <div class="flex items-center gap-2">
+-+                <form action="{% url 'set_language' %}" method="post" class="flex flex-1 items-center text-xs font-bold bg-white/10 rounded-lg overflow-hidden">
+-+                    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+-+                    <button name="language" value="uz" class="flex-1 py-2 {% if LANG == 'uz' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">UZ</button>
+-+                    <button name="language" value="ru" class="flex-1 py-2 {% if LANG == 'ru' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">RU</button>
+-+                    <button name="language" value="en" class="flex-1 py-2 {% if LANG == 'en' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">EN</button>
+-+                </form>
+-+                <button type="button" id="theme-toggle" aria-label="{% trans 'Tungi/kunduzgi rejim' %}" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center">
+-+                    <span class="theme-moon">🌙</span><span class="theme-sun">☀️</span>
+-+                </button>
+-+            </div>
+-+            <div class="flex items-center justify-between gap-2">
+-+                <div class="flex items-center gap-2 min-w-0">
+-+                    <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center font-bold text-sm">{{ user.username|first|upper }}</div>
+-+                    <span class="text-sm truncate">{{ user.username }}</span>
+-+                </div>
+-+                <form action="{% block logout_url %}{% endblock %}" method="post">{% csrf_token %}
+-+                    <button type="submit" class="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-red-600 transition">{% trans "Chiqish" %}</button>
+-+                </form>
+-+            </div>
+-+        </div>
+-+    </aside>
+-+
+-+    <div class="flex-1 min-w-0">
+-+        <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+-+            {% include 'main/_messages.html' %}
+-+            {% block content %}{% endblock %}
+-+        </main>
+-+    </div>
+-+</div>
+-+{% endblock main_wrapper %}
+-diff --git a/main/templates/main/product_confirm_delete.html b/main/templates/main/product_confirm_delete.html
+-index d096d4a..42cdfcc 100644
+---- a/main/templates/main/product_confirm_delete.html
+-+++ b/main/templates/main/product_confirm_delete.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block content %}
+- 
+-diff --git a/main/templates/main/product_form.html b/main/templates/main/product_form.html
+-index e523278..07a343f 100644
+---- a/main/templates/main/product_form.html
+-+++ b/main/templates/main/product_form.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block content %}
+- <div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+-diff --git a/main/templates/main/register.html b/main/templates/main/register.html
+-deleted file mode 100644
+-index 878ceb6..0000000
+---- a/main/templates/main/register.html
+-+++ /dev/null
+-@@ -1,65 +0,0 @@
+--{% extends 'main/base.html' %}
+--{% load i18n %}
+--{% block content %}
+--<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+--    <h2 class="text-2xl font-bold text-center mb-2 text-gray-900">{% trans "Ro'yxatdan o'tish" %}</h2>
+--    <p class="text-center text-gray-500 text-sm mb-6">{% trans "Akkaunt turini tanlang va ma'lumotlaringizni kiriting" %}</p>
+--    <form method="POST" novalidate>
+--        {% csrf_token %}
+--        {% for field in form %}
+--        <div class="mb-4 {% if field.name == 'stir_pinfl' %}hidden{% endif %}" id="div_{{ field.name }}">
+--            <label class="block text-gray-700 text-sm font-bold mb-2">{{ field.label }}</label>
+--            {% if field.name == 'role' %}
+--                <div class="grid grid-cols-2 gap-3">
+--                    {% for choice in field %}
+--                    <label class="flex items-center gap-2 border rounded-lg p-3 cursor-pointer hover:bg-blue-50 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50">
+--                        {{ choice.tag }}
+--                        <span class="text-sm text-gray-700">{{ choice.choice_label }}</span>
+--                    </label>
+--                    {% endfor %}
+--                </div>
+--            {% else %}
+--                {{ field }}
+--            {% endif %}
+--            {% if field.errors %}
+--                <p class="text-red-500 text-xs mt-1">{{ field.errors|join:", " }}</p>
+--            {% endif %}
+--        </div>
+--        {% endfor %}
+--        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition mt-2">
+--            {% trans "Ro'yxatdan o'tish" %}
+--        </button>
+--    </form>
+--    <p class="text-center mt-4 text-sm text-gray-600">{% trans "Allaqachon akkauntingiz bormi?" %} <a href="{% url 'login' %}" class="text-blue-600 ml-1 hover:underline">{% trans "Kirish" %}</a></p>
+--</div>
+--
+--<script>
+--    document.addEventListener('DOMContentLoaded', function() {
+--        const roleSelectors = document.querySelectorAll('input[name="role"]');
+--        const stirDiv = document.getElementById('div_stir_pinfl');
+--        
+--        function updateFields() {
+--            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+--            if (selectedRole === 'seller') {
+--                stirDiv.classList.remove('hidden');
+--            } else {
+--                stirDiv.classList.add('hidden');
+--            }
+--        }
+--        
+--        roleSelectors.forEach(el => el.addEventListener('change', updateFields));
+--        updateFields();
+--    });
+--</script>
+--
+--<style>
+--    input[type="text"], input[type="email"], input[type="password"] {
+--        width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+--        outline: none; font-size: 0.875rem;
+--    }
+--    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+--        border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+--    }
+--    input[type="radio"] { accent-color: #2563eb; }
+--</style>
+--{% endblock %}
+-diff --git a/main/templates/main/seller/seller_base.html b/main/templates/main/seller/seller_base.html
+-new file mode 100644
+-index 0000000..d004ca1
+---- /dev/null
+-+++ b/main/templates/main/seller/seller_base.html
+-@@ -0,0 +1,19 @@
+-+{% extends 'main/portal/shell.html' %}
+-+{% load i18n %}
+-+{% block title %}{% trans "Sotuvchi paneli" %} - ArzonMaterial{% endblock %}
+-+{% block panel_badge %}{% trans "Sotuvchi" %}{% endblock %}
+-+{% block panel_badge_side %}{% trans "Sotuvchi paneli" %}{% endblock %}
+-+{% block notif_url_mobile %}{% url 'seller_notifications' %}{% endblock %}
+-+{% block home_url %}{% url 'seller_dashboard' %}{% endblock %}
+-+{% block logout_url %}{% url 'seller_logout' %}{% endblock %}
+-+
+-+{% block sidebar_nav %}
+-+<a href="{% url 'seller_dashboard' %}" class="nav-link {% if rn == 'seller_dashboard' or rn == 'seller_home' or rn == 'add_product' or rn == 'edit_product' or rn == 'delete_product' %}active{% endif %}">📦 {% trans "Mahsulotlarim" %}</a>
+-+<a href="{% url 'seller_orders' %}" class="nav-link {% if rn == 'seller_orders' %}active{% endif %}">🧾 {% trans "Buyurtmalar" %}</a>
+-+<a href="{% url 'seller_reviews' %}" class="nav-link {% if rn == 'seller_reviews' %}active{% endif %}">💬 {% trans "Sharhlar" %}</a>
+-+<a href="{% url 'seller_statistics' %}" class="nav-link {% if rn == 'seller_statistics' %}active{% endif %}">📈 {% trans "Statistika" %}</a>
+-+<div class="nav-group">{% trans "Do'kon" %}</div>
+-+<a href="{% url 'seller_profile' %}" class="nav-link {% if rn == 'seller_profile' or rn == 'create_store' %}active{% endif %}">🏪 {% trans "Do'kon profili" %}</a>
+-+<a href="{% url 'seller_notifications' %}" class="nav-link {% if rn == 'seller_notifications' %}active{% endif %}">🔔 {% trans "Xabarlar" %}{% if user.unread_notifications_count %}<span class="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">{{ user.unread_notifications_count }}</span>{% endif %}</a>
+-+<a href="{% url 'add_product' %}" class="mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold">+ {% trans "Mahsulot qo'shish" %}</a>
+-+{% endblock %}
+-diff --git a/main/templates/main/seller_dashboard.html b/main/templates/main/seller_dashboard.html
+-index 06db7e7..0c275bb 100644
+---- a/main/templates/main/seller_dashboard.html
+-+++ b/main/templates/main/seller_dashboard.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block content %}
+- 
+-diff --git a/main/templates/main/seller_orders.html b/main/templates/main/seller_orders.html
+-index 8f686d8..212839b 100644
+---- a/main/templates/main/seller_orders.html
+-+++ b/main/templates/main/seller_orders.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block content %}
+- 
+-diff --git a/main/templates/main/seller_profile.html b/main/templates/main/seller_profile.html
+-index 81c3c3f..949c800 100644
+---- a/main/templates/main/seller_profile.html
+-+++ b/main/templates/main/seller_profile.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block title %}{% trans "Do'kon profili" %}{% endblock %}
+- {% block content %}
+-diff --git a/main/templates/main/seller_reviews.html b/main/templates/main/seller_reviews.html
+-index 9b0ec37..1533f4f 100644
+---- a/main/templates/main/seller_reviews.html
+-+++ b/main/templates/main/seller_reviews.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block title %}{% trans "Mijozlar Sharhlari" %}{% endblock %}
+- {% block content %}
+-diff --git a/main/templates/main/seller_statistics.html b/main/templates/main/seller_statistics.html
+-index 4ea757c..7cce058 100644
+---- a/main/templates/main/seller_statistics.html
+-+++ b/main/templates/main/seller_statistics.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block title %}{% trans "Statistika va Tahlil" %}{% endblock %}
+- {% block content %}
+-diff --git a/main/templates/main/store_form.html b/main/templates/main/store_form.html
+-index afc069b..6360081 100644
+---- a/main/templates/main/store_form.html
+-+++ b/main/templates/main/store_form.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block content %}
+- <div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+-diff --git a/main/templates/main/store_pending.html b/main/templates/main/store_pending.html
+-index 4229305..843999f 100644
+---- a/main/templates/main/store_pending.html
+-+++ b/main/templates/main/store_pending.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block title %}{% trans "Tasdiqlash kutilmoqda - ArzonMaterial" %}{% endblock %}
+- {% block content %}
+-diff --git a/main/templates/main/store_rejected.html b/main/templates/main/store_rejected.html
+-index 31734fd..384317b 100644
+---- a/main/templates/main/store_rejected.html
+-+++ b/main/templates/main/store_rejected.html
+-@@ -1,4 +1,4 @@
+--{% extends 'main/base.html' %}
+-+{% extends 'main/seller/seller_base.html' %}
+- {% load i18n %}
+- {% block title %}{% trans "Rad etildi - ArzonMaterial" %}{% endblock %}
+- {% block content %}
+-diff --git a/main/tests.py b/main/tests.py
+-index 01c6548..c234176 100644
+---- a/main/tests.py
+-+++ b/main/tests.py
+-@@ -292,3 +292,161 @@ class ParallelPurchaseTests(TransactionTestCase):
+-         product.refresh_from_db()
+-         self.assertEqual(product.stock, 1)
+-         self.assertEqual(Order.objects.count(), 1)
+-+
+-+
+-+# ───────── Alohida portallar: xaridor / sotuvchi / admin ─────────
+-+from django.test import override_settings
+-+
+-+
+-+class PortalTests(TestCase):
+-+    def setUp(self):
+-+        self.buyer = User.objects.create_user('buyer1', password='pass12345', phone='+998901112233')
+-+        self.seller = User.objects.create_user('seller1', password='pass12345', is_seller=True, is_buyer=False)
+-+        self.admin = User.objects.create_superuser('admin1', 'a@a.uz', 'pass12345')
+-+        self.store = Store.objects.create(owner=self.seller, name='Dokon', status='active')
+-+        self.product = Product.objects.create(store=self.store, name='Sement', price=50000, stock=50)
+-+
+-+    # --- kirish sahifalari ---
+-+    def test_each_portal_login_page_renders(self):
+-+        for name in ('login', 'seller_login', 'admin_login', 'register', 'seller_register'):
+-+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+-+
+-+    def test_login_redirects_by_role(self):
+-+        cases = (('login', 'buyer1', '/'), ('seller_login', 'seller1', reverse('seller_dashboard')),
+-+                 ('admin_login', 'admin1', reverse('admin_dashboard')))
+-+        for url_name, username, expected in cases:
+-+            self.client.logout()
+-+            r = self.client.post(reverse(url_name), {'username': username, 'password': 'pass12345'})
+-+            self.assertRedirects(r, expected, fetch_redirect_response=False)
+-+
+-+    def test_wrong_portal_is_rejected_with_message(self):
+-+        r = self.client.post(reverse('login'), {'username': 'seller1', 'password': 'pass12345'})
+-+        self.assertEqual(r.status_code, 200)
+-+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+-+        self.assertIn('xaridor akkaunti emas', r.content.decode())
+-+        r = self.client.post(reverse('seller_login'), {'username': 'buyer1', 'password': 'pass12345'})
+-+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+-+        r = self.client.post(reverse('admin_login'), {'username': 'seller1', 'password': 'pass12345'})
+-+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+-+
+-+    def test_unauthenticated_panels_go_to_their_own_login(self):
+-+        self.assertRedirects(self.client.get(reverse('seller_dashboard')),
+-+                             reverse('seller_login') + '?next=/seller/', fetch_redirect_response=False)
+-+        self.assertRedirects(self.client.get(reverse('admin_dashboard')),
+-+                             reverse('admin_login') + '?next=/panel/', fetch_redirect_response=False)
+-+
+-+    # --- ro'yxatdan o'tish ---
+-+    def test_buyer_register_creates_only_buyer(self):
+-+        r = self.client.post(reverse('register'), {
+-+            'username': 'newbuyer', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234', 'phone': '+998901234567'})
+-+        self.assertRedirects(r, '/', fetch_redirect_response=False)
+-+        u = User.objects.get(username='newbuyer')
+-+        self.assertTrue(u.is_buyer and not u.is_seller)
+-+
+-+    def test_seller_register_requires_stir_and_creates_seller(self):
+-+        data = {'username': 'newseller', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234',
+-+                'phone': '+998901234567', 'stir_pinfl': ''}
+-+        self.assertEqual(self.client.post(reverse('seller_register'), data).status_code, 200)
+-+        self.assertFalse(User.objects.filter(username='newseller').exists())
+-+        data['stir_pinfl'] = '123456789'
+-+        r = self.client.post(reverse('seller_register'), data)
+-+        self.assertRedirects(r, reverse('seller_dashboard'), fetch_redirect_response=False)
+-+        u = User.objects.get(username='newseller')
+-+        self.assertTrue(u.is_seller and not u.is_buyer)
+-+
+-+    # --- ajratish ---
+-+    def test_seller_and_admin_cannot_open_marketplace(self):
+-+        for user, home in ((self.seller, reverse('seller_dashboard')), (self.admin, reverse('admin_dashboard'))):
+-+            self.client.force_login(user)
+-+            for name in ('marketplace', 'cart', 'orders', 'checkout'):
+-+                self.assertRedirects(self.client.get(reverse(name)), home, fetch_redirect_response=False)
+-+
+-+    def test_buyer_cannot_open_panels(self):
+-+        self.client.force_login(self.buyer)
+-+        self.assertEqual(self.client.get(reverse('admin_dashboard')).status_code, 404)
+-+        r = self.client.get(reverse('seller_dashboard'))
+-+        self.assertRedirects(r, '/', fetch_redirect_response=False)
+-+
+-+    def test_panels_look_like_panels_and_have_anora(self):
+-+        self.client.force_login(self.seller)
+-+        html = self.client.get(reverse('seller_dashboard')).content.decode()
+-+        self.assertIn('Sotuvchi paneli', html)
+-+        self.assertIn('portal-sidebar', html)
+-+        self.assertNotIn('name="q"', html)           # marketplace qidiruvi yo'q
+-+        self.assertIn('id="anora-chat"', html)       # Anora hamma uchun
+-+        self.assertEqual(html.count("getElementById('theme-toggle')"), 1)  # tema tugmasi bir marta ulangan
+-+        self.client.force_login(self.admin)
+-+        html = self.client.get(reverse('admin_dashboard')).content.decode()
+-+        self.assertIn('Admin panel', html)
+-+        self.assertIn('id="anora-chat"', html)
+-+        self.assertNotIn('name="q"', html)
+-+
+-+    def test_buyer_site_has_seller_link_and_anora(self):
+-+        self.client.force_login(self.buyer)
+-+        html = self.client.get(reverse('marketplace')).content.decode()
+-+        self.assertIn('name="q"', html)
+-+        self.assertIn(reverse('seller_login'), html)
+-+        self.assertIn('id="anora-chat"', html)
+-+
+-+    def test_notifications_page_per_role(self):
+-+        for user, name in ((self.buyer, 'notifications'), (self.seller, 'seller_notifications'),
+-+                           (self.admin, 'admin_notifications')):
+-+            self.client.force_login(user)
+-+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+-+
+-+    def test_logout_goes_to_own_portal_login(self):
+-+        self.client.force_login(self.seller)
+-+        self.assertRedirects(self.client.post(reverse('seller_logout')), reverse('seller_login'), fetch_redirect_response=False)
+-+        self.client.force_login(self.admin)
+-+        self.assertRedirects(self.client.post(reverse('admin_logout')), reverse('admin_login'), fetch_redirect_response=False)
+-+
+-+    def test_admin_nasiya_list(self):
+-+        self.client.force_login(self.admin)
+-+        self.assertEqual(self.client.get(reverse('admin_model_list', args=['nasiya'])).status_code, 200)
+-+
+-+    # --- alohida domenlar (seller.example.uz / admin.example.uz) ---
+-+    @override_settings(SELLER_HOST='seller.test', ADMIN_HOST='admin.test', ALLOWED_HOSTS=['*'])
+-+    def test_host_mode(self):
+-+        # seller domeni: ildiz va /login/ sotuvchi portaliga olib boradi
+-+        r = self.client.get('/', HTTP_HOST='seller.test')
+-+        self.assertEqual(r.status_code, 302)
+-+        self.assertTrue(r['Location'].startswith('/seller/login/'))
+-+        r = self.client.get('/login/', HTTP_HOST='seller.test')
+-+        self.assertIn('Sotuvchi kabiniga kirish', r.content.decode())
+-+        # admin domeni
+-+        r = self.client.get('/login/', HTTP_HOST='admin.test')
+-+        self.assertIn('Admin paneliga kirish', r.content.decode())
+-+        # asosiy domen: oddiy xaridor sayti
+-+        r = self.client.get('/login/', HTTP_HOST='main.test')
+-+        self.assertIn('Tizimga kirish', r.content.decode())
+-+        self.assertNotIn('Sotuvchi kabiniga kirish', r.content.decode())
+-+
+-+
+-+class OrderDetailRegressionTests(TestCase):
+-+    """Mahsulot o'chirilgandan keyin buyurtma sahifasi 500 bermasligi kerak."""
+-+
+-+    def test_order_detail_with_deleted_product(self):
+-+        buyer = User.objects.create_user('b2', password='x')
+-+        seller = User.objects.create_user('s2', password='x', is_seller=True, is_buyer=False)
+-+        store = Store.objects.create(owner=seller, name='D', status='active')
+-+        product = Product.objects.create(store=store, name='G\'isht', price=1000, stock=10)
+-+        order = Order.objects.create(user=buyer, address='Toshkent', payment_method='cash')
+-+        OrderItem.objects.create(order=order, product=product, product_name='G\'isht', price=1000, quantity=2)
+-+        product.delete()
+-+        self.client.force_login(buyer)
+-+        self.assertEqual(self.client.get(reverse('order_detail', args=[order.pk])).status_code, 200)
+-+        self.assertEqual(self.client.get(reverse('orders')).status_code, 200)
+-+
+-+    def test_seller_cancel_restores_stock_without_penalty(self):
+-+        buyer = User.objects.create_user('b3', password='x')
+-+        seller = User.objects.create_user('s3', password='x', is_seller=True, is_buyer=False)
+-+        store = Store.objects.create(owner=seller, name='D', status='active')
+-+        product = Product.objects.create(store=store, name='Sement', price=100000, stock=8)
+-+        order = Order.objects.create(user=buyer, address='T', payment_method='cash')
+-+        item = OrderItem.objects.create(order=order, product=product, product_name='Sement', price=100000, quantity=2)
+-+        self.client.force_login(seller)
+-+        self.client.post(reverse('update_order_item_status', args=[item.pk]), {'status': 'cancelled'})
+-+        product.refresh_from_db(); order.refresh_from_db(); item.refresh_from_db()
+-+        self.assertEqual(item.status, 'cancelled')
+-+        self.assertEqual(product.stock, 10)
+-+        self.assertEqual(order.penalty_amount, 0)
+-diff --git a/main/urls.py b/main/urls.py
+-index 1811c37..afb8fd0 100644
+---- a/main/urls.py
+-+++ b/main/urls.py
+-@@ -1,63 +1,69 @@
+- from django.urls import path
+--from django.contrib.auth import views as auth_views
+- from . import views
+- 
+- urlpatterns = [
+--    # ── Marketplace ──
+-+    # ══════════ XARIDOR SAYTI ══════════
+-     path('', views.marketplace, name='marketplace'),
+-     path('product/<int:pk>/', views.product_detail, name='product_detail'),
+-+    path('home/', views.role_home, name='role_home'),
+- 
+--    # ── Auth ──
+-+    # Auth (faqat xaridorlar)
+-     path('register/', views.register, name='register'),
+--    path('login/', auth_views.LoginView.as_view(
+--        template_name='main/login.html', redirect_authenticated_user=True
+--    ), name='login'),
+--    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+-+    path('login/', views.BuyerLoginView.as_view(), name='login'),
+-+    path('logout/', views.BuyerLogoutView.as_view(), name='logout'),
+- 
+--    # ── Profile ──
+-+    # Profil
+-     path('profile/', views.profile, name='profile'),
+-     path('profile/buyer/', views.buyer_profile, name='buyer_profile'),
+--    path('profile/seller/', views.seller_profile, name='seller_profile'),
+--
+--    # ── Seller ──
+--    path('dashboard/', views.seller_dashboard, name='seller_dashboard'),
+--    path('create-store/', views.create_store, name='create_store'),
+--    path('add-product/', views.add_product, name='add_product'),
+--    path('product-edit/<int:pk>/', views.edit_product, name='edit_product'),
+--    path('product-delete/<int:pk>/', views.delete_product, name='delete_product'),
+--    path('seller/orders/', views.seller_orders, name='seller_orders'),
+--    path('seller/item/update/<int:item_id>/', views.update_order_item_status, name='update_order_item_status'),
+-     path('notifications/', views.notifications_view, name='notifications'),
+-     path('notification/read/<int:pk>/', views.mark_notification_read, name='mark_notification_read'),
+- 
+--    # ── Cart ──
+-+    # Savat
+-     path('cart/', views.cart_view, name='cart'),
+-     path('cart/add/<int:pk>/', views.add_to_cart, name='add_to_cart'),
+-     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+-     path('cart/update/<int:item_id>/', views.update_cart, name='update_cart'),
+- 
+--    # ── Checkout & Orders ──
+-+    # Buyurtmalar
+-     path('checkout/', views.checkout, name='checkout'),
+-     path('orders/', views.orders, name='orders'),
+-     path('order/<int:order_id>/', views.order_detail, name='order_detail'),
+-     path('order/<int:order_id>/cancel/', views.cancel_order, name='cancel_order'),
+-     path('order/item/<int:item_id>/cancel/', views.cancel_order_item, name='cancel_order_item'),
+-+    path('order/confirm/<int:order_id>/<int:store_id>/', views.confirm_store_receipt, name='confirm_store_receipt'),
+- 
+--    # ── Reviews ──
+-+    # Sharhlar
+-     path('product/<int:pk>/review/', views.add_review, name='add_review'),
+--    path('review/reply/<int:review_id>/', views.add_review_reply, name='add_review_reply'),
+-+
+-+    # ══════════ SOTUVCHI PORTALI  (/seller/) ══════════
+-+    path('seller/login/', views.SellerLoginView.as_view(), name='seller_login'),
+-+    path('seller/register/', views.seller_register, name='seller_register'),
+-+    path('seller/logout/', views.SellerLogoutView.as_view(), name='seller_logout'),
+-+    path('seller/', views.seller_dashboard, name='seller_dashboard'),
+-+    path('seller/create-store/', views.create_store, name='create_store'),
+-+    path('seller/profile/', views.seller_profile, name='seller_profile'),
+-+    path('seller/products/add/', views.add_product, name='add_product'),
+-+    path('seller/products/<int:pk>/edit/', views.edit_product, name='edit_product'),
+-+    path('seller/products/<int:pk>/delete/', views.delete_product, name='delete_product'),
+-+    path('seller/orders/', views.seller_orders, name='seller_orders'),
+-+    path('seller/item/update/<int:item_id>/', views.update_order_item_status, name='update_order_item_status'),
+-     path('seller/reviews/', views.seller_reviews, name='seller_reviews'),
+-+    path('seller/review/reply/<int:review_id>/', views.add_review_reply, name='add_review_reply'),
+-     path('seller/statistics/', views.seller_statistics, name='seller_statistics'),
+--    # ── Admin Dashboard ──
+--    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+--    path('admin-dashboard/toggle-top/<int:product_id>/', views.admin_toggle_top, name='admin_toggle_top'),
+--    path('admin-dashboard/store-status/<int:store_id>/<str:status>/', views.admin_store_status, name='admin_store_status'),
+--    path('admin-dashboard/m/<str:model_name>/', views.admin_model_list, name='admin_model_list'),
+--    path('admin-dashboard/m/<str:model_name>/add/', views.admin_model_edit, name='admin_model_add'),
+--    path('admin-dashboard/m/<str:model_name>/edit/<int:pk>/', views.admin_model_edit, name='admin_model_edit'),
+--    path('admin-dashboard/m/<str:model_name>/delete/<int:pk>/', views.admin_model_delete, name='admin_model_delete'),
+--    path('order/confirm/<int:order_id>/<int:store_id>/', views.confirm_store_receipt, name='confirm_store_receipt'),
+-+    path('seller/notifications/', views.notifications_view, name='seller_notifications'),
+-+
+-+    # ══════════ ADMIN PORTALI  (/panel/) ══════════
+-+    path('panel/login/', views.AdminLoginView.as_view(), name='admin_login'),
+-+    path('panel/logout/', views.AdminLogoutView.as_view(), name='admin_logout'),
+-+    path('panel/', views.admin_dashboard, name='admin_dashboard'),
+-+    path('panel/notifications/', views.notifications_view, name='admin_notifications'),
+-+    path('panel/toggle-top/<int:product_id>/', views.admin_toggle_top, name='admin_toggle_top'),
+-+    path('panel/store-status/<int:store_id>/<str:status>/', views.admin_store_status, name='admin_store_status'),
+-+    path('panel/m/<str:model_name>/', views.admin_model_list, name='admin_model_list'),
+-+    path('panel/m/<str:model_name>/add/', views.admin_model_edit, name='admin_model_add'),
+-+    path('panel/m/<str:model_name>/edit/<int:pk>/', views.admin_model_edit, name='admin_model_edit'),
+-+    path('panel/m/<str:model_name>/delete/<int:pk>/', views.admin_model_delete, name='admin_model_delete'),
+- 
+--    # ── Anora AI ──
+-+    # ══════════ Anora AI (hamma rol uchun) ══════════
+-     path('api/ai/chat/', views.ai_chat, name='ai_chat'),
+- ]
+-diff --git a/main/views.py b/main/views.py
+-index 97f1966..3d319ab 100644
+---- a/main/views.py
+-+++ b/main/views.py
+-@@ -1,5 +1,7 @@
+- from django.shortcuts import render, redirect, get_object_or_404
+- from django.contrib.auth import login
+-+from django.contrib.auth.views import LoginView, LogoutView
+-+from django.urls import reverse, reverse_lazy
+- from django.contrib.auth.decorators import login_required, user_passes_test
+- from django.contrib import messages
+- from django.http import JsonResponse
+-@@ -13,28 +15,153 @@ from django.utils import timezone
+- from django.utils.translation import gettext, get_language
+- from datetime import timedelta
+- from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region, NasiyaApplication
+--from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm
+-+from .forms import UserRegisterForm, SellerRegisterForm, BuyerAuthForm, SellerAuthForm, AdminAuthForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm, NasiyaAdminForm
+- from .nasiya import notify_managers
+- from .http_utils import safe_redirect
+- from .stock import restore_item_stock_once, InsufficientStock
+- from .ai_limits import rate_limited, sanitize_history, TEXT_MAX
+-+from .roles import seller_required, admin_required, home_url, get_role, BUYER, SELLER, ADMIN
+- 
+- logger = logging.getLogger(__name__)
+- MAX_CART_QTY = 10000
+- 
+- 
+-+@login_required
+-+def role_home(request):
+-+    """Kirgandan keyin: har bir rol o'z paneliga."""
+-+    return redirect(home_url(request.user))
+-+
+-+
+-+# ────────── AUTH: har bir rol uchun alohida portal ──────────
+-+
+- def register(request):
+-+    """Xaridor ro'yxatdan o'tishi. Sotuvchilar /seller/register/ da."""
+-+    if request.user.is_authenticated and get_role(request.user) == BUYER:
+-+        return redirect('marketplace')
+-     if request.method == 'POST':
+-         form = UserRegisterForm(request.POST)
+-         if form.is_valid():
+-             user = form.save()
+-             login(request, user)
+--            if user.is_seller:
+--                return redirect('seller_dashboard')
+-             return redirect('marketplace')
+-     else:
+-         form = UserRegisterForm()
+--    return render(request, 'main/register.html', {'form': form})
+-+    return render(request, 'main/auth_page.html', {
+-+        'form': form,
+-+        'title': gettext("Ro'yxatdan o'tish"),
+-+        'subtitle': gettext("Xarid qilish uchun akkaunt yarating"),
+-+        'submit_label': gettext("Ro'yxatdan o'tish"),
+-+        'alt_text': gettext("Allaqachon akkauntingiz bormi?"),
+-+        'alt_label': gettext("Kirish"),
+-+        'alt_url': reverse('login'),
+-+    })
+-+
+-+
+-+class _PortalLogin(LoginView):
+-+    """Rolga mos kirish sahifasi. Boshqa rolning akkaunti bu portalga kira olmaydi."""
+-+    portal = BUYER
+-+    redirect_authenticated_user = False
+-+    template_name = 'main/auth_page.html'
+-+    title = ''
+-+    subtitle = ''
+-+    alt_text = ''
+-+    alt_label = ''
+-+    alt_url_name = None
+-+
+-+    def dispatch(self, request, *args, **kwargs):
+-+        if request.user.is_authenticated and get_role(request.user) == self.portal:
+-+            return redirect(home_url(request.user))
+-+        return super().dispatch(request, *args, **kwargs)
+-+
+-+    def get_success_url(self):
+-+        return self.get_redirect_url() or home_url(self.request.user)
+-+
+-+    def get_context_data(self, **kwargs):
+-+        ctx = super().get_context_data(**kwargs)
+-+        ctx.update({
+-+            'title': self.title, 'subtitle': self.subtitle,
+-+            'submit_label': gettext("Kirish"),
+-+            'alt_text': self.alt_text, 'alt_label': self.alt_label,
+-+            'alt_url': reverse(self.alt_url_name) if self.alt_url_name else '',
+-+            'next': self.request.GET.get('next', ''),
+-+        })
+-+        return ctx
+-+
+-+
+-+class BuyerLoginView(_PortalLogin):
+-+    portal = BUYER
+-+    authentication_form = BuyerAuthForm
+-+    title = property(lambda self: gettext("Tizimga kirish"))
+-+    subtitle = property(lambda self: gettext("Xaridor akkaunti"))
+-+    alt_text = property(lambda self: gettext("Akkauntingiz yo'qmi?"))
+-+    alt_label = property(lambda self: gettext("Ro'yxatdan o'ting"))
+-+    alt_url_name = 'register'
+-+
+-+
+-+class SellerLoginView(_PortalLogin):
+-+    portal = SELLER
+-+    authentication_form = SellerAuthForm
+-+    template_name = 'main/portal/auth_page.html'
+-+    title = property(lambda self: gettext("Sotuvchi kabiniga kirish"))
+-+    subtitle = property(lambda self: gettext("Do'koningizni boshqaring"))
+-+    alt_text = property(lambda self: gettext("Hali sotuvchi emasmisiz?"))
+-+    alt_label = property(lambda self: gettext("Do'kon oching"))
+-+    alt_url_name = 'seller_register'
+-+
+-+    def get_context_data(self, **kwargs):
+-+        ctx = super().get_context_data(**kwargs)
+-+        ctx.update({'portal_name': gettext("Sotuvchi portali"), 'show_buyer_link': True})
+-+        return ctx
+-+
+-+
+-+class AdminLoginView(_PortalLogin):
+-+    portal = ADMIN
+-+    authentication_form = AdminAuthForm
+-+    template_name = 'main/portal/auth_page.html'
+-+    title = property(lambda self: gettext("Admin paneliga kirish"))
+-+    subtitle = ''
+-+
+-+    def get_context_data(self, **kwargs):
+-+        ctx = super().get_context_data(**kwargs)
+-+        ctx.update({'portal_name': gettext("Admin panel"), 'show_buyer_link': False})
+-+        return ctx
+-+
+-+
+-+def seller_register(request):
+-+    """Sotuvchi portalida ro'yxatdan o'tish (telefon va STIR/PINFL majburiy)."""
+-+    if request.user.is_authenticated and get_role(request.user) == SELLER:
+-+        return redirect('seller_dashboard')
+-+    if request.method == 'POST':
+-+        form = SellerRegisterForm(request.POST)
+-+        if form.is_valid():
+-+            user = form.save()
+-+            login(request, user)
+-+            return redirect('seller_dashboard')
+-+    else:
+-+        form = SellerRegisterForm()
+-+    return render(request, 'main/portal/auth_page.html', {
+-+        'form': form,
+-+        'portal_name': gettext("Sotuvchi portali"),
+-+        'title': gettext("Sotuvchi bo'lish"),
+-+        'subtitle': gettext("Do'kon oching va mahsulotlaringizni soting"),
+-+        'submit_label': gettext("Ro'yxatdan o'tish"),
+-+        'alt_text': gettext("Akkauntingiz bormi?"),
+-+        'alt_label': gettext("Kirish"),
+-+        'alt_url': reverse('seller_login'),
+-+        'show_buyer_link': True,
+-+    })
+-+
+-+
+-+class BuyerLogoutView(LogoutView):
+-+    next_page = reverse_lazy('marketplace')
+-+
+-+
+-+class SellerLogoutView(LogoutView):
+-+    next_page = reverse_lazy('seller_login')
+-+
+-+
+-+class AdminLogoutView(LogoutView):
+-+    next_page = reverse_lazy('admin_login')
+- 
+- 
+- def marketplace(request):
+-@@ -108,6 +235,8 @@ def product_detail(request, pk):
+- 
+- @login_required
+- def profile(request):
+-+    if request.user.is_superuser:
+-+        return redirect('admin_dashboard')
+-     if request.user.is_seller:
+-         return redirect('seller_profile')
+-     return redirect('buyer_profile')
+-@@ -129,7 +258,7 @@ def buyer_profile(request):
+-     return render(request, 'main/buyer_profile.html', {'form': form, 'cart': cart})
+- 
+- 
+--@login_required
+-+@seller_required
+- def seller_profile(request):
+-     if not request.user.is_seller:
+-         return redirect('buyer_profile')
+-@@ -149,7 +278,7 @@ def seller_profile(request):
+- 
+- # ────────── SELLER DASHBOARD ──────────
+- 
+--@login_required
+-+@seller_required
+- def seller_dashboard(request):
+-     if not request.user.is_seller:
+-         return redirect('marketplace')
+-@@ -165,7 +294,7 @@ def seller_dashboard(request):
+-     return render(request, 'main/seller_dashboard.html', {'store': store, 'products': products})
+- 
+- 
+--@login_required
+-+@seller_required
+- def create_store(request):
+-     if not request.user.is_seller:
+-         return redirect('marketplace')
+-@@ -175,7 +304,7 @@ def create_store(request):
+-     # Check for missing info
+-     if not request.user.stir_pinfl or not request.user.phone:
+-         messages.warning(request, gettext("Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting."))
+--        return redirect('buyer_profile')
+-+        return redirect('seller_profile')
+-         
+-     if request.method == 'POST':
+-         form = StoreForm(request.POST, request.FILES)
+-@@ -191,7 +320,7 @@ def create_store(request):
+-     return render(request, 'main/store_form.html', {'form': form})
+- 
+- 
+--@login_required
+-+@seller_required
+- def add_product(request):
+-     if not request.user.is_seller or not hasattr(request.user, 'store'):
+-         return redirect('marketplace')
+-@@ -208,7 +337,7 @@ def add_product(request):
+-     return render(request, 'main/product_form.html', {'form': form})
+- 
+- 
+--@login_required
+-+@seller_required
+- def edit_product(request, pk):
+-     product = get_object_or_404(Product, pk=pk, store__owner=request.user)
+-     if request.method == 'POST':
+-@@ -222,7 +351,7 @@ def edit_product(request, pk):
+-     return render(request, 'main/product_form.html', {'form': form, 'edit': True, 'product': product})
+- 
+- 
+--@login_required
+-+@seller_required
+- def delete_product(request, pk):
+-     product = get_object_or_404(Product, pk=pk, store__owner=request.user)
+-     if request.method == 'POST':
+-@@ -478,21 +607,23 @@ def order_detail(request, order_id):
+-     order = get_object_or_404(Order, pk=order_id, user=request.user)
+-     
+-     # Group items by store for split confirmation
+-+    # Mahsulot yoki do'kon o'chirilgan bo'lishi mumkin (product=SET_NULL): sahifa qulamasin.
+-     stores_data = {}
+-     for item in order.items.all().select_related('product__store'):
+--        store = item.product.store
+--        if store.pk not in stores_data:
+--            stores_data[store.pk] = {
+--                'store': store,
+-+        store = item.product.store if item.product_id and item.product else None
+-+        key = store.pk if store else 0
+-+        if key not in stores_data:
+-+            stores_data[key] = {
+-+                'store': store or {'name': gettext("Do'kon mavjud emas"), 'pk': None},
+-                 'items': [],
+-                 'all_confirmed': True,
+-                 'can_confirm': False
+-             }
+--        stores_data[store.pk]['items'].append(item)
+-+        stores_data[key]['items'].append(item)
+-         if not item.buyer_confirmed:
+--            stores_data[store.pk]['all_confirmed'] = False
+--            if item.status in ['shipped', 'delivered']:
+--                stores_data[store.pk]['can_confirm'] = True
+-+            stores_data[key]['all_confirmed'] = False
+-+            if store and item.status in ['shipped', 'delivered']:
+-+                stores_data[key]['can_confirm'] = True
+-                 
+-     return render(request, 'main/order_detail.html', {
+-         'order': order, 
+-@@ -623,7 +754,7 @@ def add_review(request, pk):
+-     
+-     return render(request, 'main/add_review.html', {'form': form, 'product': product})
+- 
+--@login_required
+-+@seller_required
+- def add_review_reply(request, review_id):
+-     review = get_object_or_404(Review, pk=review_id, product__store__owner=request.user)
+-     
+-@@ -640,7 +771,7 @@ def add_review_reply(request, review_id):
+-             
+-     return redirect('seller_reviews')
+- 
+--@login_required
+-+@seller_required
+- def seller_reviews(request):
+-     if not request.user.is_seller:
+-         return redirect('marketplace')
+-@@ -650,7 +781,7 @@ def seller_reviews(request):
+-     
+-     return render(request, 'main/seller_reviews.html', {'reviews': reviews})
+- 
+--@login_required
+-+@seller_required
+- def update_order_item_status(request, item_id):
+-     item = get_object_or_404(OrderItem, pk=item_id, product__store__owner=request.user)
+-     if request.method == 'POST':
+-@@ -659,13 +790,21 @@ def update_order_item_status(request, item_id):
+-             # Check for buyer confirmation if setting to delivered
+-             if new_status == 'delivered' and not item.buyer_confirmed:
+-                 messages.error(request, gettext("Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!"))
+-+            elif new_status == 'cancelled':
+-+                # Sotuvchi bekor qilsa zaxira qaytariladi va xaridor JARIMA olmaydi.
+-+                if restore_item_stock_once(item):
+-+                    Notification.objects.create(
+-+                        user=item.order.user,
+-+                        message=f"'{item.product_name}' mahsuloti sotuvchi tomonidan bekor qilindi.",
+-+                        target_url=f"/order/{item.order.pk}/"
+-+                    )
+-+                    messages.success(request, gettext("Mahsulot bekor qilindi, zaxira qaytarildi."))
+-+                else:
+-+                    messages.error(request, gettext("Faqat kutilayotgan mahsulotni bekor qilish mumkin."))
+-             else:
+-                 item.status = new_status
+-                 item.save()
+--                
+--                if new_status == 'cancelled':
+--                    item.order.apply_penalty()
+--                
+-+
+-                 # Notify buyer
+-                 Notification.objects.create(
+-                     user=item.order.user,
+-@@ -676,7 +815,7 @@ def update_order_item_status(request, item_id):
+-             
+-     return redirect('seller_orders')
+- 
+--@login_required
+-+@seller_required
+- def seller_statistics(request):
+-     if not request.user.is_seller:
+-         return redirect('marketplace')
+-@@ -753,7 +892,7 @@ def seller_statistics(request):
+-     
+-     return render(request, 'main/seller_statistics.html', context)
+- 
+--@login_required
+-+@seller_required
+- def seller_orders(request):
+-     if not request.user.is_seller:
+-         return redirect('marketplace')
+-@@ -768,7 +907,7 @@ def seller_orders(request):
+- @login_required
+- def notifications_view(request):
+-     all_notifs = request.user.notifications.all()
+--    return render(request, 'main/notifications.html', {'notifications': all_notifs})
+-+    return render(request, 'main/notifications.html', {'notifications': all_notifs, 'is_panel': get_role(request.user) != BUYER})
+- 
+- @login_required
+- def mark_notification_read(request, pk):
+-@@ -778,14 +917,30 @@ def mark_notification_read(request, pk):
+-     
+-     if notification.target_url:
+-         return redirect(notification.target_url)
+--    return redirect(request.META.get('HTTP_REFERER', 'seller_dashboard'))
+-+    return redirect(request.META.get('HTTP_REFERER') or home_url(request.user))
+- 
+- # ────────── ADMIN DASHBOARD ──────────
+- 
+-+def _admin_models():
+-+    """Admin panelda boshqariladigan modellar: nom -> (Model, Form)."""
+-+    return {
+-+        'user': (User, UserAdminForm),
+-+        'store': (Store, StoreForm),
+-+        'category': (Category, CategoryForm),
+-+        'product': (Product, ProductForm),
+-+        'order': (Order, OrderAdminForm),
+-+        'review': (Review, ReviewForm),
+-+        'notification': (Notification, NotificationForm),
+-+        'brand': (Brand, BrandForm),
+-+        'region': (Region, RegionForm),
+-+        'nasiya': (NasiyaApplication, NasiyaAdminForm),
+-+    }
+-+
+-+
+- def is_superuser(user):
+-     return user.is_authenticated and user.is_superuser
+- 
+--@user_passes_test(is_superuser)
+-+@admin_required
+- def admin_dashboard(request):
+-     total_revenue = OrderItem.objects.exclude(status='cancelled').aggregate(total=Sum(F('price') * F('quantity')))['total'] or 0
+-     total_orders = Order.objects.count()
+-@@ -807,7 +962,7 @@ def admin_dashboard(request):
+-     }
+-     return render(request, 'main/admin_dashboard.html', context)
+- 
+--@user_passes_test(is_superuser)
+-+@admin_required
+- def admin_toggle_top(request, product_id):
+-     product = get_object_or_404(Product, pk=product_id)
+-     product.is_top = not product.is_top
+-@@ -815,25 +970,15 @@ def admin_toggle_top(request, product_id):
+-     messages.success(request, f"'{product.name}' top holati o'zgartirildi.")
+-     return redirect('admin_dashboard')
+- 
+--@user_passes_test(is_superuser)
+-+@admin_required
+- def admin_model_list(request, model_name):
+--    model_map = {
+--        'user': User,
+--        'store': Store,
+--        'category': Category,
+--        'product': Product,
+--        'order': Order,
+--        'review': Review,
+--        'notification': Notification,
+--        'brand': Brand,
+--        'region': Region,
+--    }
+-+    model_map = _admin_models()
+-     
+-     if model_name not in model_map:
+-         messages.error(request, gettext("Model topilmadi."))
+-         return redirect('admin_dashboard')
+-         
+--    model = model_map[model_name]
+-+    model = model_map[model_name][0]
+-     queryset = model.objects.all().order_by('-pk')
+-     
+-     # Search logic
+-@@ -854,19 +999,9 @@ def admin_model_list(request, model_name):
+-         'verbose_name_plural': model._meta.verbose_name_plural.capitalize(),
+-     })
+- 
+--@user_passes_test(is_superuser)
+-+@admin_required
+- def admin_model_edit(request, model_name, pk=None):
+--    model_map = {
+--        'user': (User, UserAdminForm),
+--        'store': (Store, StoreForm),
+--        'category': (Category, CategoryForm),
+--        'product': (Product, ProductForm),
+--        'order': (Order, OrderAdminForm),
+--        'review': (Review, ReviewForm),
+--        'notification': (Notification, NotificationForm),
+--        'brand': (Brand, BrandForm),
+--        'region': (Region, RegionForm),
+--    }
+-+    model_map = _admin_models()
+-     
+-     if model_name not in model_map:
+-         return redirect('admin_dashboard')
+-@@ -890,29 +1025,19 @@ def admin_model_edit(request, model_name, pk=None):
+-         'verbose_name': model._meta.verbose_name.capitalize(),
+-     })
+- 
+--@user_passes_test(is_superuser)
+-+@admin_required
+- def admin_model_delete(request, model_name, pk):
+--    model_map = {
+--        'user': User,
+--        'store': Store,
+--        'category': Category,
+--        'product': Product,
+--        'order': Order,
+--        'review': Review,
+--        'notification': Notification,
+--        'brand': Brand,
+--        'region': Region,
+--    }
+-+    model_map = _admin_models()
+-     
+-     if model_name not in model_map:
+-         return redirect('admin_dashboard')
+-         
+--    obj = get_object_or_404(model_map[model_name], pk=pk)
+-+    obj = get_object_or_404(model_map[model_name][0], pk=pk)
+-     obj.delete()
+-     messages.success(request, f"{obj} o'chirildi.")
+-     return redirect('admin_model_list', model_name=model_name)
+- 
+--@user_passes_test(is_superuser)
+-+@admin_required
+- def admin_store_status(request, store_id, status):
+-     store = get_object_or_404(Store, pk=store_id)
+-     if status in ['active', 'rejected', 'suspended']:

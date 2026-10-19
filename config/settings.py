@@ -58,15 +58,14 @@ ADMIN_HOST = os.getenv('ADMIN_HOST', '').strip()
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.sites',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'main',   # allauth'dan OLDIN bo'lishi shart: shablonlarni (allauth/...) o'zgartira oladi
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'main',
 ]
 
 MIDDLEWARE = [
@@ -197,19 +196,35 @@ AUTH_USER_MODEL = 'main.User'
 LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/login/'
 LOGIN_URL = '/login/'
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_LOGIN_METHODS = {'email', 'username'}
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Stroy Market] '
 
-# Gmail SMTP sozlamalari (.env fayldan o'qiydi)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+# ── Email tasdiqlash (allauth faqat xat/token mexanizmi sifatida ishlatiladi) ──
+# Ro'yxatdan o'tish va kirish sahifalari o'zimizniki (/register/, /seller/register/, /login/...),
+# allauth'ning o'z signup/login sahifalari yopilgan (main/adapters.py va config/urls.py).
+ACCOUNT_ADAPTER = 'main.adapters.CustomAccountAdapter'
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[ArzonMaterial] '
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http' if DEBUG else 'https'
+
+# ── Email yuborish (.env dan) ──
+# EMAIL_HOST_USER / EMAIL_HOST_PASSWORD bo'sh bo'lsa xatlar TERMINALGA chop etiladi.
+# Tekshirish: python manage.py test_email sizning@gmail.com
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '').replace(' ', '')  # Gmail app password bo'shliqlari
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True' if EMAIL_PORT == 465 else 'False') == 'True'
+EMAIL_USE_TLS = (not EMAIL_USE_SSL) and os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '10'))
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@arzonmaterial.uz')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
+    else 'django.core.mail.backends.console.EmailBackend'
+)
 
 # Gemini AI API Key
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')

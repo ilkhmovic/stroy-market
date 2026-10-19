@@ -1,0 +1,9 @@
+{% extends "account/email/base_message.txt" %}
+{% load account i18n %}
+{% block content %}{% autoescape off %}{% user_display user as user_display %}{% blocktrans with domain=current_site.domain %}Assalomu alaykum, {{ user_display }}!
+
+Siz {{ domain }} saytida ro'yxatdan o'tdingiz. Email manzilingizni tasdiqlash uchun quyidagi havolani oching:
+
+{{ activate_url }}
+
+Agar bu siz bo'lmasangiz, ushbu xatga e'tibor bermang.{% endblocktrans %}{% endautoescape %}{% endblock content %}

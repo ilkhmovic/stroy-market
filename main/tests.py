@@ -336,24 +336,6 @@ class PortalTests(TestCase):
                              reverse('admin_login') + '?next=/panel/', fetch_redirect_response=False)
 
     # --- ro'yxatdan o'tish ---
-    def test_buyer_register_creates_only_buyer(self):
-        r = self.client.post(reverse('register'), {
-            'username': 'newbuyer', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234', 'phone': '+998901234567'})
-        self.assertRedirects(r, '/', fetch_redirect_response=False)
-        u = User.objects.get(username='newbuyer')
-        self.assertTrue(u.is_buyer and not u.is_seller)
-
-    def test_seller_register_requires_stir_and_creates_seller(self):
-        data = {'username': 'newseller', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234',
-                'phone': '+998901234567', 'stir_pinfl': ''}
-        self.assertEqual(self.client.post(reverse('seller_register'), data).status_code, 200)
-        self.assertFalse(User.objects.filter(username='newseller').exists())
-        data['stir_pinfl'] = '123456789'
-        r = self.client.post(reverse('seller_register'), data)
-        self.assertRedirects(r, reverse('seller_dashboard'), fetch_redirect_response=False)
-        u = User.objects.get(username='newseller')
-        self.assertTrue(u.is_seller and not u.is_buyer)
-
     # --- ajratish ---
     def test_seller_and_admin_cannot_open_marketplace(self):
         for user, home in ((self.seller, reverse('seller_dashboard')), (self.admin, reverse('admin_dashboard'))):
@@ -420,6 +402,108 @@ class PortalTests(TestCase):
         r = self.client.get('/login/', HTTP_HOST='main.test')
         self.assertIn('Tizimga kirish', r.content.decode())
         self.assertNotIn('Sotuvchi kabiniga kirish', r.content.decode())
+
+
+class EmailVerificationTests(TestCase):
+    """Ro'yxatdan o'tish -> xat -> havola -> kirish."""
+    PW = 'Str0ngPass!234'
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+
+    def _register(self, url_name, **extra):
+        data = {'username': 'newuser', 'email': 'New@Example.com', 'password1': self.PW, 'password2': self.PW,
+                'phone': '+998901234567'}
+        data.update(extra)
+        return self.client.post(reverse(url_name), data)
+
+    def _link(self, message):
+        import re
+        m = re.search(r'https?://[^\s]+/accounts/confirm-email/[^\s/]+/', message.body)
+        self.assertIsNotNone(m, message.body)
+        return m.group(0).split('://', 1)[1].split('/', 1)[1].join(['/', ''])
+
+    def _confirm(self, message):
+        path = self._link(message)
+        page = self.client.get(path)
+        self.assertEqual(page.status_code, 200)
+        return self.client.post(path)
+
+    def test_buyer_flow(self):
+        from django.core import mail
+        r = self._register('register')
+        self.assertRedirects(r, reverse('account_email_verification_sent'), fetch_redirect_response=False)
+        u = User.objects.get(username='newuser')
+        self.assertTrue(u.is_buyer and not u.is_seller)
+        self.assertEqual(u.email, 'new@example.com')
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('/accounts/confirm-email/', mail.outbox[0].body)
+        # tasdiqlanmaguncha kira olmaydi (va yangi xat ketadi)
+        r = self.client.post(reverse('login'), {'username': 'newuser', 'password': self.PW})
+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+        self.assertIn('tasdiqlanmagan', r.content.decode())
+        self.assertEqual(len(mail.outbox), 2)
+        # 2 daqiqa ichida takroriy urinish xatni ko'paytirmaydi
+        self.client.post(reverse('login'), {'username': 'newuser', 'password': self.PW})
+        self.assertEqual(len(mail.outbox), 2)
+        # havola -> tasdiqlanadi -> login sahifasiga
+        r = self._confirm(mail.outbox[1])
+        self.assertRedirects(r, reverse('login') + '?verified=1', fetch_redirect_response=False)
+        r = self.client.post(reverse('login'), {'username': 'newuser', 'password': self.PW})
+        self.assertRedirects(r, '/', fetch_redirect_response=False)
+
+    def test_seller_flow(self):
+        from django.core import mail
+        r = self._register('seller_register', username='newseller', email='s@example.com', stir_pinfl='123456789')
+        self.assertRedirects(r, reverse('account_email_verification_sent'), fetch_redirect_response=False)
+        r = self.client.post(reverse('seller_login'), {'username': 'newseller', 'password': self.PW})
+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+        r = self._confirm(mail.outbox[0])
+        self.assertRedirects(r, reverse('seller_login') + '?verified=1', fetch_redirect_response=False)
+        r = self.client.post(reverse('seller_login'), {'username': 'newseller', 'password': self.PW})
+        self.assertRedirects(r, reverse('seller_dashboard'), fetch_redirect_response=False)
+
+    def test_seller_register_requires_stir(self):
+        self.assertEqual(self._register('seller_register', username='x1', stir_pinfl='').status_code, 200)
+        self.assertEqual(self._register('seller_register', username='x2', stir_pinfl='12').status_code, 200)
+        self.assertFalse(User.objects.filter(username__in=['x1', 'x2']).exists())
+
+    def test_email_required_and_unique(self):
+        self.assertEqual(self._register('register', email='').status_code, 200)
+        self.assertEqual(self._register('register', email='not-an-email').status_code, 200)
+        self._register('register')
+        r = self._register('register', username='other', email='new@example.com')   # shu email band
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('allaqachon mavjud', r.content.decode())
+        self.assertFalse(User.objects.filter(username='other').exists())
+
+    def test_legacy_users_without_email_record_can_still_login(self):
+        User.objects.create_user('old', password=self.PW)
+        r = self.client.post(reverse('login'), {'username': 'old', 'password': self.PW})
+        self.assertRedirects(r, '/', fetch_redirect_response=False)
+
+    def test_admin_not_blocked(self):
+        User.objects.create_superuser('boss', 'b@b.uz', self.PW)
+        r = self.client.post(reverse('admin_login'), {'username': 'boss', 'password': self.PW})
+        self.assertRedirects(r, reverse('admin_dashboard'), fetch_redirect_response=False)
+
+    def test_mail_failure_does_not_crash_registration(self):
+        from unittest import mock
+        with mock.patch('allauth.account.models.EmailAddress.send_confirmation', side_effect=OSError('smtp down')):
+            r = self._register('register')
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+
+    def test_allauth_own_pages_are_closed_or_redirected(self):
+        self.assertRedirects(self.client.get('/accounts/login/'), reverse('login'), fetch_redirect_response=False)
+        self.assertRedirects(self.client.get('/accounts/signup/'), reverse('register'), fetch_redirect_response=False)
+
+    def test_allauth_pages_use_site_design(self):
+        html = self.client.get(reverse('account_email_verification_sent')).content.decode()
+        self.assertIn('auth-card', html)
+        self.assertIn('ArzonMaterial', html)
+        self.assertEqual(self.client.get('/accounts/password/reset/').status_code, 200)
 
 
 class OrderDetailRegressionTests(TestCase):
