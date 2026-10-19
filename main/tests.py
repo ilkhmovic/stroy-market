@@ -292,3 +292,161 @@ class ParallelPurchaseTests(TransactionTestCase):
         product.refresh_from_db()
         self.assertEqual(product.stock, 1)
         self.assertEqual(Order.objects.count(), 1)
+
+
+# ───────── Alohida portallar: xaridor / sotuvchi / admin ─────────
+from django.test import override_settings
+
+
+class PortalTests(TestCase):
+    def setUp(self):
+        self.buyer = User.objects.create_user('buyer1', password='pass12345', phone='+998901112233')
+        self.seller = User.objects.create_user('seller1', password='pass12345', is_seller=True, is_buyer=False)
+        self.admin = User.objects.create_superuser('admin1', 'a@a.uz', 'pass12345')
+        self.store = Store.objects.create(owner=self.seller, name='Dokon', status='active')
+        self.product = Product.objects.create(store=self.store, name='Sement', price=50000, stock=50)
+
+    # --- kirish sahifalari ---
+    def test_each_portal_login_page_renders(self):
+        for name in ('login', 'seller_login', 'admin_login', 'register', 'seller_register'):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+
+    def test_login_redirects_by_role(self):
+        cases = (('login', 'buyer1', '/'), ('seller_login', 'seller1', reverse('seller_dashboard')),
+                 ('admin_login', 'admin1', reverse('admin_dashboard')))
+        for url_name, username, expected in cases:
+            self.client.logout()
+            r = self.client.post(reverse(url_name), {'username': username, 'password': 'pass12345'})
+            self.assertRedirects(r, expected, fetch_redirect_response=False)
+
+    def test_wrong_portal_is_rejected_with_message(self):
+        r = self.client.post(reverse('login'), {'username': 'seller1', 'password': 'pass12345'})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+        self.assertIn('xaridor akkaunti emas', r.content.decode())
+        r = self.client.post(reverse('seller_login'), {'username': 'buyer1', 'password': 'pass12345'})
+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+        r = self.client.post(reverse('admin_login'), {'username': 'seller1', 'password': 'pass12345'})
+        self.assertFalse(r.wsgi_request.user.is_authenticated)
+
+    def test_unauthenticated_panels_go_to_their_own_login(self):
+        self.assertRedirects(self.client.get(reverse('seller_dashboard')),
+                             reverse('seller_login') + '?next=/seller/', fetch_redirect_response=False)
+        self.assertRedirects(self.client.get(reverse('admin_dashboard')),
+                             reverse('admin_login') + '?next=/panel/', fetch_redirect_response=False)
+
+    # --- ro'yxatdan o'tish ---
+    def test_buyer_register_creates_only_buyer(self):
+        r = self.client.post(reverse('register'), {
+            'username': 'newbuyer', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234', 'phone': '+998901234567'})
+        self.assertRedirects(r, '/', fetch_redirect_response=False)
+        u = User.objects.get(username='newbuyer')
+        self.assertTrue(u.is_buyer and not u.is_seller)
+
+    def test_seller_register_requires_stir_and_creates_seller(self):
+        data = {'username': 'newseller', 'password1': 'Str0ngPass!234', 'password2': 'Str0ngPass!234',
+                'phone': '+998901234567', 'stir_pinfl': ''}
+        self.assertEqual(self.client.post(reverse('seller_register'), data).status_code, 200)
+        self.assertFalse(User.objects.filter(username='newseller').exists())
+        data['stir_pinfl'] = '123456789'
+        r = self.client.post(reverse('seller_register'), data)
+        self.assertRedirects(r, reverse('seller_dashboard'), fetch_redirect_response=False)
+        u = User.objects.get(username='newseller')
+        self.assertTrue(u.is_seller and not u.is_buyer)
+
+    # --- ajratish ---
+    def test_seller_and_admin_cannot_open_marketplace(self):
+        for user, home in ((self.seller, reverse('seller_dashboard')), (self.admin, reverse('admin_dashboard'))):
+            self.client.force_login(user)
+            for name in ('marketplace', 'cart', 'orders', 'checkout'):
+                self.assertRedirects(self.client.get(reverse(name)), home, fetch_redirect_response=False)
+
+    def test_buyer_cannot_open_panels(self):
+        self.client.force_login(self.buyer)
+        self.assertEqual(self.client.get(reverse('admin_dashboard')).status_code, 404)
+        r = self.client.get(reverse('seller_dashboard'))
+        self.assertRedirects(r, '/', fetch_redirect_response=False)
+
+    def test_panels_look_like_panels_and_have_anora(self):
+        self.client.force_login(self.seller)
+        html = self.client.get(reverse('seller_dashboard')).content.decode()
+        self.assertIn('Sotuvchi paneli', html)
+        self.assertIn('portal-sidebar', html)
+        self.assertNotIn('name="q"', html)           # marketplace qidiruvi yo'q
+        self.assertIn('id="anora-chat"', html)       # Anora hamma uchun
+        self.assertEqual(html.count("getElementById('theme-toggle')"), 1)  # tema tugmasi bir marta ulangan
+        self.client.force_login(self.admin)
+        html = self.client.get(reverse('admin_dashboard')).content.decode()
+        self.assertIn('Admin panel', html)
+        self.assertIn('id="anora-chat"', html)
+        self.assertNotIn('name="q"', html)
+
+    def test_buyer_site_has_seller_link_and_anora(self):
+        self.client.force_login(self.buyer)
+        html = self.client.get(reverse('marketplace')).content.decode()
+        self.assertIn('name="q"', html)
+        self.assertIn(reverse('seller_login'), html)
+        self.assertIn('id="anora-chat"', html)
+
+    def test_notifications_page_per_role(self):
+        for user, name in ((self.buyer, 'notifications'), (self.seller, 'seller_notifications'),
+                           (self.admin, 'admin_notifications')):
+            self.client.force_login(user)
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+
+    def test_logout_goes_to_own_portal_login(self):
+        self.client.force_login(self.seller)
+        self.assertRedirects(self.client.post(reverse('seller_logout')), reverse('seller_login'), fetch_redirect_response=False)
+        self.client.force_login(self.admin)
+        self.assertRedirects(self.client.post(reverse('admin_logout')), reverse('admin_login'), fetch_redirect_response=False)
+
+    def test_admin_nasiya_list(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(reverse('admin_model_list', args=['nasiya'])).status_code, 200)
+
+    # --- alohida domenlar (seller.example.uz / admin.example.uz) ---
+    @override_settings(SELLER_HOST='seller.test', ADMIN_HOST='admin.test', ALLOWED_HOSTS=['*'])
+    def test_host_mode(self):
+        # seller domeni: ildiz va /login/ sotuvchi portaliga olib boradi
+        r = self.client.get('/', HTTP_HOST='seller.test')
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(r['Location'].startswith('/seller/login/'))
+        r = self.client.get('/login/', HTTP_HOST='seller.test')
+        self.assertIn('Sotuvchi kabiniga kirish', r.content.decode())
+        # admin domeni
+        r = self.client.get('/login/', HTTP_HOST='admin.test')
+        self.assertIn('Admin paneliga kirish', r.content.decode())
+        # asosiy domen: oddiy xaridor sayti
+        r = self.client.get('/login/', HTTP_HOST='main.test')
+        self.assertIn('Tizimga kirish', r.content.decode())
+        self.assertNotIn('Sotuvchi kabiniga kirish', r.content.decode())
+
+
+class OrderDetailRegressionTests(TestCase):
+    """Mahsulot o'chirilgandan keyin buyurtma sahifasi 500 bermasligi kerak."""
+
+    def test_order_detail_with_deleted_product(self):
+        buyer = User.objects.create_user('b2', password='x')
+        seller = User.objects.create_user('s2', password='x', is_seller=True, is_buyer=False)
+        store = Store.objects.create(owner=seller, name='D', status='active')
+        product = Product.objects.create(store=store, name='G\'isht', price=1000, stock=10)
+        order = Order.objects.create(user=buyer, address='Toshkent', payment_method='cash')
+        OrderItem.objects.create(order=order, product=product, product_name='G\'isht', price=1000, quantity=2)
+        product.delete()
+        self.client.force_login(buyer)
+        self.assertEqual(self.client.get(reverse('order_detail', args=[order.pk])).status_code, 200)
+        self.assertEqual(self.client.get(reverse('orders')).status_code, 200)
+
+    def test_seller_cancel_restores_stock_without_penalty(self):
+        buyer = User.objects.create_user('b3', password='x')
+        seller = User.objects.create_user('s3', password='x', is_seller=True, is_buyer=False)
+        store = Store.objects.create(owner=seller, name='D', status='active')
+        product = Product.objects.create(store=store, name='Sement', price=100000, stock=8)
+        order = Order.objects.create(user=buyer, address='T', payment_method='cash')
+        item = OrderItem.objects.create(order=order, product=product, product_name='Sement', price=100000, quantity=2)
+        self.client.force_login(seller)
+        self.client.post(reverse('update_order_item_status', args=[item.pk]), {'status': 'cancelled'})
+        product.refresh_from_db(); order.refresh_from_db(); item.refresh_from_db()
+        self.assertEqual(item.status, 'cancelled')
+        self.assertEqual(product.stock, 10)
+        self.assertEqual(order.penalty_amount, 0)

@@ -1,0 +1,75 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{# Sotuvchi va admin panellari uchun umumiy qobiq: chap menyu + ish maydoni. Marketplace navbari YO'Q. #}
+
+{% block head_extra %}
+<style>
+    .nav-link { display:flex; align-items:center; gap:.75rem; padding:.65rem .9rem; border-radius:.75rem; font-size:.875rem; font-weight:500; color:#B6BECC; transition:all .15s; }
+    .nav-link:hover { background:rgba(255,255,255,.08); color:#fff; }
+    .nav-link.active { background:#E8590C; color:#fff; font-weight:700; }
+    .nav-group { padding:.9rem .9rem .35rem; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#7E889A; }
+    #portal-sidebar { background:#161A23; }
+    @media (max-width: 1023px) {
+        #portal-sidebar { position:fixed; inset:0 auto 0 0; z-index:60; width:16rem; transform:translateX(-100%); transition:transform .2s; display:flex; }
+        #portal-sidebar.open { transform:translateX(0); }
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<header class="lg:hidden bg-blue-900 text-white sticky top-0 z-50">
+    <div class="flex items-center justify-between h-14 px-4">
+        <button type="button" onclick="document.getElementById('portal-sidebar').classList.toggle('open')" class="w-10 h-10 rounded-lg hover:bg-white/10 text-xl" aria-label="Menu">☰</button>
+        <span class="font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span> <span class="ml-1 text-[11px] font-bold uppercase bg-white/15 rounded px-2 py-0.5">{% block panel_badge %}{% endblock %}</span></span>
+        <a href="{% block notif_url_mobile %}{% endblock %}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10">🔔</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block messages %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block main_wrapper %}
+<div class="flex flex-1 min-h-0">
+    <aside id="portal-sidebar" class="lg:flex flex-col w-64 shrink-0 text-white lg:sticky lg:top-0 lg:h-screen overflow-y-auto">
+        <div class="px-5 py-5 flex items-center justify-between">
+            <a href="{% block home_url %}{% endblock %}" class="text-xl font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span></a>
+            <button type="button" class="lg:hidden text-xl" onclick="document.getElementById('portal-sidebar').classList.remove('open')">✕</button>
+        </div>
+        <div class="px-5 pb-3"><span class="inline-block text-[11px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-300 rounded-md px-2 py-1">{{ self_badge|default:'' }}{% block panel_badge_side %}{% endblock %}</span></div>
+        {% with rn=request.resolver_match.url_name %}
+        <nav class="px-3 pb-4 flex-1 space-y-1">{% block sidebar_nav %}{% endblock %}</nav>
+        {% endwith %}
+        <div class="p-4 border-t border-white/10 space-y-3">
+            {% get_current_language as LANG %}
+            <div class="flex items-center gap-2">
+                <form action="{% url 'set_language' %}" method="post" class="flex flex-1 items-center text-xs font-bold bg-white/10 rounded-lg overflow-hidden">
+                    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button name="language" value="uz" class="flex-1 py-2 {% if LANG == 'uz' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">UZ</button>
+                    <button name="language" value="ru" class="flex-1 py-2 {% if LANG == 'ru' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">RU</button>
+                    <button name="language" value="en" class="flex-1 py-2 {% if LANG == 'en' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">EN</button>
+                </form>
+                <button type="button" id="theme-toggle" aria-label="{% trans 'Tungi/kunduzgi rejim' %}" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                    <span class="theme-moon">🌙</span><span class="theme-sun">☀️</span>
+                </button>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center font-bold text-sm">{{ user.username|first|upper }}</div>
+                    <span class="text-sm truncate">{{ user.username }}</span>
+                </div>
+                <form action="{% block logout_url %}{% endblock %}" method="post">{% csrf_token %}
+                    <button type="submit" class="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-red-600 transition">{% trans "Chiqish" %}</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 min-w-0">
+        <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+            {% include 'main/_messages.html' %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock main_wrapper %}

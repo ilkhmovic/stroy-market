@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
@@ -13,28 +15,153 @@ from django.utils import timezone
 from django.utils.translation import gettext, get_language
 from datetime import timedelta
 from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region, NasiyaApplication
-from .forms import UserRegisterForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm
+from .forms import UserRegisterForm, SellerRegisterForm, BuyerAuthForm, SellerAuthForm, AdminAuthForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm, NasiyaAdminForm
 from .nasiya import notify_managers
 from .http_utils import safe_redirect
 from .stock import restore_item_stock_once, InsufficientStock
 from .ai_limits import rate_limited, sanitize_history, TEXT_MAX
+from .roles import seller_required, admin_required, home_url, get_role, BUYER, SELLER, ADMIN
 
 logger = logging.getLogger(__name__)
 MAX_CART_QTY = 10000
 
 
+@login_required
+def role_home(request):
+    """Kirgandan keyin: har bir rol o'z paneliga."""
+    return redirect(home_url(request.user))
+
+
+# ────────── AUTH: har bir rol uchun alohida portal ──────────
+
 def register(request):
+    """Xaridor ro'yxatdan o'tishi. Sotuvchilar /seller/register/ da."""
+    if request.user.is_authenticated and get_role(request.user) == BUYER:
+        return redirect('marketplace')
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            if user.is_seller:
-                return redirect('seller_dashboard')
             return redirect('marketplace')
     else:
         form = UserRegisterForm()
-    return render(request, 'main/register.html', {'form': form})
+    return render(request, 'main/auth_page.html', {
+        'form': form,
+        'title': gettext("Ro'yxatdan o'tish"),
+        'subtitle': gettext("Xarid qilish uchun akkaunt yarating"),
+        'submit_label': gettext("Ro'yxatdan o'tish"),
+        'alt_text': gettext("Allaqachon akkauntingiz bormi?"),
+        'alt_label': gettext("Kirish"),
+        'alt_url': reverse('login'),
+    })
+
+
+class _PortalLogin(LoginView):
+    """Rolga mos kirish sahifasi. Boshqa rolning akkaunti bu portalga kira olmaydi."""
+    portal = BUYER
+    redirect_authenticated_user = False
+    template_name = 'main/auth_page.html'
+    title = ''
+    subtitle = ''
+    alt_text = ''
+    alt_label = ''
+    alt_url_name = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and get_role(request.user) == self.portal:
+            return redirect(home_url(request.user))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return self.get_redirect_url() or home_url(self.request.user)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({
+            'title': self.title, 'subtitle': self.subtitle,
+            'submit_label': gettext("Kirish"),
+            'alt_text': self.alt_text, 'alt_label': self.alt_label,
+            'alt_url': reverse(self.alt_url_name) if self.alt_url_name else '',
+            'next': self.request.GET.get('next', ''),
+        })
+        return ctx
+
+
+class BuyerLoginView(_PortalLogin):
+    portal = BUYER
+    authentication_form = BuyerAuthForm
+    title = property(lambda self: gettext("Tizimga kirish"))
+    subtitle = property(lambda self: gettext("Xaridor akkaunti"))
+    alt_text = property(lambda self: gettext("Akkauntingiz yo'qmi?"))
+    alt_label = property(lambda self: gettext("Ro'yxatdan o'ting"))
+    alt_url_name = 'register'
+
+
+class SellerLoginView(_PortalLogin):
+    portal = SELLER
+    authentication_form = SellerAuthForm
+    template_name = 'main/portal/auth_page.html'
+    title = property(lambda self: gettext("Sotuvchi kabiniga kirish"))
+    subtitle = property(lambda self: gettext("Do'koningizni boshqaring"))
+    alt_text = property(lambda self: gettext("Hali sotuvchi emasmisiz?"))
+    alt_label = property(lambda self: gettext("Do'kon oching"))
+    alt_url_name = 'seller_register'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({'portal_name': gettext("Sotuvchi portali"), 'show_buyer_link': True})
+        return ctx
+
+
+class AdminLoginView(_PortalLogin):
+    portal = ADMIN
+    authentication_form = AdminAuthForm
+    template_name = 'main/portal/auth_page.html'
+    title = property(lambda self: gettext("Admin paneliga kirish"))
+    subtitle = ''
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({'portal_name': gettext("Admin panel"), 'show_buyer_link': False})
+        return ctx
+
+
+def seller_register(request):
+    """Sotuvchi portalida ro'yxatdan o'tish (telefon va STIR/PINFL majburiy)."""
+    if request.user.is_authenticated and get_role(request.user) == SELLER:
+        return redirect('seller_dashboard')
+    if request.method == 'POST':
+        form = SellerRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('seller_dashboard')
+    else:
+        form = SellerRegisterForm()
+    return render(request, 'main/portal/auth_page.html', {
+        'form': form,
+        'portal_name': gettext("Sotuvchi portali"),
+        'title': gettext("Sotuvchi bo'lish"),
+        'subtitle': gettext("Do'kon oching va mahsulotlaringizni soting"),
+        'submit_label': gettext("Ro'yxatdan o'tish"),
+        'alt_text': gettext("Akkauntingiz bormi?"),
+        'alt_label': gettext("Kirish"),
+        'alt_url': reverse('seller_login'),
+        'show_buyer_link': True,
+    })
+
+
+class BuyerLogoutView(LogoutView):
+    next_page = reverse_lazy('marketplace')
+
+
+class SellerLogoutView(LogoutView):
+    next_page = reverse_lazy('seller_login')
+
+
+class AdminLogoutView(LogoutView):
+    next_page = reverse_lazy('admin_login')
 
 
 def marketplace(request):
@@ -108,6 +235,8 @@ def product_detail(request, pk):
 
 @login_required
 def profile(request):
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
     if request.user.is_seller:
         return redirect('seller_profile')
     return redirect('buyer_profile')
@@ -129,7 +258,7 @@ def buyer_profile(request):
     return render(request, 'main/buyer_profile.html', {'form': form, 'cart': cart})
 
 
-@login_required
+@seller_required
 def seller_profile(request):
     if not request.user.is_seller:
         return redirect('buyer_profile')
@@ -149,7 +278,7 @@ def seller_profile(request):
 
 # ────────── SELLER DASHBOARD ──────────
 
-@login_required
+@seller_required
 def seller_dashboard(request):
     if not request.user.is_seller:
         return redirect('marketplace')
@@ -165,7 +294,7 @@ def seller_dashboard(request):
     return render(request, 'main/seller_dashboard.html', {'store': store, 'products': products})
 
 
-@login_required
+@seller_required
 def create_store(request):
     if not request.user.is_seller:
         return redirect('marketplace')
@@ -175,7 +304,7 @@ def create_store(request):
     # Check for missing info
     if not request.user.stir_pinfl or not request.user.phone:
         messages.warning(request, gettext("Do'kon ochishdan oldin STIR va telefon raqamingizni kiriting."))
-        return redirect('buyer_profile')
+        return redirect('seller_profile')
         
     if request.method == 'POST':
         form = StoreForm(request.POST, request.FILES)
@@ -191,7 +320,7 @@ def create_store(request):
     return render(request, 'main/store_form.html', {'form': form})
 
 
-@login_required
+@seller_required
 def add_product(request):
     if not request.user.is_seller or not hasattr(request.user, 'store'):
         return redirect('marketplace')
@@ -208,7 +337,7 @@ def add_product(request):
     return render(request, 'main/product_form.html', {'form': form})
 
 
-@login_required
+@seller_required
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk, store__owner=request.user)
     if request.method == 'POST':
@@ -222,7 +351,7 @@ def edit_product(request, pk):
     return render(request, 'main/product_form.html', {'form': form, 'edit': True, 'product': product})
 
 
-@login_required
+@seller_required
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk, store__owner=request.user)
     if request.method == 'POST':
@@ -478,21 +607,23 @@ def order_detail(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
     
     # Group items by store for split confirmation
+    # Mahsulot yoki do'kon o'chirilgan bo'lishi mumkin (product=SET_NULL): sahifa qulamasin.
     stores_data = {}
     for item in order.items.all().select_related('product__store'):
-        store = item.product.store
-        if store.pk not in stores_data:
-            stores_data[store.pk] = {
-                'store': store,
+        store = item.product.store if item.product_id and item.product else None
+        key = store.pk if store else 0
+        if key not in stores_data:
+            stores_data[key] = {
+                'store': store or {'name': gettext("Do'kon mavjud emas"), 'pk': None},
                 'items': [],
                 'all_confirmed': True,
                 'can_confirm': False
             }
-        stores_data[store.pk]['items'].append(item)
+        stores_data[key]['items'].append(item)
         if not item.buyer_confirmed:
-            stores_data[store.pk]['all_confirmed'] = False
-            if item.status in ['shipped', 'delivered']:
-                stores_data[store.pk]['can_confirm'] = True
+            stores_data[key]['all_confirmed'] = False
+            if store and item.status in ['shipped', 'delivered']:
+                stores_data[key]['can_confirm'] = True
                 
     return render(request, 'main/order_detail.html', {
         'order': order, 
@@ -623,7 +754,7 @@ def add_review(request, pk):
     
     return render(request, 'main/add_review.html', {'form': form, 'product': product})
 
-@login_required
+@seller_required
 def add_review_reply(request, review_id):
     review = get_object_or_404(Review, pk=review_id, product__store__owner=request.user)
     
@@ -640,7 +771,7 @@ def add_review_reply(request, review_id):
             
     return redirect('seller_reviews')
 
-@login_required
+@seller_required
 def seller_reviews(request):
     if not request.user.is_seller:
         return redirect('marketplace')
@@ -650,7 +781,7 @@ def seller_reviews(request):
     
     return render(request, 'main/seller_reviews.html', {'reviews': reviews})
 
-@login_required
+@seller_required
 def update_order_item_status(request, item_id):
     item = get_object_or_404(OrderItem, pk=item_id, product__store__owner=request.user)
     if request.method == 'POST':
@@ -659,13 +790,21 @@ def update_order_item_status(request, item_id):
             # Check for buyer confirmation if setting to delivered
             if new_status == 'delivered' and not item.buyer_confirmed:
                 messages.error(request, gettext("Xaridor ushbu mahsulotni qabul qilganini tasdiqlashi kerak!"))
+            elif new_status == 'cancelled':
+                # Sotuvchi bekor qilsa zaxira qaytariladi va xaridor JARIMA olmaydi.
+                if restore_item_stock_once(item):
+                    Notification.objects.create(
+                        user=item.order.user,
+                        message=f"'{item.product_name}' mahsuloti sotuvchi tomonidan bekor qilindi.",
+                        target_url=f"/order/{item.order.pk}/"
+                    )
+                    messages.success(request, gettext("Mahsulot bekor qilindi, zaxira qaytarildi."))
+                else:
+                    messages.error(request, gettext("Faqat kutilayotgan mahsulotni bekor qilish mumkin."))
             else:
                 item.status = new_status
                 item.save()
-                
-                if new_status == 'cancelled':
-                    item.order.apply_penalty()
-                
+
                 # Notify buyer
                 Notification.objects.create(
                     user=item.order.user,
@@ -676,7 +815,7 @@ def update_order_item_status(request, item_id):
             
     return redirect('seller_orders')
 
-@login_required
+@seller_required
 def seller_statistics(request):
     if not request.user.is_seller:
         return redirect('marketplace')
@@ -753,7 +892,7 @@ def seller_statistics(request):
     
     return render(request, 'main/seller_statistics.html', context)
 
-@login_required
+@seller_required
 def seller_orders(request):
     if not request.user.is_seller:
         return redirect('marketplace')
@@ -768,7 +907,7 @@ def seller_orders(request):
 @login_required
 def notifications_view(request):
     all_notifs = request.user.notifications.all()
-    return render(request, 'main/notifications.html', {'notifications': all_notifs})
+    return render(request, 'main/notifications.html', {'notifications': all_notifs, 'is_panel': get_role(request.user) != BUYER})
 
 @login_required
 def mark_notification_read(request, pk):
@@ -778,14 +917,30 @@ def mark_notification_read(request, pk):
     
     if notification.target_url:
         return redirect(notification.target_url)
-    return redirect(request.META.get('HTTP_REFERER', 'seller_dashboard'))
+    return redirect(request.META.get('HTTP_REFERER') or home_url(request.user))
 
 # ────────── ADMIN DASHBOARD ──────────
+
+def _admin_models():
+    """Admin panelda boshqariladigan modellar: nom -> (Model, Form)."""
+    return {
+        'user': (User, UserAdminForm),
+        'store': (Store, StoreForm),
+        'category': (Category, CategoryForm),
+        'product': (Product, ProductForm),
+        'order': (Order, OrderAdminForm),
+        'review': (Review, ReviewForm),
+        'notification': (Notification, NotificationForm),
+        'brand': (Brand, BrandForm),
+        'region': (Region, RegionForm),
+        'nasiya': (NasiyaApplication, NasiyaAdminForm),
+    }
+
 
 def is_superuser(user):
     return user.is_authenticated and user.is_superuser
 
-@user_passes_test(is_superuser)
+@admin_required
 def admin_dashboard(request):
     total_revenue = OrderItem.objects.exclude(status='cancelled').aggregate(total=Sum(F('price') * F('quantity')))['total'] or 0
     total_orders = Order.objects.count()
@@ -807,7 +962,7 @@ def admin_dashboard(request):
     }
     return render(request, 'main/admin_dashboard.html', context)
 
-@user_passes_test(is_superuser)
+@admin_required
 def admin_toggle_top(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     product.is_top = not product.is_top
@@ -815,25 +970,15 @@ def admin_toggle_top(request, product_id):
     messages.success(request, f"'{product.name}' top holati o'zgartirildi.")
     return redirect('admin_dashboard')
 
-@user_passes_test(is_superuser)
+@admin_required
 def admin_model_list(request, model_name):
-    model_map = {
-        'user': User,
-        'store': Store,
-        'category': Category,
-        'product': Product,
-        'order': Order,
-        'review': Review,
-        'notification': Notification,
-        'brand': Brand,
-        'region': Region,
-    }
+    model_map = _admin_models()
     
     if model_name not in model_map:
         messages.error(request, gettext("Model topilmadi."))
         return redirect('admin_dashboard')
         
-    model = model_map[model_name]
+    model = model_map[model_name][0]
     queryset = model.objects.all().order_by('-pk')
     
     # Search logic
@@ -854,19 +999,9 @@ def admin_model_list(request, model_name):
         'verbose_name_plural': model._meta.verbose_name_plural.capitalize(),
     })
 
-@user_passes_test(is_superuser)
+@admin_required
 def admin_model_edit(request, model_name, pk=None):
-    model_map = {
-        'user': (User, UserAdminForm),
-        'store': (Store, StoreForm),
-        'category': (Category, CategoryForm),
-        'product': (Product, ProductForm),
-        'order': (Order, OrderAdminForm),
-        'review': (Review, ReviewForm),
-        'notification': (Notification, NotificationForm),
-        'brand': (Brand, BrandForm),
-        'region': (Region, RegionForm),
-    }
+    model_map = _admin_models()
     
     if model_name not in model_map:
         return redirect('admin_dashboard')
@@ -890,29 +1025,19 @@ def admin_model_edit(request, model_name, pk=None):
         'verbose_name': model._meta.verbose_name.capitalize(),
     })
 
-@user_passes_test(is_superuser)
+@admin_required
 def admin_model_delete(request, model_name, pk):
-    model_map = {
-        'user': User,
-        'store': Store,
-        'category': Category,
-        'product': Product,
-        'order': Order,
-        'review': Review,
-        'notification': Notification,
-        'brand': Brand,
-        'region': Region,
-    }
+    model_map = _admin_models()
     
     if model_name not in model_map:
         return redirect('admin_dashboard')
         
-    obj = get_object_or_404(model_map[model_name], pk=pk)
+    obj = get_object_or_404(model_map[model_name][0], pk=pk)
     obj.delete()
     messages.success(request, f"{obj} o'chirildi.")
     return redirect('admin_model_list', model_name=model_name)
 
-@user_passes_test(is_superuser)
+@admin_required
 def admin_store_status(request, store_id, status):
     store = get_object_or_404(Store, pk=store_id)
     if status in ['active', 'rejected', 'suspended']:

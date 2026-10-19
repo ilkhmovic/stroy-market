@@ -49,6 +49,7 @@ class User(AbstractUser):
     address = models.TextField(blank=True, verbose_name="Manzil")
     avatar = models.ImageField(upload_to=path_and_rename('avatars/'), blank=True, null=True, verbose_name="Rasm")
     stir_pinfl = models.CharField(max_length=14, blank=True, verbose_name="STIR/PINFL")
+    stir_verified = models.BooleanField(default=False, null=True, blank=True)
 
     @property
     def unread_notifications_count(self):

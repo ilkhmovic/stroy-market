@@ -47,29 +47,45 @@ else:
 
 ADMIN_URL = os.getenv('ADMIN_URL', 'admin/').strip('/') + '/'
 
+# Ixtiyoriy: alohida domenlar (masalan seller.example.uz / admin.example.uz).
+# Bo'sh qoldirilsa portallar asosiy domenda /seller/ va /panel/ da ishlaydi.
+SELLER_HOST = os.getenv('SELLER_HOST', '').strip()
+ADMIN_HOST = os.getenv('ADMIN_HOST', '').strip()
+
 
 # Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
+    'django.contrib.sites',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'main',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'main.middleware.PortalHostMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'main.middleware.RoleSeparationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+]
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -85,6 +101,7 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.roles.role_context',
             ],
         },
     },
@@ -177,9 +194,22 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'main.User'
 
 # Auth Redirects
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/login/'
 LOGIN_URL = '/login/'
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Stroy Market] '
+
+# Gmail SMTP sozlamalari (.env fayldan o'qiydi)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
 
 # Gemini AI API Key
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')

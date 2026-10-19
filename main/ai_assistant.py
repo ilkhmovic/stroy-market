@@ -42,8 +42,9 @@ ANORA_SYSTEM_PROMPT = """Sen "Anora" — ArzonMaterial qurilish materiallari onl
 - **Profil** (/profile/) — foydalanuvchi ma'lumotlari
 - **Savat** (/cart/) — tanlangan mahsulotlar
 - **Buyurtmalarim** (/orders/) — buyurtmalar tarixi
-- **Sotuvchi kabineti** (/dashboard/) — sotuvchilar uchun
+- **Sotuvchi portali** (/seller/) — sotuvchilar uchun alohida kabinet (kirish: /seller/login/)
 - **Statistika** (/seller/statistics/) — sotuvlar statistikasi
+- **Admin panel** (/panel/) — faqat administratorlar uchun
 
 ## Qoidalar:
 1. Saytga aloqador bo'lmagan savollarga qisqacha javob berib, sayt mavzusiga qaytish.
@@ -214,13 +215,29 @@ def get_ai_response(user, message, chat_history=None, language='uz'):
         client = _get_client()
 
         # Rolga qarab kontekst
-        if user.is_authenticated and user.is_seller:
+        if user.is_authenticated and user.is_superuser:
+            role_label = "Administrator"
+            from .models import Store, Product, Order, User, NasiyaApplication
+            context = (
+                f"📊 Platforma: {User.objects.count()} foydalanuvchi, {Store.objects.count()} do'kon "
+                f"({Store.objects.filter(status='pending').count()} tasdiqlanishini kutmoqda), "
+                f"{Product.objects.count()} mahsulot, {Order.objects.count()} buyurtma, "
+                f"{NasiyaApplication.objects.filter(status='new').count()} yangi nasiya arizasi."
+            )
+            role_instructions = """
+Foydalanuvchi ADMINISTRATOR. Unga quyidagilar bo'yicha yordam ber:
+- Do'konlarni tasdiqlash/rad etish: /panel/ dagi "Kutilayotgan do'konlar" bo'limi
+- Foydalanuvchi, mahsulot, buyurtma va sharhlarni boshqarish: /panel/m/<model>/ sahifalari
+- Nasiya arizalari: /panel/m/nasiya/ sahifasida holat va izoh qoldirish
+- Platforma statistikasi va umumiy holat haqida
+"""
+        elif user.is_authenticated and user.is_seller:
             role_label = "Sotuvchi"
             context = _get_seller_context(user)
             role_instructions = """
 Foydalanuvchi SOTUVCHI. Unga quyidagilar bo'yicha yordam ber:
 - Sotuvlar statistikasi va daromad haqida
-- Mahsulot qo'shish qadamlari: /add-product/ sahifasiga borib, nomi, toifa, narx, soni kiritish
+- Mahsulot qo'shish qadamlari: /seller/products/add/ sahifasiga borib, nomi, toifa, narx, soni kiritish
 - Do'kon rasmiylashtirilishi: STIR/PINFL kiritish kerak, admin tasdiqlaydi
 - Buyurtmalarni boshqarish: /seller/orders/ sahifasida status o'zgartirish
 - Sharhlarni ko'rish va javob berish: /seller/reviews/ sahifasida

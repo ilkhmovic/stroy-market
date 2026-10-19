@@ -1,54 +1,77 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 import re
 from django.utils.translation import gettext_lazy as _
 from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region, NasiyaApplication
 
 class UserRegisterForm(UserCreationForm):
-    ROLE_CHOICES = (
-        ('buyer', "Sotib oluvchi (Faqat xarid qilish)"),
-        ('seller', "Sotuvchi (Do'kon ochish va sotish)"),
-    )
-    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect, initial='buyer', label="Kim bo'lib kirmisiz?")
-
+    """Xaridor ro'yxatdan o'tishi (faqat xarid qilish). Sotuvchilar alohida portalda."""
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = UserCreationForm.Meta.fields + ('role', 'phone', 'stir_pinfl')
-        labels = {
-            'phone': 'Telefon raqamingiz',
-            'stir_pinfl': 'STIR / PINFL (Sotuvchilar uchun)',
-        }
+        fields = UserCreationForm.Meta.fields + ('phone',)
+        labels = {'phone': 'Telefon raqamingiz'}
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        role = self.cleaned_data.get('role')
-        user.phone = self.cleaned_data.get('phone')
-        user.stir_pinfl = self.cleaned_data.get('stir_pinfl')
-        if role == 'seller':
-            user.is_seller = True
-            user.is_buyer = False
-            # Ensure STIR and Phone are provided
-            if not user.phone or not user.stir_pinfl:
-                raise forms.ValidationError("Sotuvchilar uchun telefon va STIR majburiy!")
-        else:
-            user.is_seller = False
-            user.is_buyer = True
+        user.phone = self.cleaned_data.get('phone', '')
+        user.is_seller = False
+        user.is_buyer = True
         if commit:
             user.save()
         return user
 
-    def clean(self):
-        cleaned_data = super().clean()
-        role = cleaned_data.get('role')
-        phone = cleaned_data.get('phone')
-        stir = cleaned_data.get('stir_pinfl')
-        
-        if role == 'seller':
-            if not phone:
-                self.add_error('phone', "Sotuvchilar uchun telefon raqami majburiy!")
-            if not stir:
-                self.add_error('stir_pinfl', "Sotuvchilar uchun STIR/PINFL majburiy!")
-        return cleaned_data
+
+class SellerRegisterForm(UserCreationForm):
+    """Sotuvchi portalida ro'yxatdan o'tish: telefon va STIR/PINFL majburiy."""
+    phone = forms.CharField(max_length=20, label="Telefon raqamingiz")
+    stir_pinfl = forms.CharField(max_length=14, label="STIR / PINFL")
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = UserCreationForm.Meta.fields + ('phone', 'stir_pinfl')
+
+    def clean_stir_pinfl(self):
+        value = re.sub(r'\D', '', self.cleaned_data['stir_pinfl'])
+        if len(value) not in (9, 14):
+            raise forms.ValidationError(_("STIR 9 ta, PINFL 14 ta raqamdan iborat bo'lishi kerak."))
+        return value
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.phone = self.cleaned_data['phone']
+        user.stir_pinfl = self.cleaned_data['stir_pinfl']
+        user.is_seller = True
+        user.is_buyer = False
+        if commit:
+            user.save()
+        return user
+
+
+class _PortalAuthForm(AuthenticationForm):
+    """Har bir portal faqat o'z rolidagi akkauntlarni kiritadi."""
+    portal = None
+    wrong_portal_message = ''
+
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+        from .roles import get_role
+        if get_role(user) != self.portal:
+            raise forms.ValidationError(self.wrong_portal_message, code='wrong_portal')
+
+
+class BuyerAuthForm(_PortalAuthForm):
+    portal = 'buyer'
+    wrong_portal_message = _("Bu akkaunt xaridor akkaunti emas. Sotuvchi yoki admin portaliga kiring.")
+
+
+class SellerAuthForm(_PortalAuthForm):
+    portal = 'seller'
+    wrong_portal_message = _("Bu akkaunt sotuvchi akkaunti emas. Xaridor sifatida asosiy saytdan kiring.")
+
+
+class AdminAuthForm(_PortalAuthForm):
+    portal = 'admin'
+    wrong_portal_message = _("Bu akkauntda admin huquqi yo'q.")
 
 class BuyerProfileForm(forms.ModelForm):
     class Meta:
@@ -139,3 +162,10 @@ class NasiyaApplicationForm(forms.ModelForm):
         if not (len(digits) == 12 and digits.startswith('998')):
             raise forms.ValidationError(_("Telefon raqamni to'g'ri kiriting (masalan: +998 90 123 45 67)."))
         return '+' + digits
+
+
+class NasiyaAdminForm(forms.ModelForm):
+    """Admin panelda nasiya arizasini ko'rib chiqish (status va menejer izohi)."""
+    class Meta:
+        model = NasiyaApplication
+        fields = ['status', 'manager_note']

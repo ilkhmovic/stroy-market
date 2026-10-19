@@ -68,8 +68,7 @@ def notify_managers(application):
         f"Yangi nasiya arizasi! Buyurtma #{order.pk}, {application.full_name}, "
         f"{application.phone}, {application.get_term_months_display()}."
     )
-    admin_prefix = getattr(settings, 'ADMIN_URL', 'admin/').strip('/')
-    target = f"/{admin_prefix}/main/nasiyaapplication/{application.pk}/change/"
+    target = f"/panel/m/nasiya/edit/{application.pk}/"
     Notification.objects.bulk_create([
         Notification(user=m, message=message, target_url=target) for m in _managers()
     ])

@@ -1,0 +1,23 @@
+{% load i18n %}
+<form method="POST" novalidate class="space-y-4">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% if form.non_field_errors %}
+    <div class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{{ form.non_field_errors|join:" " }}</div>
+    {% endif %}
+    {% for field in form %}
+    <div>
+        <label for="{{ field.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-1.5">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="text-[11px] text-gray-400 mt-1">{{ field.help_text|safe }}</p>{% endif %}
+        {% for e in field.errors %}<p class="text-red-500 text-xs mt-1">{{ e }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition">{{ submit_label }}</button>
+</form>
+<style>
+    .auth-card input[type="text"], .auth-card input[type="email"], .auth-card input[type="password"], .auth-card input[type="tel"] {
+        width: 100%; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: .6rem; outline: none; font-size: .9rem;
+    }
+    .auth-card input:focus { border-color: #E8590C; box-shadow: 0 0 0 2px rgba(232,89,12,.2); }
+</style>
