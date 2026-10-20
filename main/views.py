@@ -106,6 +106,7 @@ class _PortalLogin(LoginView):
             'alt_text': self.alt_text, 'alt_label': self.alt_label,
             'alt_url': reverse(self.alt_url_name) if self.alt_url_name else '',
             'next': self.request.GET.get('next', ''),
+            'show_signup_options': self.portal == BUYER,
         })
         return ctx
 
