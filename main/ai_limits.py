@@ -46,3 +46,17 @@ def rate_limited(request):
         return True
     cache.set(key, count + 1, WINDOW_SECONDS)
     return False
+
+
+PROJECT_LIMIT = 6          # smeta tahlili: bir foydalanuvchiga soatiga
+PROJECT_WINDOW = 3600
+
+
+def project_rate_limited(request):
+    """Smeta tahlili (qimmat, fayl yuboriladi) uchun alohida, qattiqroq chegara."""
+    key = f'anora_project_rl_{request.user.pk}'
+    count = cache.get(key, 0)
+    if count >= PROJECT_LIMIT:
+        return True
+    cache.set(key, count + 1, PROJECT_WINDOW)
+    return False

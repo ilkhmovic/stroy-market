@@ -156,7 +156,7 @@ class StoreForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['category', 'brand', 'name', 'description', 'name_ru', 'name_en', 'description_ru', 'description_en', 'price', 'stock', 'image']
+        fields = ['category', 'brand', 'name', 'description', 'name_ru', 'name_en', 'description_ru', 'description_en', 'price', 'stock', 'unit', 'image']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }

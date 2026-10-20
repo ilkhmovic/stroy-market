@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Store, Category, Product, Review, Cart, CartItem, Order, OrderItem, Notification, Brand, Region, NasiyaApplication, AnoraFallback
+from .models import User, Store, Category, Product, Review, Cart, CartItem, Order, OrderItem, Notification, Brand, Region, NasiyaApplication, AnoraFallback, Page
 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
@@ -81,3 +81,11 @@ class AnoraFallbackAdmin(admin.ModelAdmin):
     search_fields = ('title', 'keywords', 'answer_uz', 'answer_ru', 'answer_en')
 
 admin.site.register(AnoraFallback, AnoraFallbackAdmin)
+
+
+class PageAdmin(admin.ModelAdmin):
+    list_display = ('slug', 'title_uz', 'order', 'is_published', 'updated_at')
+    list_editable = ('order', 'is_published')
+    search_fields = ('title_uz', 'title_ru', 'title_en')
+
+admin.site.register(Page, PageAdmin)

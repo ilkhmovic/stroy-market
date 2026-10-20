@@ -7,21 +7,21 @@
 {% block logout_url %}{% url 'admin_logout' %}{% endblock %}
 
 {% block sidebar_nav %}
-<a href="{% url 'admin_dashboard' %}" class="nav-link {% if rn == 'admin_dashboard' %}active{% endif %}">🏠 Dashboard</a>
+<a href="{% url 'admin_dashboard' %}" class="nav-link {% if rn == 'admin_dashboard' %}active{% endif %}">{% include "main/_icon.html" with name="home" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Dashboard</a>
 <div class="nav-group">Boshqaruv</div>
-<a href="{% url 'admin_model_list' 'user' %}" class="nav-link {% if model_name == 'user' %}active{% endif %}">👥 Foydalanuvchilar</a>
-<a href="{% url 'admin_model_list' 'store' %}" class="nav-link {% if model_name == 'store' %}active{% endif %}">🏪 Do'konlar</a>
-<a href="{% url 'admin_model_list' 'product' %}" class="nav-link {% if model_name == 'product' %}active{% endif %}">📦 Mahsulotlar</a>
-<a href="{% url 'admin_model_list' 'order' %}" class="nav-link {% if model_name == 'order' %}active{% endif %}">🧾 Buyurtmalar</a>
-<a href="{% url 'admin_model_list' 'nasiya' %}" class="nav-link {% if model_name == 'nasiya' %}active{% endif %}">💳 Nasiya arizalari</a>
-<a href="{% url 'admin_model_list' 'review' %}" class="nav-link {% if model_name == 'review' %}active{% endif %}">💬 Sharhlar</a>
+<a href="{% url 'admin_model_list' 'user' %}" class="nav-link {% if model_name == 'user' %}active{% endif %}">{% include "main/_icon.html" with name="users" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Foydalanuvchilar</a>
+<a href="{% url 'admin_model_list' 'store' %}" class="nav-link {% if model_name == 'store' %}active{% endif %}">{% include "main/_icon.html" with name="store" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Do'konlar</a>
+<a href="{% url 'admin_model_list' 'product' %}" class="nav-link {% if model_name == 'product' %}active{% endif %}">{% include "main/_icon.html" with name="package" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Mahsulotlar</a>
+<a href="{% url 'admin_model_list' 'order' %}" class="nav-link {% if model_name == 'order' %}active{% endif %}">{% include "main/_icon.html" with name="receipt" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Buyurtmalar</a>
+<a href="{% url 'admin_model_list' 'nasiya' %}" class="nav-link {% if model_name == 'nasiya' %}active{% endif %}">{% include "main/_icon.html" with name="card" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Nasiya arizalari</a>
+<a href="{% url 'admin_model_list' 'review' %}" class="nav-link {% if model_name == 'review' %}active{% endif %}">{% include "main/_icon.html" with name="message" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Sharhlar</a>
 <div class="nav-group">Sozlamalar</div>
-<a href="{% url 'admin_model_list' 'category' %}" class="nav-link {% if model_name == 'category' %}active{% endif %}">🏷️ Toifalar</a>
-<a href="{% url 'admin_model_list' 'brand' %}" class="nav-link {% if model_name == 'brand' %}active{% endif %}">🔖 Brendlar</a>
-<a href="{% url 'admin_model_list' 'region' %}" class="nav-link {% if model_name == 'region' %}active{% endif %}">📍 Viloyatlar</a>
-<a href="{% url 'admin_model_list' 'notification' %}" class="nav-link {% if model_name == 'notification' %}active{% endif %}">🔔 Bildirishnomalar</a>
+<a href="{% url 'admin_model_list' 'category' %}" class="nav-link {% if model_name == 'category' %}active{% endif %}">{% include "main/_icon.html" with name="tag" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Toifalar</a>
+<a href="{% url 'admin_model_list' 'brand' %}" class="nav-link {% if model_name == 'brand' %}active{% endif %}">{% include "main/_icon.html" with name="bookmark" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Brendlar</a>
+<a href="{% url 'admin_model_list' 'region' %}" class="nav-link {% if model_name == 'region' %}active{% endif %}">{% include "main/_icon.html" with name="pin" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Viloyatlar</a>
+<a href="{% url 'admin_model_list' 'notification' %}" class="nav-link {% if model_name == 'notification' %}active{% endif %}">{% include "main/_icon.html" with name="bell" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Bildirishnomalar</a>
 <div class="nav-group">Boshqa</div>
-<a href="/{{ ADMIN_URL }}" class="nav-link">⚙️ Django admin</a>
+<a href="/{{ ADMIN_URL }}" class="nav-link">{% include "main/_icon.html" with name="settings" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} Django admin</a>
 {% endblock %}
 
 {% block content %}{% block admin_content %}{% endblock %}{% endblock %}

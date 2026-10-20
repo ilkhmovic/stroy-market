@@ -1,3 +1,4 @@
+import sys
 """
 Django settings for config project.
 
@@ -102,6 +103,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.template.context_processors.i18n',
+                'main.context_processors.site_info',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'main.roles.role_context',
@@ -244,8 +246,11 @@ import os
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Static files storage for production (Whitenoise)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Static fayllar (Whitenoise). Django 5.1+ da STATICFILES_STORAGE olib tashlangan: STORAGES ishlatiladi.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -276,3 +281,18 @@ LOGGING = {
         'level': 'WARNING',
     },
 }
+
+
+# Bog'lanish ma'lumotlari (footerda ko'rsatiladi; bo'sh bo'lsa ko'rsatilmaydi)
+SUPPORT_PHONE = os.getenv('SUPPORT_PHONE', '')
+SUPPORT_EMAIL = os.getenv('SUPPORT_EMAIL', '')
+
+# Kesh: fayl asosida (bir nechta ishchi jarayon orasida umumiy, rate limit uchun kerak).
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.getenv('CACHE_DIR', os.path.join(BASE_DIR, '.cache')),
+    }
+}
+if 'test' in sys.argv:
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}

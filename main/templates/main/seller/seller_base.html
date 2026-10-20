@@ -8,12 +8,12 @@
 {% block logout_url %}{% url 'seller_logout' %}{% endblock %}
 
 {% block sidebar_nav %}
-<a href="{% url 'seller_dashboard' %}" class="nav-link {% if rn == 'seller_dashboard' or rn == 'seller_home' or rn == 'add_product' or rn == 'edit_product' or rn == 'delete_product' %}active{% endif %}">📦 {% trans "Mahsulotlarim" %}</a>
-<a href="{% url 'seller_orders' %}" class="nav-link {% if rn == 'seller_orders' %}active{% endif %}">🧾 {% trans "Buyurtmalar" %}</a>
-<a href="{% url 'seller_reviews' %}" class="nav-link {% if rn == 'seller_reviews' %}active{% endif %}">💬 {% trans "Sharhlar" %}</a>
-<a href="{% url 'seller_statistics' %}" class="nav-link {% if rn == 'seller_statistics' %}active{% endif %}">📈 {% trans "Statistika" %}</a>
+<a href="{% url 'seller_dashboard' %}" class="nav-link {% if rn == 'seller_dashboard' or rn == 'seller_home' or rn == 'add_product' or rn == 'edit_product' or rn == 'delete_product' %}active{% endif %}">{% include "main/_icon.html" with name="package" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} {% trans "Mahsulotlarim" %}</a>
+<a href="{% url 'seller_orders' %}" class="nav-link {% if rn == 'seller_orders' %}active{% endif %}">{% include "main/_icon.html" with name="receipt" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} {% trans "Buyurtmalar" %}</a>
+<a href="{% url 'seller_reviews' %}" class="nav-link {% if rn == 'seller_reviews' %}active{% endif %}">{% include "main/_icon.html" with name="message" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} {% trans "Sharhlar" %}</a>
+<a href="{% url 'seller_statistics' %}" class="nav-link {% if rn == 'seller_statistics' %}active{% endif %}">{% include "main/_icon.html" with name="chart" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} {% trans "Statistika" %}</a>
 <div class="nav-group">{% trans "Do'kon" %}</div>
-<a href="{% url 'seller_profile' %}" class="nav-link {% if rn == 'seller_profile' or rn == 'create_store' %}active{% endif %}">🏪 {% trans "Do'kon profili" %}</a>
-<a href="{% url 'seller_notifications' %}" class="nav-link {% if rn == 'seller_notifications' %}active{% endif %}">🔔 {% trans "Xabarlar" %}{% if user.unread_notifications_count %}<span class="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">{{ user.unread_notifications_count }}</span>{% endif %}</a>
+<a href="{% url 'seller_profile' %}" class="nav-link {% if rn == 'seller_profile' or rn == 'create_store' %}active{% endif %}">{% include "main/_icon.html" with name="store" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} {% trans "Do'kon profili" %}</a>
+<a href="{% url 'seller_notifications' %}" class="nav-link {% if rn == 'seller_notifications' %}active{% endif %}">{% include "main/_icon.html" with name="bell" cls="h-4 w-4 inline-block mr-2 -mt-0.5" %} {% trans "Xabarlar" %}{% if user.unread_notifications_count %}<span class="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">{{ user.unread_notifications_count }}</span>{% endif %}</a>
 <a href="{% url 'add_product' %}" class="mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold">+ {% trans "Mahsulot qo'shish" %}</a>
 {% endblock %}

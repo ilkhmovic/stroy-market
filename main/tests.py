@@ -534,3 +534,136 @@ class OrderDetailRegressionTests(TestCase):
         self.assertEqual(item.status, 'cancelled')
         self.assertEqual(product.stock, 10)
         self.assertEqual(order.penalty_amount, 0)
+
+
+class Stage6Tests(TestCase):
+    def setUp(self):
+        seller = User.objects.create_user('s6', password='x', is_seller=True)
+        self.store = Store.objects.create(owner=seller, name="Do'kon", status='active')
+        for i in range(30):
+            Product.objects.create(store=self.store, name=f'Mahsulot {i}', price=1000 + i, stock=5)
+        self.ru = Product.objects.create(store=self.store, name='Sement', name_ru='Цемент', price=65000, stock=5, unit='qop')
+
+    def _lang(self, code):
+        self.client.post(reverse('set_language'), {'language': code})
+
+    def test_pagination_and_total(self):
+        r = self.client.get(reverse('marketplace'))
+        self.assertContains(r, 'page=2')
+        self.assertContains(r, '31 ')                       # umumiy soni (31 ta)
+        self.assertEqual(self.client.get(reverse('marketplace'), {'page': 2}).status_code, 200)
+        self.assertEqual(self.client.get(reverse('marketplace'), {'page': 999}).status_code, 200)
+
+    def test_search_in_russian_name_and_unit_label(self):
+        self._lang('ru')
+        r = self.client.get(reverse('marketplace'), {'q': 'Цемент'})
+        self.assertContains(r, 'Цемент')
+        self.assertContains(r, 'мешок')
+
+    def test_static_pages_seeded_and_localized(self):
+        r = self.client.get(reverse('page', args=['about']))
+        self.assertContains(r, 'Biz haqimizda')
+        self.assertContains(r, reverse('page', args=['faq']))        # footer havolasi
+        self._lang('en')
+        self.assertContains(self.client.get(reverse('page', args=['delivery'])), 'Delivery')
+        self.assertEqual(self.client.get(reverse('page', args=['yoq-sahifa'])).status_code, 404)
+
+    def test_notification_follows_language(self):
+        from django.utils import translation
+        from .notifications import notify
+        u = User.objects.create_user('n1', password='x')
+        n = notify(u, "#%(n)s buyurtmadagi mahsulotlaringizni xaridor qabul qildi. Endi siz 'Yetkazildi' holatiga o'tkazishingiz mumkin.", {'n': 7})
+        with translation.override('uz'):
+            self.assertIn('xaridor qabul qildi', n.display_message)
+        with translation.override('ru'):
+            self.assertIn('Покупатель получил', n.display_message)
+        with translation.override('en'):
+            self.assertIn('The buyer received', n.display_message)
+
+    def test_footer_contact_only_when_configured(self):
+        self.assertNotContains(self.client.get(reverse('marketplace')), '+998 90 000 00 00')
+        with self.settings(SUPPORT_PHONE='+998 71 123 45 67'):
+            self.assertContains(self.client.get(reverse('marketplace')), '+998 71 123 45 67')
+
+
+class EstimatorTests(TestCase):
+    def _pool(self):
+        return {'type': 'pool', 'title': 'Hovuz', 'params': {'length_m': 6, 'width_m': 3, 'depth_m': 1.5}}
+
+    def _find(self, items, word):
+        return next(i for i in items if word in i['query'])
+
+    def test_slab_formula(self):
+        from .estimator import calculate_works
+        items, notes = calculate_works([{'type': 'slab', 'params': {'length_m': 5, 'width_m': 4, 'thickness_cm': 10}}])
+        self.assertEqual(notes, [])
+        self.assertAlmostEqual(self._find(items, 'sement')['quantity'], 2 * 300 * 1.05, places=1)   # 2 m3 beton
+        self.assertAlmostEqual(self._find(items, 'plyonka')['quantity'], 20 * 1.15, places=1)
+
+    def test_pool_formula(self):
+        from .estimator import calculate_works
+        items, _n = calculate_works([self._pool()])
+        vol = (6.4 * 3.4 * 0.2) + 1.5 * (2 * 0.2 * 9 + 4 * 0.04)             # taglik + devorlar
+        self.assertAlmostEqual(self._find(items, 'sement')['quantity'], vol * 315, delta=1)
+        self.assertAlmostEqual(self._find(items, 'plitka yelimi')['quantity'], 45 * 5, places=1)   # ichki sirt 45 m2
+        self.assertAlmostEqual(self._find(items, 'gidroizolyatsiya')['quantity'], 45 * 3, places=1)
+
+    def test_brick_wall_with_openings_and_missing_dimensions(self):
+        from .estimator import calculate_works
+        items, _n = calculate_works([{'type': 'wall', 'params': {'length_m': 10, 'height_m': 2.5, 'openings_m2': 4}}])
+        self.assertAlmostEqual(self._find(items, 'isht')['quantity'], 21 * 102 * 1.05, places=1)
+        items, notes = calculate_works([{'type': 'slab', 'title': 'Pol', 'params': {'length_m': 5}}, {'type': 'noma\'lum', 'params': {}}])
+        self.assertEqual(items, [])
+        self.assertEqual(len(notes), 1)                                      # noma'lum tur e'tiborsiz, yetishmaydigan o'lcham haqida izoh
+
+    def test_params_are_sanitized(self):
+        from .estimator import calculate_works
+        items, notes = calculate_works([{'type': 'slab', 'params': {'length_m': -5, 'width_m': 'abc'}}])
+        self.assertEqual(items, [])
+
+    def test_unit_conversion_to_product_units(self):
+        from .estimator import cart_quantity
+        P = lambda **kw: Product(**{'name': 'X', 'price': 1, 'stock': 100, **kw})
+        self.assertEqual(cart_quantity(630, 'kg', P(name='Sement M400, 50 kg', unit='qop')), (13, True, True))
+        self.assertEqual(cart_quantity(630, 'kg', P(name='Sement', unit='kg')), (630, False, True))
+        self.assertEqual(cart_quantity(1.2, 'tonna', P(name='Sement 25 kg', unit='qop'))[0], 48)
+        self.assertEqual(cart_quantity(14, 'litr', P(name="Bo'yoq 20 l", unit='dona'))[0], 1)
+        self.assertEqual(cart_quantity(20, 'm2', P(name='Laminat 2.2 m²', unit='dona'))[0], 10)
+        self.assertEqual(cart_quantity(5, 'dona', P(name='Plitka', unit='dona')), (5, False, True))
+        qty, conv, ok = cart_quantity(630, 'kg', P(name='Sement', unit='qop'))          # qop og'irligi noma'lum
+        self.assertFalse(ok)
+
+    def _setup_buyer_and_catalog(self):
+        seller = User.objects.create_user('est_s', 'est_s@example.com', 'x', is_seller=True)
+        store = Store.objects.create(owner=seller, name="Do'kon", status='active')
+        self.cement = Product.objects.create(store=store, name='Sement M400, 50 kg', price=65000, stock=500, unit='qop')
+        User.objects.create_user('est_b', 'est_b@example.com', 'x')
+        self.client.login(username='est_b', password='x')
+
+    def test_estimate_endpoint_converts_kg_to_bags_and_limits(self):
+        from django.core.cache import cache
+        cache.clear()
+        self._setup_buyer_and_catalog()
+        fake = {'project_type': 'Beton pol', 'assumptions': [], 'items': [],
+                'works': [{'type': 'slab', 'params': {'length_m': 5, 'width_m': 4, 'thickness_cm': 10}}]}
+        with mock.patch('main.ai_project.analyze_project', return_value=fake):
+            r = self.client.post(reverse('ai_project_estimate'), {'message': '5x4 pol, 10 sm'})
+            self.assertEqual(r.json()['success'], True)
+            line = next(i for i in r.json()['items'] if 'sement' in i['query'])
+            m = line['matches'][0]
+            self.assertEqual(m['id'], self.cement.pk)
+            self.assertEqual(m['cart_quantity'], 13)                         # 630 kg / 50 kg = 12,6 -> 13 qop (630 qop emas!)
+            with mock.patch('main.ai_limits.PROJECT_LIMIT', 1):
+                self.assertEqual(self.client.post(reverse('ai_project_estimate'), {'message': '5x4 pol'}).status_code, 429)
+
+    def test_estimate_rejects_fake_file_type(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        self._setup_buyer_and_catalog()
+        fake_pdf = SimpleUploadedFile('smeta.pdf', b'bu pdf emas', content_type='application/pdf')
+        with mock.patch('main.ai_project.analyze_project') as m:
+            r = self.client.post(reverse('ai_project_estimate'), {'message': 'x', 'estimate': fake_pdf})
+        self.assertEqual(r.status_code, 400)
+        m.assert_not_called()
+        real = SimpleUploadedFile('smeta.pdf', b'%PDF-1.4 ...', content_type='application/pdf')
+        with mock.patch('main.ai_project.analyze_project', return_value={'project_type': 'x', 'assumptions': [], 'items': [], 'works': []}):
+            self.assertEqual(self.client.post(reverse('ai_project_estimate'), {'message': 'x', 'estimate': real}).status_code, 200)

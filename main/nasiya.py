@@ -12,7 +12,10 @@ import requests
 from django.conf import settings
 from django.db.models import Q
 
+from django.utils.translation import gettext, gettext_noop
+
 from .models import Notification, User
+from .notifications import uz
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +67,12 @@ def _send_telegram(text):
 def notify_managers(application):
     """Arizani menejerlarga yuboradi. Telegram yuborilganini qaytaradi (True/False)."""
     order = application.order
-    message = (
-        f"Yangi nasiya arizasi! Buyurtma #{order.pk}, {application.full_name}, "
-        f"{application.phone}, {application.get_term_months_display()}."
-    )
+    msgid = gettext_noop("Yangi nasiya arizasi! Buyurtma #%(order_id)s, %(name)s, %(phone)s, %(term)s.")
+    params = {'order_id': order.pk, 'name': application.full_name, 'phone': application.phone,
+              'term': uz(application.get_term_months_display())}
+    message = gettext(msgid) % {**params, 'term': application.get_term_months_display()}
     target = f"/panel/m/nasiya/edit/{application.pk}/"
     Notification.objects.bulk_create([
-        Notification(user=m, message=message, target_url=target) for m in _managers()
+        Notification(user=m, message=message, code=msgid, params=params, target_url=target) for m in _managers()
     ])
     return _send_telegram(_format_message(application))

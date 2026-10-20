@@ -1084,13 +1084,19 @@ msgstr "Payment to courier via card/terminal"
 msgid "%(name)s: omborda faqat %(stock)s qolgan. Buyurtma yaratilmadi."
 msgstr "%(name)s: only %(stock)s left in stock. Order was not created."
 
-msgid "#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi."
+msgid ""
+"#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor "
+"qilindi."
 msgstr "Item '%(name)s' in order #%(order_id)s was cancelled by buyer."
 
-msgid "Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
+msgid ""
+"Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima "
+"qo'llandi."
 msgstr "A penalty of %(amount)s UZS was applied for cancelling a cash order."
 
-msgid "Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
+msgid ""
+"Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima "
+"qo'llandi."
 msgstr "A penalty of %(amount)s UZS was applied for cancelling a cash item."
 
 msgid "'%(name)s' bekor qilindi."
@@ -1105,9 +1111,484 @@ msgstr "Invalid quantity. Please enter a positive integer."
 msgid "Mahsulot savatdan o'chirildi."
 msgstr "Product removed from cart."
 
-msgid "So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
+msgid ""
+"So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
 msgstr "Too many requests. Please try again in a minute."
 
 msgid "%(name)s: omborda faqat %(stock)s qolgan."
 msgstr "%(name)s: only %(stock)s left in stock."
 
+msgid "Assalomu alaykum! Men"
+msgstr "Hello! I'm"
+
+msgid "Bugungi sotuvlarim"
+msgstr "My sales today"
+
+msgid "Buyurtma rasmiylashtirish"
+msgstr "Placing your order"
+
+msgid "Eng arzon"
+msgstr "Cheapest"
+
+msgid "Eng yaxshi"
+msgstr "Top rated"
+
+msgid "Kabinet"
+msgstr "Dashboard"
+
+msgid "Naqd pulda to'lash shartnomasi:"
+msgstr "Cash payment terms:"
+
+msgid "Qanday ishlaydi"
+msgstr "How it works"
+
+msgid "Rasmiylashtirish"
+msgstr "Set up my store"
+
+msgid "'%(name)s' savatga qo'shildi!"
+msgstr "“%(name)s” added to your cart!"
+
+msgid "Yangi buyurtma! #%(n)s raqamli buyurtmada sizning mahsulotingiz bor."
+msgstr "New order! Order #%(n)s contains your product."
+
+msgid "Oldingi"
+msgstr "Previous"
+
+msgid "Keyingi"
+msgstr "Next"
+
+msgid "Ma'lumot"
+msgstr "Information"
+
+msgid "kg"
+msgstr "kg"
+
+msgid "m²"
+msgstr "m²"
+
+msgid "litr"
+msgstr "L"
+
+msgid "qop"
+msgstr "bag"
+
+msgid "tonna"
+msgstr "t"
+
+msgid "metr"
+msgstr "m"
+
+msgid "O'lchov birligi"
+msgstr "Unit"
+
+msgid "'%(name)s' mahsulotingiz holati '%(status)s' ga o'zgardi."
+msgstr "The status of your product “%(name)s” changed to “%(status)s”."
+
+msgid "Sizning do'koningiz tasdiqlandi va faollashtirildi."
+msgstr "Your store has been approved and activated."
+
+msgid "Sizning do'koningiz rad etildi."
+msgstr "Your store has been rejected."
+
+msgid "Sizning do'koningiz vaqtincha to'xtatildi."
+msgstr "Your store has been temporarily suspended."
+
+msgid ""
+"#%(n)s buyurtmadagi mahsulotlaringizni xaridor qabul qildi. Endi siz "
+"'Yetkazildi' holatiga o'tkazishingiz mumkin."
+msgstr ""
+"The buyer received your products in order #%(n)s. You can now mark it as "
+"“Delivered”."
+
+msgid ""
+"Yangi nasiya arizasi! Buyurtma #%(order_id)s, %(name)s, %(phone)s, %(term)s."
+msgstr ""
+"New installment application! Order #%(order_id)s, %(name)s, %(phone)s, "
+"%(term)s."
+
+msgid "'%(name)s' do'koni mahsulotlari qabul qilingani tasdiqlandi!"
+msgstr "Receipt of products from “%(name)s” has been confirmed!"
+
+msgid "Status '%(status)s' ga o'zgartirildi."
+msgstr "Status changed to “%(status)s”."
+
+msgid "Tarmoq xatosi yuz berdi. Qayta urinib koʻring."
+msgstr "Network error. Please try again."
+
+msgid "Tasdiqlash havolasi %(email)s manziliga yuborildi."
+msgstr "A confirmation link has been sent to %(email)s."
+
+msgid "Havolani yuborib bo'lmadi. Birozdan so'ng qayta urinib ko'ring."
+msgstr "Couldn't send the link. Please try again shortly."
+
+msgid "Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
+msgstr "Please try again in a minute."
+
+msgid "Emailingiz tasdiqlandi!"
+msgstr "Your email has been verified!"
+
+msgid "Havola eskirgan yoki noto'g'ri."
+msgstr "The link has expired or is invalid."
+
+msgid "Bu email allaqachon ro'yxatdan o'tgan."
+msgstr "This email is already registered."
+
+msgid "Email kiriting."
+msgstr "Enter an email address."
+
+msgid "Davom etish uchun avval emailingizni tasdiqlang."
+msgstr "Please verify your email first to continue."
+
+msgid "Google orqali kirishda xatolik yuz berdi. Qayta urinib ko'ring."
+msgstr "Google sign-in failed. Please try again."
+
+msgid "Google hisobingizdagi email tasdiqlanmagan."
+msgstr "The email on your Google account is not verified."
+
+msgid "Bu hisob faol emas."
+msgstr "This account is inactive."
+
+msgid "Emailingiz tasdiqlangan."
+msgstr "Your email is verified."
+
+msgid "Emailni tasdiqlash"
+msgstr "Verify your email"
+
+msgid "Emailingizga tasdiqlash havolasi yuboriladi. Havola 3 kun amal qiladi."
+msgstr ""
+"A confirmation link will be sent to your email. It is valid for 3 days."
+
+msgid "Havolani yuborish"
+msgstr "Send link"
+
+msgid "Emailingiz tasdiqlanmagan. Buyurtma berish uchun uni tasdiqlang."
+msgstr "Your email is not verified. Verify it to place orders."
+
+msgid "Tasdiqlash"
+msgstr "Verify"
+
+msgid "Parolni unutdingizmi?"
+msgstr "Forgot your password?"
+
+msgid "yoki"
+msgstr "or"
+
+msgid "Google orqali kirish"
+msgstr "Sign in with Google"
+
+msgid "Parolni tiklash"
+msgstr "Reset password"
+
+msgid ""
+"Tasdiqlangan emailingizni kiriting, biz parolni tiklash havolasini "
+"yuboramiz."
+msgstr "Enter your verified email and we'll send you a password reset link."
+
+msgid "Xat yuborildi"
+msgstr "Email sent"
+
+msgid ""
+"Agar bu email tizimda tasdiqlangan bo'lsa, parolni tiklash havolasi "
+"yuborildi. Pochtangizni tekshiring."
+msgstr ""
+"If this email is verified in our system, a password reset link has been "
+"sent. Check your inbox."
+
+msgid "Yangi parol o'rnating"
+msgstr "Set a new password"
+
+msgid "Parol yangilandi"
+msgstr "Password updated"
+
+msgid "Endi yangi parol bilan tizimga kira olasiz."
+msgstr "You can now sign in with your new password."
+
+msgid "Parolni o'zgartirish"
+msgstr "Change password"
+
+msgid "Xavfsizlik uchun joriy parolingizni kiriting."
+msgstr "For security, enter your current password."
+
+msgid "Parol o'zgartirildi"
+msgstr "Password changed"
+
+msgid "Parolingiz muvaffaqiyatli yangilandi."
+msgstr "Your password has been updated."
+
+msgid "Salom, %(name)s!"
+msgstr "Hello, %(name)s!"
+
+msgid "Emailingizni tasdiqlash uchun havolani oching:"
+msgstr "Open the link to verify your email:"
+
+msgid ""
+"Havola 3 kun amal qiladi. Agar siz ro'yxatdan o'tmagan bo'lsangiz, bu xatni "
+"e'tiborsiz qoldiring."
+msgstr ""
+"The link is valid for 3 days. If you did not sign up, please ignore this "
+"email."
+
+msgid "ArzonMaterial: emailni tasdiqlang"
+msgstr "ArzonMaterial: verify your email"
+
+msgid "ArzonMaterial: parolni tiklash"
+msgstr "ArzonMaterial: password reset"
+
+msgid "Salom!"
+msgstr "Hello!"
+
+msgid "Parolni tiklash uchun havolani oching:"
+msgstr "Open the link to reset your password:"
+
+msgid "Agar siz so'ramagan bo'lsangiz, bu xatni e'tiborsiz qoldiring."
+msgstr "If you didn't request this, please ignore this email."
+
+msgid ""
+"Beton M200 (%(v)s m³): 1 m³ ga taxminan 300 kg sement, 0,8 t qum va 1,2 t "
+"shag'al, zaxira 5 foiz."
+msgstr ""
+"Concrete M200 (%(v)s m³): about 300 kg cement, 0.8 t sand and 1.2 t gravel "
+"per 1 m³, 5% extra."
+
+msgid "Armatura to'ri: maydon %(a)s m² (+10 foiz ustma-ust qo'yish)."
+msgstr "Reinforcement mesh: area %(a)s m² (+10% for overlap)."
+
+msgid "Polietilen plyonka: maydon %(a)s m² (+15 foiz)."
+msgstr "Polyethylene film: area %(a)s m² (+15%)."
+
+msgid "Armatura: 1 m³ betonga taxminan %(k)s kg (hajm %(v)s m³)."
+msgstr "Rebar: about %(k)s kg per 1 m³ of concrete (volume %(v)s m³)."
+
+msgid "Gidroizolyatsiya: ichki sirt %(s)s m², 3 kg/m² (2 qatlam)."
+msgstr "Waterproofing: inner surface %(s)s m², 3 kg/m² (2 coats)."
+
+msgid "Plitka: sirt %(a)s m² + 10 foiz zaxira."
+msgstr "Tiles: surface %(a)s m² + 10% extra."
+
+msgid "Plitka yelimi: 5 kg/m², sirt %(a)s m²."
+msgstr "Tile adhesive: 5 kg/m², surface %(a)s m²."
+
+msgid "Fuga: 0,5 kg/m², sirt %(a)s m²."
+msgstr "Grout: 0.5 kg/m², surface %(a)s m²."
+
+msgid "Blok: devor %(a)s m², blok yuzasi %(f)s m² + 5 foiz zaxira."
+msgstr "Blocks: wall %(a)s m², block face %(f)s m² + 5% extra."
+
+msgid "Blok yelimi: devor hajmi %(v)s m³, 1 m³ ga ~25 kg."
+msgstr "Block adhesive: wall volume %(v)s m³, ~25 kg per 1 m³."
+
+msgid ""
+"G'isht: devor %(a)s m², %(k)s g'isht qalinligida, 1 m² ga %(n)s dona + 5 "
+"foiz zaxira."
+msgstr ""
+"Bricks: wall %(a)s m², %(k)s brick thick, %(n)s pcs per 1 m² + 5% extra."
+
+msgid "Qorishma uchun sement: %(v)s m³ qorishma, 1 m³ ga ~250 kg."
+msgstr "Cement for mortar: %(v)s m³ of mortar, ~250 kg per 1 m³."
+
+msgid "Qorishma uchun qum: %(v)s m³ qorishma, 1 m³ ga ~1,4 t."
+msgstr "Sand for mortar: %(v)s m³ of mortar, ~1.4 t per 1 m³."
+
+msgid "Shtukaturka: %(a)s m², qalinlik %(t)s mm, 1 mm/m² ga %(k)s kg."
+msgstr "Plaster: %(a)s m², thickness %(t)s mm, %(k)s kg per mm/m²."
+
+msgid "Grunt: %(a)s m², %(r)s l/m²."
+msgstr "Primer: %(a)s m², %(r)s l/m²."
+
+msgid "Bo'yoq: %(a)s m², %(c)s qatlam, 0,14 l/m² (qatlamiga), zaxira 5 foiz."
+msgstr "Paint: %(a)s m², %(c)s coats, 0.14 l/m² per coat, 5% extra."
+
+msgid "Laminat/parket: pol %(a)s m² + 7 foiz zaxira."
+msgstr "Laminate/parquet: floor %(a)s m² + 7% extra."
+
+msgid "Podlojka: pol %(a)s m² + 5 foiz."
+msgstr "Underlay: floor %(a)s m² + 5%."
+
+msgid ""
+"Ruberoid: poydevor uzunligi %(l)s m, ko'ndalang kesim bo'yicha + 15 foiz."
+msgstr ""
+"Roofing felt: foundation length %(l)s m, by cross-section perimeter + 15%."
+
+msgid "Tom yopish: tom yuzasi %(a)s m² + 10 foiz zaxira."
+msgstr "Roofing: roof surface %(a)s m² + 10% extra."
+
+msgid "Samorezlar: 1 m² ga %(n)s dona."
+msgstr "Screws: %(n)s pcs per 1 m²."
+
+msgid "Ustunlar: uzunlik %(l)s m, har %(s)s m da bitta + 1."
+msgstr "Posts: length %(l)s m, one every %(s)s m + 1."
+
+msgid "Ko'ndalang quvurlar: 2 qator, jami %(l)s m."
+msgstr "Cross rails: 2 rows, %(l)s m in total."
+
+msgid "Profnastil: to'siq yuzasi %(a)s m² + 5 foiz."
+msgstr "Corrugated sheet: fence area %(a)s m² + 5%."
+
+msgid "Ustunlarni betonlash uchun sement: har bir ustunga ~12 kg."
+msgstr "Cement for setting the posts: ~12 kg per post."
+
+msgid "Hisoblash uchun o'lchamlar yetarli emas: %(title)s."
+msgstr "Not enough dimensions to calculate: %(title)s."
+
+msgid ""
+"Birlik mos kelmadi: %(need)s %(nu)s kerak, mahsulot birligi: %(unit)s. "
+"Miqdorni tekshiring."
+msgstr ""
+"Unit mismatch: %(need)s %(nu)s needed, product unit: %(unit)s. Please check "
+"the quantity."
+
+msgid "Hisob: %(need)s %(nu)s ≈ %(qty)s %(unit)s"
+msgstr "Calculation: %(need)s %(nu)s ≈ %(qty)s %(unit)s"
+
+msgid "Omborda faqat %(stock)s bor."
+msgstr "Only %(stock)s in stock."
+
+msgid ""
+"Smeta tahlili soatiga 6 martadan ko'p emas. Birozdan so'ng qayta urinib "
+"ko'ring."
+msgstr ""
+"Estimate analysis is limited to 6 times per hour. Please try again shortly."
+
+msgid "Admin panel"
+msgstr "Admin panel"
+
+msgid "Admin paneliga kirish"
+msgstr "Admin panel login"
+
+msgid "Akkauntingiz bormi?"
+msgstr "Already have an account?"
+
+msgid "Anoraga yozing yoki o‘lchamlarni kiriting..."
+msgstr "Message Anora or enter dimensions..."
+
+msgid "Ayrim mahsulotlar endi mavjud emas."
+msgstr "Some products are no longer available."
+
+msgid ""
+"Bu akkaunt sotuvchi akkaunti emas. Xaridor sifatida asosiy saytdan kiring."
+msgstr "This is not a seller account. Sign in as a buyer on the main site."
+
+msgid ""
+"Bu akkaunt xaridor akkaunti emas. Sotuvchi yoki admin portaliga kiring."
+msgstr ""
+"This is not a buyer account. Sign in through the seller or admin portal."
+
+msgid "Bu akkauntda admin huquqi yo'q."
+msgstr "This account has no admin rights."
+
+msgid "Bu email bilan akkaunt allaqachon mavjud."
+msgstr "An account with this email already exists."
+
+msgid "Bu funksiya xaridorlar uchun."
+msgstr "This feature is for buyers only."
+
+msgid "Bu sahifa sizning rolingiz uchun emas."
+msgstr "This page is not available for your role."
+
+msgid "Do'kon"
+msgstr "Store"
+
+msgid "Do'kon egasimisiz?"
+msgstr "Are you a store owner?"
+
+msgid "Do'kon mavjud emas"
+msgstr "Store not found"
+
+msgid "Do'kon oching"
+msgstr "Open a store"
+
+msgid "Do'kon oching va mahsulotlaringizni soting"
+msgstr "Open a store and sell your products"
+
+msgid "Do'koningizni boshqaring"
+msgstr "Manage your store"
+
+msgid "Email manzilingiz"
+msgstr "Your email address"
+
+msgid "Email tasdiqlandi! Endi tizimga kirishingiz mumkin."
+msgstr "Email verified! You can now sign in."
+
+msgid ""
+"Emailingiz hali tasdiqlanmagan. Pochtangizga yuborilgan havolani bosing "
+"(Spam papkasini ham tekshiring). Yangi tasdiqlash xati yuborildi."
+msgstr ""
+"Your email is not verified yet. Click the link we emailed you (check Spam "
+"too). A new verification email has been sent."
+
+msgid "Faqat PDF/JPG/PNG/WEBP, eng ko‘pi 10 MB."
+msgstr "PDF/JPG/PNG/WEBP only, max 10 MB."
+
+msgid "Faqat kutilayotgan mahsulotni bekor qilish mumkin."
+msgstr "Only a pending item can be cancelled."
+
+msgid "Fayl formati tekshiruvdan o‘tmadi."
+msgstr "The file format failed validation."
+
+msgid "Fayl va izoh yuboring."
+msgstr "Send a file and a description."
+
+msgid "Hali sotuvchi emasmisiz?"
+msgstr "Not a seller yet?"
+
+msgid "Izoh 4000 belgidan oshmasin."
+msgstr "The description must not exceed 4000 characters."
+
+msgid "Loyiha o‘lchamlari/izohi yoki smeta faylini kiriting."
+msgstr "Enter project dimensions/description or upload an estimate file."
+
+msgid "Mahsulot bekor qilindi, zaxira qaytarildi."
+msgstr "Product cancelled, stock restored."
+
+msgid ""
+"Ombordagi qoldiq savat uchun yetarli emas: %(name)s (qoldiq %(stock)s)."
+msgstr "Not enough stock for your cart: %(name)s (in stock: %(stock)s)."
+
+msgid "STIR 9 ta, PINFL 14 ta raqamdan iborat bo'lishi kerak."
+msgstr "STIR must have 9 digits and PINFL 14 digits."
+
+msgid "Savat miqdori butun dona bo‘lishi kerak."
+msgstr "Cart quantity must be a whole number."
+
+msgid "Savat so‘rovi noto‘g‘ri."
+msgstr "Invalid cart request."
+
+msgid "Smetani tahlil qilib bo‘lmadi. Birozdan so‘ng qayta urinib ko‘ring."
+msgstr "Couldn't analyze the estimate. Please try again shortly."
+
+msgid "Sotuvchi bo'lish"
+msgstr "Become a seller"
+
+msgid "Sotuvchi kabiniga kirish"
+msgstr "Seller dashboard login"
+
+msgid "Sotuvchi paneli"
+msgstr "Seller panel"
+
+msgid "Sotuvchi portali"
+msgstr "Seller portal"
+
+msgid "Sotuvchi portaliga kiring"
+msgstr "Sign in to the seller portal"
+
+msgid "Sotuvchilar uchun"
+msgstr "For sellers"
+
+msgid "Tasdiqlash xati shu manzilga yuboriladi"
+msgstr "A verification email will be sent to this address"
+
+msgid ""
+"Tasdiqlash xatini yuborib bo'lmadi. Kirish sahifasida parolingizni kiriting,"
+" xat qayta yuboriladi."
+msgstr ""
+"Couldn't send the verification email. Enter your password on the sign-in "
+"page and it will be resent."
+
+msgid "Xarid qilish uchun akkaunt yarating"
+msgstr "Create an account to shop"
+
+msgid "Xaridor akkaunti"
+msgstr "Buyer account"
+
+msgid "Xaridor saytiga qaytish"
+msgstr "Back to the buyer site"

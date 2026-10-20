@@ -87,3 +87,15 @@ Kod: `main/anora_fallback.py`, model: `main/models.py` (`AnoraFallback`).
 ## Xavfsizlik eslatmasi
 
 Git tarixida avval commit qilingan kalitlar (masalan SSH) diskdan `git rm --cached` bilan chiqarilgan bo'lsa ham **eski commitlarda qoladi**. Kalitlarni almashtiring va kerak bo'lsa tarixni alohida tozalang (`git filter-repo` yoki BFG). Bu qadamni hosting egasi qiladi.
+
+## Smeta va hisoblagich (Anora)
+Anora oynasida xaridor smeta (PDF/rasm) yuklaydi yoki o'lchamlarni yozadi. Gemini faqat ish turi va
+o'lchamlarni ajratadi, miqdorlarni `main/estimator.py` dagi aniq formulalar hisoblaydi (hovuz, beton pol,
+devor, shtukaturka, bo'yoq, plitka, laminat, poydevor, tom, to'siq). Qolgan obyektlar uchun AI taxmini
+"tekshiring" belgisi bilan ko'rsatiladi. Kerakli miqdor mahsulot birligiga aylantiriladi (630 kg sement ->
+"Sement 50 kg" qopidan 13 ta). Tahlil soatiga 6 marta bilan cheklangan, fayl turi baytlari bo'yicha tekshiriladi.
+
+## Statik sahifalar, aloqa, kesh
+- "Biz haqimizda", yetkazib berish, qaytarish, shartlar, maxfiylik, savol-javob: `/admin/` dagi "Sahifalar" (uch tilda).
+- Footerdagi telefon/email: `SUPPORT_PHONE`, `SUPPORT_EMAIL` (.env). Bo'sh bo'lsa ko'rsatilmaydi.
+- Rate limit fayl keshida (`.cache/`, `CACHE_DIR` bilan o'zgartiriladi): bir nechta ishchi jarayon uchun umumiy.

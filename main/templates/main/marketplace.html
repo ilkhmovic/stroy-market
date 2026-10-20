@@ -116,7 +116,7 @@
         <!-- Results Header -->
 <div id="mahsulotlar" class="flex items-baseline justify-between mb-4 scroll-mt-24">
 <h2 class="text-xl font-extrabold text-gray-900">{% if request.GET.q %}«{{ request.GET.q }}{% trans "» bo'yicha natijalar" %}{% else %}{% trans "Mahsulotlar" %}{% endif %}</h2>
-<p class="text-sm text-gray-500">{{ products|length }} {% trans "ta mahsulot" %}</p>
+<p class="text-sm text-gray-500">{{ total_count }} {% trans "ta mahsulot" %}</p>
 </div>
 
 {% if products %}
@@ -142,7 +142,7 @@
 <span class="truncate">{{ product.store.name }}</span>
 </div>
 <div class="mt-auto pt-3">
-<p class="text-lg font-extrabold text-gray-900 leading-none">{{ product.price|floatformat:0 }} <span class="text-xs font-semibold">{% trans "so'm" %}</span></p>
+<p class="text-lg font-extrabold text-gray-900 leading-none">{{ product.price|floatformat:0 }} <span class="text-xs font-semibold">{% trans "so'm" %}</span> <span class="text-xs font-normal text-gray-500">/ {{ product.get_unit_display }}</span></p>
 {% if product.price >= 300000 %}
 <p class="mt-1.5 inline-block text-[11px] font-semibold text-blue-800 bg-blue-50 rounded px-1.5 py-0.5">{% trans "Nasiya: ~" %}{% widthratio product.price 6 1 %} {% trans "so'm/oy" %}</p>
 {% endif %}
@@ -151,6 +151,13 @@
 </a>
 {% endfor %}
 </div>
+{% if products.paginator.num_pages > 1 %}
+<nav class="mt-8 flex items-center justify-center gap-3" aria-label="Pagination">
+{% if products.has_previous %}<a href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ products.previous_page_number }}" class="px-4 py-2 rounded-lg border bg-white border-gray-200 text-sm font-semibold hover:border-blue-600">{% trans "Oldingi" %}</a>{% endif %}
+<span class="text-sm text-gray-500">{{ products.number }} / {{ products.paginator.num_pages }}</span>
+{% if products.has_next %}<a href="?{% if query_string %}{{ query_string }}&amp;{% endif %}page={{ products.next_page_number }}" class="px-4 py-2 rounded-lg border bg-white border-gray-200 text-sm font-semibold hover:border-blue-600">{% trans "Keyingi" %}</a>{% endif %}
+</nav>
+{% endif %}
 {% else %}
         <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
 <h3 class="text-lg font-bold text-gray-900">{% trans "Hech narsa topilmadi" %}</h3>

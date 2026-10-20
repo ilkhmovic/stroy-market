@@ -1081,14 +1081,22 @@ msgstr "Оплата курьеру картой/терминалом"
 msgid "%(name)s: omborda faqat %(stock)s qolgan. Buyurtma yaratilmadi."
 msgstr "%(name)s: на складе осталось только %(stock)s. Заказ не создан."
 
-msgid "#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi."
+msgid ""
+"#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor "
+"qilindi."
 msgstr "Товар '%(name)s' в заказе #%(order_id)s был отменен покупателем."
 
-msgid "Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
-msgstr "За отмену заказа с наличной оплатой наложен штраф в размере %(amount)s сум."
+msgid ""
+"Naqd puldagi buyurtma bekor qilingani uchun %(amount)s so'm jarima "
+"qo'llandi."
+msgstr ""
+"За отмену заказа с наличной оплатой наложен штраф в размере %(amount)s сум."
 
-msgid "Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima qo'llandi."
-msgstr "За отмену товара с наличной оплатой наложен штраф в размере %(amount)s сум."
+msgid ""
+"Naqd puldagi mahsulot bekor qilingani uchun %(amount)s so'm jarima "
+"qo'llandi."
+msgstr ""
+"За отмену товара с наличной оплатой наложен штраф в размере %(amount)s сум."
 
 msgid "'%(name)s' bekor qilindi."
 msgstr "'%(name)s' отменен."
@@ -1102,9 +1110,485 @@ msgstr "Неверное количество. Введите положител
 msgid "Mahsulot savatdan o'chirildi."
 msgstr "Товар удален из корзины."
 
-msgid "So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
+msgid ""
+"So'rovlar soni juda ko'p. Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
 msgstr "Слишком много запросов. Пожалуйста, повторите попытку через минуту."
 
 msgid "%(name)s: omborda faqat %(stock)s qolgan."
 msgstr "%(name)s: на складе осталось только %(stock)s."
 
+msgid "Assalomu alaykum! Men"
+msgstr "Здравствуйте! Я"
+
+msgid "Bugungi sotuvlarim"
+msgstr "Мои продажи сегодня"
+
+msgid "Buyurtma rasmiylashtirish"
+msgstr "Оформление заказа"
+
+msgid "Eng arzon"
+msgstr "Самые дешёвые"
+
+msgid "Eng yaxshi"
+msgstr "Лучшие"
+
+msgid "Kabinet"
+msgstr "Кабинет"
+
+msgid "Naqd pulda to'lash shartnomasi:"
+msgstr "Условия оплаты наличными:"
+
+msgid "Qanday ishlaydi"
+msgstr "Как это работает"
+
+msgid "Rasmiylashtirish"
+msgstr "Оформление"
+
+msgid "'%(name)s' savatga qo'shildi!"
+msgstr "«%(name)s» добавлен в корзину!"
+
+msgid "Yangi buyurtma! #%(n)s raqamli buyurtmada sizning mahsulotingiz bor."
+msgstr "Новый заказ! В заказе №%(n)s есть ваш товар."
+
+msgid "Oldingi"
+msgstr "Назад"
+
+msgid "Keyingi"
+msgstr "Далее"
+
+msgid "Ma'lumot"
+msgstr "Информация"
+
+msgid "kg"
+msgstr "кг"
+
+msgid "m²"
+msgstr "м²"
+
+msgid "litr"
+msgstr "л"
+
+msgid "qop"
+msgstr "мешок"
+
+msgid "tonna"
+msgstr "т"
+
+msgid "metr"
+msgstr "м"
+
+msgid "O'lchov birligi"
+msgstr "Единица измерения"
+
+msgid "'%(name)s' mahsulotingiz holati '%(status)s' ga o'zgardi."
+msgstr "Статус вашего товара «%(name)s» изменён на «%(status)s»."
+
+msgid "Sizning do'koningiz tasdiqlandi va faollashtirildi."
+msgstr "Ваш магазин подтверждён и активирован."
+
+msgid "Sizning do'koningiz rad etildi."
+msgstr "Ваш магазин отклонён."
+
+msgid "Sizning do'koningiz vaqtincha to'xtatildi."
+msgstr "Работа вашего магазина временно приостановлена."
+
+msgid ""
+"#%(n)s buyurtmadagi mahsulotlaringizni xaridor qabul qildi. Endi siz "
+"'Yetkazildi' holatiga o'tkazishingiz mumkin."
+msgstr ""
+"Покупатель получил ваши товары по заказу №%(n)s. Теперь вы можете перевести "
+"его в статус «Доставлен»."
+
+msgid ""
+"Yangi nasiya arizasi! Buyurtma #%(order_id)s, %(name)s, %(phone)s, %(term)s."
+msgstr ""
+"Новая заявка на рассрочку! Заказ №%(order_id)s, %(name)s, %(phone)s, "
+"%(term)s."
+
+msgid "'%(name)s' do'koni mahsulotlari qabul qilingani tasdiqlandi!"
+msgstr "Получение товаров магазина «%(name)s» подтверждено!"
+
+msgid "Status '%(status)s' ga o'zgartirildi."
+msgstr "Статус изменён на «%(status)s»."
+
+msgid "Tarmoq xatosi yuz berdi. Qayta urinib koʻring."
+msgstr "Ошибка сети. Попробуйте ещё раз."
+
+msgid "Tasdiqlash havolasi %(email)s manziliga yuborildi."
+msgstr "Ссылка для подтверждения отправлена на %(email)s."
+
+msgid "Havolani yuborib bo'lmadi. Birozdan so'ng qayta urinib ko'ring."
+msgstr "Не удалось отправить ссылку. Попробуйте чуть позже."
+
+msgid "Iltimos, bir daqiqadan so'ng qayta urinib ko'ring."
+msgstr "Пожалуйста, повторите попытку через минуту."
+
+msgid "Emailingiz tasdiqlandi!"
+msgstr "Ваш email подтверждён!"
+
+msgid "Havola eskirgan yoki noto'g'ri."
+msgstr "Ссылка устарела или недействительна."
+
+msgid "Bu email allaqachon ro'yxatdan o'tgan."
+msgstr "Этот email уже зарегистрирован."
+
+msgid "Email kiriting."
+msgstr "Введите email."
+
+msgid "Davom etish uchun avval emailingizni tasdiqlang."
+msgstr "Чтобы продолжить, сначала подтвердите свой email."
+
+msgid "Google orqali kirishda xatolik yuz berdi. Qayta urinib ko'ring."
+msgstr "Ошибка входа через Google. Попробуйте ещё раз."
+
+msgid "Google hisobingizdagi email tasdiqlanmagan."
+msgstr "Email в вашем аккаунте Google не подтверждён."
+
+msgid "Bu hisob faol emas."
+msgstr "Этот аккаунт неактивен."
+
+msgid "Emailingiz tasdiqlangan."
+msgstr "Ваш email подтверждён."
+
+msgid "Emailni tasdiqlash"
+msgstr "Подтверждение email"
+
+msgid "Emailingizga tasdiqlash havolasi yuboriladi. Havola 3 kun amal qiladi."
+msgstr ""
+"На ваш email будет отправлена ссылка для подтверждения. Она действует 3 дня."
+
+msgid "Havolani yuborish"
+msgstr "Отправить ссылку"
+
+msgid "Emailingiz tasdiqlanmagan. Buyurtma berish uchun uni tasdiqlang."
+msgstr "Ваш email не подтверждён. Подтвердите его, чтобы оформлять заказы."
+
+msgid "Tasdiqlash"
+msgstr "Подтвердить"
+
+msgid "Parolni unutdingizmi?"
+msgstr "Забыли пароль?"
+
+msgid "yoki"
+msgstr "или"
+
+msgid "Google orqali kirish"
+msgstr "Войти через Google"
+
+msgid "Parolni tiklash"
+msgstr "Восстановление пароля"
+
+msgid ""
+"Tasdiqlangan emailingizni kiriting, biz parolni tiklash havolasini "
+"yuboramiz."
+msgstr ""
+"Введите подтверждённый email, и мы отправим ссылку для восстановления "
+"пароля."
+
+msgid "Xat yuborildi"
+msgstr "Письмо отправлено"
+
+msgid ""
+"Agar bu email tizimda tasdiqlangan bo'lsa, parolni tiklash havolasi "
+"yuborildi. Pochtangizni tekshiring."
+msgstr ""
+"Если этот email подтверждён в системе, ссылка для восстановления пароля "
+"отправлена. Проверьте почту."
+
+msgid "Yangi parol o'rnating"
+msgstr "Установите новый пароль"
+
+msgid "Parol yangilandi"
+msgstr "Пароль обновлён"
+
+msgid "Endi yangi parol bilan tizimga kira olasiz."
+msgstr "Теперь вы можете войти с новым паролем."
+
+msgid "Parolni o'zgartirish"
+msgstr "Смена пароля"
+
+msgid "Xavfsizlik uchun joriy parolingizni kiriting."
+msgstr "Для безопасности введите текущий пароль."
+
+msgid "Parol o'zgartirildi"
+msgstr "Пароль изменён"
+
+msgid "Parolingiz muvaffaqiyatli yangilandi."
+msgstr "Ваш пароль успешно обновлён."
+
+msgid "Salom, %(name)s!"
+msgstr "Здравствуйте, %(name)s!"
+
+msgid "Emailingizni tasdiqlash uchun havolani oching:"
+msgstr "Откройте ссылку, чтобы подтвердить email:"
+
+msgid ""
+"Havola 3 kun amal qiladi. Agar siz ro'yxatdan o'tmagan bo'lsangiz, bu xatni "
+"e'tiborsiz qoldiring."
+msgstr ""
+"Ссылка действует 3 дня. Если вы не регистрировались, просто проигнорируйте "
+"это письмо."
+
+msgid "ArzonMaterial: emailni tasdiqlang"
+msgstr "ArzonMaterial: подтвердите email"
+
+msgid "ArzonMaterial: parolni tiklash"
+msgstr "ArzonMaterial: восстановление пароля"
+
+msgid "Salom!"
+msgstr "Здравствуйте!"
+
+msgid "Parolni tiklash uchun havolani oching:"
+msgstr "Откройте ссылку, чтобы восстановить пароль:"
+
+msgid "Agar siz so'ramagan bo'lsangiz, bu xatni e'tiborsiz qoldiring."
+msgstr "Если вы не запрашивали это, просто проигнорируйте письмо."
+
+msgid ""
+"Beton M200 (%(v)s m³): 1 m³ ga taxminan 300 kg sement, 0,8 t qum va 1,2 t "
+"shag'al, zaxira 5 foiz."
+msgstr ""
+"Бетон М200 (%(v)s м³): на 1 м³ примерно 300 кг цемента, 0,8 т песка и 1,2 т "
+"щебня, запас 5%."
+
+msgid "Armatura to'ri: maydon %(a)s m² (+10 foiz ustma-ust qo'yish)."
+msgstr "Арматурная сетка: площадь %(a)s м² (+10% на нахлёст)."
+
+msgid "Polietilen plyonka: maydon %(a)s m² (+15 foiz)."
+msgstr "Полиэтиленовая плёнка: площадь %(a)s м² (+15%)."
+
+msgid "Armatura: 1 m³ betonga taxminan %(k)s kg (hajm %(v)s m³)."
+msgstr "Арматура: примерно %(k)s кг на 1 м³ бетона (объём %(v)s м³)."
+
+msgid "Gidroizolyatsiya: ichki sirt %(s)s m², 3 kg/m² (2 qatlam)."
+msgstr "Гидроизоляция: внутренняя поверхность %(s)s м², 3 кг/м² (2 слоя)."
+
+msgid "Plitka: sirt %(a)s m² + 10 foiz zaxira."
+msgstr "Плитка: поверхность %(a)s м² + 10% запас."
+
+msgid "Plitka yelimi: 5 kg/m², sirt %(a)s m²."
+msgstr "Плиточный клей: 5 кг/м², поверхность %(a)s м²."
+
+msgid "Fuga: 0,5 kg/m², sirt %(a)s m²."
+msgstr "Затирка: 0,5 кг/м², поверхность %(a)s м²."
+
+msgid "Blok: devor %(a)s m², blok yuzasi %(f)s m² + 5 foiz zaxira."
+msgstr "Блоки: стена %(a)s м², площадь блока %(f)s м² + 5% запас."
+
+msgid "Blok yelimi: devor hajmi %(v)s m³, 1 m³ ga ~25 kg."
+msgstr "Клей для блоков: объём стены %(v)s м³, ~25 кг на 1 м³."
+
+msgid ""
+"G'isht: devor %(a)s m², %(k)s g'isht qalinligida, 1 m² ga %(n)s dona + 5 "
+"foiz zaxira."
+msgstr ""
+"Кирпич: стена %(a)s м², толщина %(k)s кирп., %(n)s шт. на 1 м² + 5% запас."
+
+msgid "Qorishma uchun sement: %(v)s m³ qorishma, 1 m³ ga ~250 kg."
+msgstr "Цемент для раствора: %(v)s м³ раствора, ~250 кг на 1 м³."
+
+msgid "Qorishma uchun qum: %(v)s m³ qorishma, 1 m³ ga ~1,4 t."
+msgstr "Песок для раствора: %(v)s м³ раствора, ~1,4 т на 1 м³."
+
+msgid "Shtukaturka: %(a)s m², qalinlik %(t)s mm, 1 mm/m² ga %(k)s kg."
+msgstr "Штукатурка: %(a)s м², толщина %(t)s мм, %(k)s кг на 1 мм/м²."
+
+msgid "Grunt: %(a)s m², %(r)s l/m²."
+msgstr "Грунтовка: %(a)s м², %(r)s л/м²."
+
+msgid "Bo'yoq: %(a)s m², %(c)s qatlam, 0,14 l/m² (qatlamiga), zaxira 5 foiz."
+msgstr "Краска: %(a)s м², %(c)s слоя, 0,14 л/м² (на слой), запас 5%."
+
+msgid "Laminat/parket: pol %(a)s m² + 7 foiz zaxira."
+msgstr "Ламинат/паркет: пол %(a)s м² + 7% запас."
+
+msgid "Podlojka: pol %(a)s m² + 5 foiz."
+msgstr "Подложка: пол %(a)s м² + 5%."
+
+msgid ""
+"Ruberoid: poydevor uzunligi %(l)s m, ko'ndalang kesim bo'yicha + 15 foiz."
+msgstr "Рубероид: длина фундамента %(l)s м, по периметру сечения + 15%."
+
+msgid "Tom yopish: tom yuzasi %(a)s m² + 10 foiz zaxira."
+msgstr "Кровля: площадь крыши %(a)s м² + 10% запас."
+
+msgid "Samorezlar: 1 m² ga %(n)s dona."
+msgstr "Саморезы: %(n)s шт. на 1 м²."
+
+msgid "Ustunlar: uzunlik %(l)s m, har %(s)s m da bitta + 1."
+msgstr "Столбы: длина %(l)s м, по одному через %(s)s м + 1."
+
+msgid "Ko'ndalang quvurlar: 2 qator, jami %(l)s m."
+msgstr "Поперечные трубы: 2 ряда, всего %(l)s м."
+
+msgid "Profnastil: to'siq yuzasi %(a)s m² + 5 foiz."
+msgstr "Профнастил: площадь забора %(a)s м² + 5%."
+
+msgid "Ustunlarni betonlash uchun sement: har bir ustunga ~12 kg."
+msgstr "Цемент для бетонирования столбов: ~12 кг на столб."
+
+msgid "Hisoblash uchun o'lchamlar yetarli emas: %(title)s."
+msgstr "Недостаточно размеров для расчёта: %(title)s."
+
+msgid ""
+"Birlik mos kelmadi: %(need)s %(nu)s kerak, mahsulot birligi: %(unit)s. "
+"Miqdorni tekshiring."
+msgstr ""
+"Единица не совпала: нужно %(need)s %(nu)s, единица товара: %(unit)s. "
+"Проверьте количество."
+
+msgid "Hisob: %(need)s %(nu)s ≈ %(qty)s %(unit)s"
+msgstr "Расчёт: %(need)s %(nu)s ≈ %(qty)s %(unit)s"
+
+msgid "Omborda faqat %(stock)s bor."
+msgstr "На складе только %(stock)s."
+
+msgid ""
+"Smeta tahlili soatiga 6 martadan ko'p emas. Birozdan so'ng qayta urinib "
+"ko'ring."
+msgstr "Анализ сметы не более 6 раз в час. Повторите попытку чуть позже."
+
+msgid "Admin panel"
+msgstr "Админ-панель"
+
+msgid "Admin paneliga kirish"
+msgstr "Вход в админ-панель"
+
+msgid "Akkauntingiz bormi?"
+msgstr "Уже есть аккаунт?"
+
+msgid "Anoraga yozing yoki o‘lchamlarni kiriting..."
+msgstr "Напишите Аноре или введите размеры..."
+
+msgid "Ayrim mahsulotlar endi mavjud emas."
+msgstr "Некоторые товары больше недоступны."
+
+msgid ""
+"Bu akkaunt sotuvchi akkaunti emas. Xaridor sifatida asosiy saytdan kiring."
+msgstr "Это не аккаунт продавца. Войдите как покупатель через основной сайт."
+
+msgid ""
+"Bu akkaunt xaridor akkaunti emas. Sotuvchi yoki admin portaliga kiring."
+msgstr ""
+"Это не аккаунт покупателя. Войдите через портал продавца или администратора."
+
+msgid "Bu akkauntda admin huquqi yo'q."
+msgstr "У этого аккаунта нет прав администратора."
+
+msgid "Bu email bilan akkaunt allaqachon mavjud."
+msgstr "Аккаунт с таким email уже существует."
+
+msgid "Bu funksiya xaridorlar uchun."
+msgstr "Эта функция только для покупателей."
+
+msgid "Bu sahifa sizning rolingiz uchun emas."
+msgstr "Эта страница недоступна для вашей роли."
+
+msgid "Do'kon"
+msgstr "Магазин"
+
+msgid "Do'kon egasimisiz?"
+msgstr "Вы владелец магазина?"
+
+msgid "Do'kon mavjud emas"
+msgstr "Магазин не найден"
+
+msgid "Do'kon oching"
+msgstr "Откройте магазин"
+
+msgid "Do'kon oching va mahsulotlaringizni soting"
+msgstr "Откройте магазин и продавайте свои товары"
+
+msgid "Do'koningizni boshqaring"
+msgstr "Управляйте своим магазином"
+
+msgid "Email manzilingiz"
+msgstr "Ваш email"
+
+msgid "Email tasdiqlandi! Endi tizimga kirishingiz mumkin."
+msgstr "Email подтверждён! Теперь вы можете войти."
+
+msgid ""
+"Emailingiz hali tasdiqlanmagan. Pochtangizga yuborilgan havolani bosing "
+"(Spam papkasini ham tekshiring). Yangi tasdiqlash xati yuborildi."
+msgstr ""
+"Ваш email ещё не подтверждён. Перейдите по ссылке из письма (проверьте и "
+"папку «Спам»). Новое письмо отправлено."
+
+msgid "Faqat PDF/JPG/PNG/WEBP, eng ko‘pi 10 MB."
+msgstr "Только PDF/JPG/PNG/WEBP, не более 10 МБ."
+
+msgid "Faqat kutilayotgan mahsulotni bekor qilish mumkin."
+msgstr "Отменить можно только ожидающий товар."
+
+msgid "Fayl formati tekshiruvdan o‘tmadi."
+msgstr "Формат файла не прошёл проверку."
+
+msgid "Fayl va izoh yuboring."
+msgstr "Отправьте файл и описание."
+
+msgid "Hali sotuvchi emasmisiz?"
+msgstr "Ещё не продаёте на маркете?"
+
+msgid "Izoh 4000 belgidan oshmasin."
+msgstr "Описание не должно превышать 4000 символов."
+
+msgid "Loyiha o‘lchamlari/izohi yoki smeta faylini kiriting."
+msgstr "Укажите размеры/описание проекта или загрузите файл сметы."
+
+msgid "Mahsulot bekor qilindi, zaxira qaytarildi."
+msgstr "Товар отменён, остаток возвращён на склад."
+
+msgid ""
+"Ombordagi qoldiq savat uchun yetarli emas: %(name)s (qoldiq %(stock)s)."
+msgstr ""
+"Остатка на складе недостаточно для корзины: %(name)s (остаток %(stock)s)."
+
+msgid "STIR 9 ta, PINFL 14 ta raqamdan iborat bo'lishi kerak."
+msgstr "ИНН должен состоять из 9 цифр, ПИНФЛ — из 14."
+
+msgid "Savat miqdori butun dona bo‘lishi kerak."
+msgstr "Количество в корзине должно быть целым числом."
+
+msgid "Savat so‘rovi noto‘g‘ri."
+msgstr "Некорректный запрос корзины."
+
+msgid "Smetani tahlil qilib bo‘lmadi. Birozdan so‘ng qayta urinib ko‘ring."
+msgstr "Не удалось проанализировать смету. Попробуйте чуть позже."
+
+msgid "Sotuvchi bo'lish"
+msgstr "Стать продавцом"
+
+msgid "Sotuvchi kabiniga kirish"
+msgstr "Вход в кабинет продавца"
+
+msgid "Sotuvchi paneli"
+msgstr "Панель продавца"
+
+msgid "Sotuvchi portali"
+msgstr "Портал продавца"
+
+msgid "Sotuvchi portaliga kiring"
+msgstr "Войдите в портал продавца"
+
+msgid "Sotuvchilar uchun"
+msgstr "Для продавцов"
+
+msgid "Tasdiqlash xati shu manzilga yuboriladi"
+msgstr "Письмо с подтверждением будет отправлено на этот адрес"
+
+msgid ""
+"Tasdiqlash xatini yuborib bo'lmadi. Kirish sahifasida parolingizni kiriting,"
+" xat qayta yuboriladi."
+msgstr ""
+"Не удалось отправить письмо с подтверждением. Введите пароль на странице "
+"входа, и письмо отправится снова."
+
+msgid "Xarid qilish uchun akkaunt yarating"
+msgstr "Создайте аккаунт, чтобы покупать"
+
+msgid "Xaridor akkaunti"
+msgstr "Аккаунт покупателя"
+
+msgid "Xaridor saytiga qaytish"
+msgstr "Вернуться на сайт покупателя"

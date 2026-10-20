@@ -25,7 +25,7 @@
                 <div class="flex-grow">
                     <div class="flex items-start justify-between gap-4 mb-2">
                         <p class="text-lg {% if not notif.is_read %}font-bold text-gray-900{% else %}text-gray-600{% endif %} leading-relaxed">
-                            {{ notif.message }}
+                            {{ notif.display_message }}
                         </p>
                         {% if not notif.is_read %}
                         <span class="px-3 py-1 bg-blue-900 text-white text-[9px] font-bold   rounded-full shadow-lg">{% trans "YANGI" %}</span>

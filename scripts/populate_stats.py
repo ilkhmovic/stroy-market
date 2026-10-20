@@ -1,12 +1,18 @@
 import os
+import sys
 import django
 import random
 from datetime import timedelta
 from django.utils import timezone
 
 # Setup Django environment
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
+
+from django.conf import settings
+if not settings.DEBUG:
+    raise SystemExit('Bu skript faqat development uchun (DEBUG=True kerak).')
 
 from django.contrib.auth import get_user_model
 from main.models import Product, Order, OrderItem, Store

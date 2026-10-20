@@ -99,6 +99,11 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Narxi")
     stock = models.IntegerField(default=0, verbose_name="Soni")
     image = models.ImageField(upload_to=path_and_rename('products/'), blank=True, null=True, verbose_name="Rasm")
+    UNIT_CHOICES = [
+        ('dona', _('dona')), ('kg', _('kg')), ('m2', _('m²')), ('litr', _('litr')),
+        ('qop', _('qop')), ('tonna', _('tonna')), ('metr', _('metr')),
+    ]
+    unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='dona', verbose_name="O'lchov birligi")
     name_ru = models.CharField(max_length=255, blank=True, default='', verbose_name="Nomi (ruscha)")
     name_en = models.CharField(max_length=255, blank=True, default='', verbose_name="Nomi (inglizcha)")
     description_ru = models.TextField(blank=True, default='', verbose_name="Tavsif (ruscha)")
@@ -321,11 +326,25 @@ class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
     target_url = models.CharField(max_length=255, blank=True, null=True)
+    code = models.CharField(max_length=255, blank=True, default='')
+    params = models.JSONField(default=dict, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
+
+    @property
+    def display_message(self):
+        """Xabar o'quvchining hozirgi tilida ko'rsatiladi (code bo'lsa tarjima qilinadi)."""
+        if not self.code:
+            return self.message
+        from django.utils.translation import gettext
+        params = {k: (gettext(v) if isinstance(v, str) else v) for k, v in (self.params or {}).items()}
+        try:
+            return gettext(self.code) % params
+        except (KeyError, TypeError, ValueError):
+            return self.message
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:20]}..."
@@ -354,3 +373,37 @@ class AnoraFallback(models.Model):
     def answer_for(self, lang):
         return (self.answer_ru if lang == 'ru' and self.answer_ru else
                 self.answer_en if lang == 'en' and self.answer_en else self.answer_uz)
+
+
+class Page(models.Model):
+    """Statik sahifalar (Biz haqimizda, Yetkazib berish va h.k.), admin paneldan uch tilda tahrirlanadi."""
+    slug = models.SlugField(unique=True)
+    title_uz = models.CharField(max_length=150, verbose_name="Sarlavha (o'zbekcha)")
+    title_ru = models.CharField(max_length=150, blank=True, verbose_name="Sarlavha (ruscha)")
+    title_en = models.CharField(max_length=150, blank=True, verbose_name="Sarlavha (inglizcha)")
+    body_uz = models.TextField(verbose_name="Matn (o'zbekcha)")
+    body_ru = models.TextField(blank=True, verbose_name="Matn (ruscha)")
+    body_en = models.TextField(blank=True, verbose_name="Matn (inglizcha)")
+    order = models.PositiveSmallIntegerField(default=0, verbose_name="Tartib")
+    is_published = models.BooleanField(default=True, verbose_name="E'lon qilingan")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'slug']
+        verbose_name = "Sahifa"
+        verbose_name_plural = "Sahifalar"
+
+    def __str__(self):
+        return self.title_uz
+
+    def _loc(self, field):
+        lang = (get_language() or 'uz')[:2]
+        return getattr(self, f'{field}_{lang}', '') or getattr(self, f'{field}_uz')
+
+    @property
+    def title(self):
+        return self._loc('title')
+
+    @property
+    def body(self):
+        return self._loc('body')

@@ -1,13 +1,19 @@
 import urllib.request
 import os
+import sys
 import django
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 
 # Setup Django environment
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
+
+from django.conf import settings
+if not settings.DEBUG:
+    raise SystemExit('Bu skript faqat development uchun (DEBUG=True kerak).')
 
 from main.models import Store, Category, Product, Order, OrderItem
 

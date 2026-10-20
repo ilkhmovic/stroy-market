@@ -19,9 +19,9 @@
 {% block navbar %}
 <header class="lg:hidden bg-blue-900 text-white sticky top-0 z-50">
     <div class="flex items-center justify-between h-14 px-4">
-        <button type="button" onclick="document.getElementById('portal-sidebar').classList.toggle('open')" class="w-10 h-10 rounded-lg hover:bg-white/10 text-xl" aria-label="Menu">☰</button>
+        <button type="button" onclick="document.getElementById('portal-sidebar').classList.toggle('open')" class="w-10 h-10 rounded-lg hover:bg-white/10 text-xl" aria-label="Menu">{% include "main/_icon.html" with name="menu" cls="h-5 w-5 inline-block" %}</button>
         <span class="font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span> <span class="ml-1 text-[11px] font-bold uppercase bg-white/15 rounded px-2 py-0.5">{% block panel_badge %}{% endblock %}</span></span>
-        <a href="{% block notif_url_mobile %}{% endblock %}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10">🔔</a>
+        <a href="{% block notif_url_mobile %}{% endblock %}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10">{% include "main/_icon.html" with name="bell" cls="h-5 w-5 inline-block" %}</a>
     </div>
 </header>
 {% endblock %}
@@ -34,7 +34,7 @@
     <aside id="portal-sidebar" class="lg:flex flex-col w-64 shrink-0 text-white lg:sticky lg:top-0 lg:h-screen overflow-y-auto">
         <div class="px-5 py-5 flex items-center justify-between">
             <a href="{% block home_url %}{% endblock %}" class="text-xl font-extrabold tracking-tight">{% trans "Arzon" %}<span class="text-orange-400">{% trans "Material" %}</span></a>
-            <button type="button" class="lg:hidden text-xl" onclick="document.getElementById('portal-sidebar').classList.remove('open')">✕</button>
+            <button type="button" class="lg:hidden text-xl" onclick="document.getElementById('portal-sidebar').classList.remove('open')">{% include "main/_icon.html" with name="close" cls="h-5 w-5 inline-block" %}</button>
         </div>
         <div class="px-5 pb-3"><span class="inline-block text-[11px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-300 rounded-md px-2 py-1">{{ self_badge|default:'' }}{% block panel_badge_side %}{% endblock %}</span></div>
         {% with rn=request.resolver_match.url_name %}
@@ -50,7 +50,7 @@
                     <button name="language" value="en" class="flex-1 py-2 {% if LANG == 'en' %}bg-orange-500{% else %}hover:bg-white/10{% endif %}">EN</button>
                 </form>
                 <button type="button" id="theme-toggle" aria-label="{% trans 'Tungi/kunduzgi rejim' %}" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center">
-                    <span class="theme-moon">🌙</span><span class="theme-sun">☀️</span>
+                    <span class="theme-moon">{% include "main/_icon.html" with name="moon" cls="h-5 w-5 inline-block" %}</span><span class="theme-sun">{% include "main/_icon.html" with name="sun" cls="h-5 w-5 inline-block" %}</span>
                 </button>
             </div>
             <div class="flex items-center justify-between gap-2">

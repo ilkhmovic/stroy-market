@@ -44,6 +44,13 @@
                 class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm resize-none">{{ form.description.value|default:'' }}</textarea>
         </div>
 
+        <div>
+            <label class="block text-sm font-bold text-gray-900 mb-1">{% trans "O'lchov birligi" %}</label>
+            <select name="unit" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                {% for value, label in form.fields.unit.choices %}<option value="{{ value }}" {% if form.unit.value == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+
         <div class="space-y-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
             <p class="text-sm font-bold text-gray-900">{% trans "Boshqa tillar (ixtiyoriy)" %}</p>
             <p class="text-xs text-gray-500">{% trans "Bo'sh qoldirsangiz, o'zbekcha matn ko'rsatiladi." %}</p>

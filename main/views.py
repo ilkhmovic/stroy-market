@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
@@ -12,7 +13,9 @@ from django.db import transaction, connection
 from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
-from django.utils.translation import gettext, get_language
+from django.utils.translation import gettext, get_language, gettext_noop
+from django.core.paginator import Paginator
+from .notifications import notify, uz
 from datetime import timedelta
 from .models import User, Product, Store, Category, Cart, CartItem, Order, OrderItem, Review, Notification, Brand, Region, NasiyaApplication
 from .forms import UserRegisterForm, SellerRegisterForm, BuyerAuthForm, SellerAuthForm, AdminAuthForm, StoreForm, ProductForm, BuyerProfileForm, ReviewForm, CategoryForm, UserAdminForm, OrderAdminForm, NotificationForm, BrandForm, RegionForm, NasiyaApplicationForm, NasiyaAdminForm
@@ -196,7 +199,7 @@ def marketplace(request):
     region_ids = request.GET.getlist('regions')
     
     if q:
-        products = products.filter(name__icontains=q)
+        products = products.filter(Q(name__icontains=q) | Q(name_ru__icontains=q) | Q(name_en__icontains=q))
     if category_slug:
         products = products.filter(category__slug=category_slug)
     if min_price:
@@ -217,8 +220,14 @@ def marketplace(request):
     brands = Brand.objects.all()
     regions = Region.objects.all()
         
+    paginator = Paginator(products, 24)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    qs = request.GET.copy()
+    qs.pop('page', None)
     return render(request, 'main/marketplace.html', {
-        'products': products,
+        'products': page_obj,
+        'total_count': paginator.count,
+        'query_string': qs.urlencode(),
         'top_sellers': top_sellers,
         'categories': categories,
         'brands': brands,
@@ -565,11 +574,7 @@ def checkout(request):
                 def _notify_after_commit():
                     try:
                         for seller_id in seller_ids:
-                            Notification.objects.create(
-                                user_id=seller_id,
-                                message=gettext("Yangi buyurtma! #%(n)s raqamli buyurtmada sizning mahsulotingiz bor.") % {'n': order_id},
-                                target_url='/seller/orders/'
-                            )
+                            notify(None, gettext_noop("Yangi buyurtma! #%(n)s raqamli buyurtmada sizning mahsulotingiz bor."), {'n': order_id}, target_url='/seller/orders/', user_id=seller_id)
                         if app_id:
                             notify_managers(NasiyaApplication.objects.get(pk=app_id))
                     except Exception:
@@ -663,14 +668,7 @@ def cancel_order(request, order_id):
                 cancelled_any = True
                 # Notify seller
                 if item.product and item.product.store:
-                    Notification.objects.create(
-                        user=item.product.store.owner,
-                        message=gettext("#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi.") % {
-                            'order_id': order.pk,
-                            'name': item.product_name,
-                        },
-                        target_url='/seller/orders/'
-                    )
+                    notify(item.product.store.owner, gettext_noop("#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi."), { 'order_id': order.pk, 'name': item.product_name, }, target_url='/seller/orders/')
                 
                 # Apply penalty for each pending item being cancelled
                 old_penalty = order.penalty_amount
@@ -704,14 +702,7 @@ def cancel_order_item(request, item_id):
         if restore_item_stock_once(item):
             # Notify seller
             if item.product and item.product.store:
-                Notification.objects.create(
-                    user=item.product.store.owner,
-                    message=gettext("#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi.") % {
-                        'order_id': item.order.pk,
-                        'name': item.product_name,
-                    },
-                    target_url='/seller/orders/'
-                )
+                notify(item.product.store.owner, gettext_noop("#%(order_id)s buyurtmadagi '%(name)s' mahsuloti xaridor tomonidan bekor qilindi."), { 'order_id': item.order.pk, 'name': item.product_name, }, target_url='/seller/orders/')
                 
             old_penalty = item.order.penalty_amount
             item.order.apply_penalty(item=item)
@@ -825,12 +816,8 @@ def update_order_item_status(request, item_id):
                 item.save()
 
                 # Notify buyer
-                Notification.objects.create(
-                    user=item.order.user,
-                    message=f"'{item.product_name}' mahsulotingiz holati '{item.get_status_display()}' ga o'zgardi.",
-                    target_url=f"/order/{item.order.pk}/"
-                )
-                messages.success(request, f"Status '{item.get_status_display()}' ga o'zgartirildi.")
+                notify(item.order.user, gettext_noop("'%(name)s' mahsulotingiz holati '%(status)s' ga o'zgardi."), {'name': item.product_name, 'status': uz(item.get_status_display())}, target_url=f"/order/{item.order.pk}/")
+                messages.success(request, gettext("Status '%(status)s' ga o'zgartirildi.") % {'status': item.get_status_display()})
             
     return redirect('seller_orders')
 
@@ -1064,16 +1051,13 @@ def admin_store_status(request, store_id, status):
         store.save()
         
         status_map = {
-            'active': 'tasdiqlandi va faollashtirildi',
-            'rejected': 'rad etildi',
-            'suspended': 'vaqtinchalik to\'xtatildi'
+            'active': gettext_noop("Sizning do'koningiz tasdiqlandi va faollashtirildi."),
+            'rejected': gettext_noop("Sizning do'koningiz rad etildi."),
+            'suspended': gettext_noop("Sizning do'koningiz vaqtincha to'xtatildi."),
         }
         msg = status_map.get(status)
         
-        Notification.objects.create(
-            user=store.owner,
-            message=f"Sizning do'koningiz {msg}."
-        )
+        notify(store.owner, msg)
         messages.success(request, f"Do'kon holati '{status}' ga o'zgartirildi.")
     return redirect('admin_dashboard')
 
@@ -1095,13 +1079,9 @@ def confirm_store_receipt(request, order_id, store_id):
     
     # Notify ONLY the relevant store owner
     store = get_object_or_404(Store, pk=store_id)
-    Notification.objects.create(
-        user=store.owner,
-        message=f"#{order.pk} buyurtmadagi mahsulotlaringizni xaridor qabul qildi. Endi siz 'Yetkazildi' holatiga o'tkazishingiz mumkin.",
-        target_url='/seller/orders/'
-    )
+    notify(store.owner, gettext_noop("#%(n)s buyurtmadagi mahsulotlaringizni xaridor qabul qildi. Endi siz 'Yetkazildi' holatiga o'tkazishingiz mumkin."), {'n': order.pk}, target_url='/seller/orders/')
     
-    messages.success(request, f"'{store.name}' do'koni mahsulotlari qabul qilingani tasdiqlandi!")
+    messages.success(request, gettext("'%(name)s' do'koni mahsulotlari qabul qilingani tasdiqlandi!") % {'name': store.name})
     return redirect('order_detail', order_id=order.pk)
 
 
@@ -1126,27 +1106,50 @@ def ai_project_estimate(request):
         allowed = {'pdf', 'png', 'jpg', 'jpeg', 'webp'}
         if suffix not in allowed or upload.size > 10 * 1024 * 1024:
             return JsonResponse({'success': False, 'error': gettext('Faqat PDF/JPG/PNG/WEBP, eng ko‘pi 10 MB.')}, status=400)
-        if upload.content_type not in {'application/pdf', 'image/png', 'image/jpeg', 'image/webp'}:
+        from .ai_project import sniff_mime
+        head = upload.read(16)
+        upload.seek(0)
+        real = sniff_mime(head)
+        if not real or real != upload.content_type:
             return JsonResponse({'success': False, 'error': gettext('Fayl formati tekshiruvdan o‘tmadi.')}, status=400)
+    from .ai_limits import project_rate_limited
+    if project_rate_limited(request):
+        return JsonResponse({'success': False, 'error': gettext("Smeta tahlili soatiga 6 martadan ko'p emas. Birozdan so'ng qayta urinib ko'ring.")}, status=429)
     try:
         from .ai_project import analyze_project, catalog_matches, normalize_quantity
-        estimate = analyze_project(message, upload)
+        from .estimator import calculate_works, cart_quantity
+        estimate = analyze_project(message, upload, (get_language() or 'uz')[:2])
+        work_items, work_notes = calculate_works(estimate.get('works', []))
+        estimate['assumptions'] = (estimate['assumptions'] + work_notes)[:12]
         rows = []
-        for line in estimate['items']:
+        for line in estimate['items'] + work_items:
             query = str(line.get('query', '')).strip()[:180]
             quantity = normalize_quantity(line.get('quantity'))
             if not query or quantity is None:
                 continue
             matches = catalog_matches(query)
-            rows.append({
-                'query': query, 'quantity': str(quantity),
-                'unit': str(line.get('unit', 'dona'))[:30],
-                'reason': str(line.get('reason', ''))[:300],
-                'matches': [{
-                    'id': p.pk, 'name': p.display_name,
-                    'store': p.store.name, 'price': str(p.price),
+            unit = str(line.get('unit', 'dona'))[:30]
+            match_rows = []
+            for p in matches:
+                qty, converted, unit_ok = cart_quantity(quantity, unit, p)
+                note = ''
+                if not unit_ok:
+                    note = gettext('Birlik mos kelmadi: %(need)s %(nu)s kerak, mahsulot birligi: %(unit)s. Miqdorni tekshiring.') % {
+                        'need': quantity, 'nu': unit, 'unit': p.get_unit_display()}
+                elif converted:
+                    note = gettext('Hisob: %(need)s %(nu)s ≈ %(qty)s %(unit)s') % {
+                        'need': quantity, 'nu': unit, 'qty': qty, 'unit': p.get_unit_display()}
+                if qty > p.stock:
+                    note = (note + ' ' + gettext('Omborda faqat %(stock)s bor.') % {'stock': p.stock}).strip()
+                match_rows.append({
+                    'id': p.pk, 'name': p.display_name, 'store': p.store.name, 'price': str(p.price),
                     'stock': p.stock, 'url': reverse('product_detail', args=[p.pk]),
-                } for p in matches],
+                    'unit': str(p.get_unit_display()), 'cart_quantity': min(qty, p.stock),
+                    'short': qty > p.stock, 'note': note,
+                })
+            rows.append({
+                'query': query, 'quantity': str(quantity), 'unit': unit,
+                'reason': str(line.get('reason', ''))[:300], 'matches': match_rows,
             })
         return JsonResponse({'success': True, 'project_type': estimate['project_type'], 'assumptions': estimate['assumptions'], 'items': rows})
     except Exception as exc:
@@ -1241,3 +1244,10 @@ def ai_chat(request):
     if manual:
         return JsonResponse({'success': True, 'response': manual, 'source': 'manual'})
     return JsonResponse({'success': False, 'response': gettext("Hozir javob bera olmayman. Birozdan so'ng qayta urinib ko'ring.")})
+
+
+def page(request, slug):
+    """Statik sahifa (admin paneldan uch tilda tahrirlanadi)."""
+    from .models import Page
+    obj = get_object_or_404(Page, slug=slug, is_published=True)
+    return render(request, 'main/page.html', {'page': obj})
