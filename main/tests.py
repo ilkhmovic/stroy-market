@@ -743,3 +743,80 @@ class GeminiAndPasswordTests(TestCase):
         self.client.force_login(u)
         self.assertContains(self.client.get(reverse('marketplace')), reverse('account_set_password'))
         self.assertEqual(self.client.get(reverse('account_set_password')).status_code, 200)
+
+
+from django.test import override_settings as _override
+
+_HOSTS = dict(ALLOWED_HOSTS=['matbaza.uz', 'seller.matbaza.uz', 'admin.matbaza.uz', 'testserver'],
+              MAIN_HOST='matbaza.uz', SELLER_HOST='seller.matbaza.uz', ADMIN_HOST='admin.matbaza.uz')
+
+
+@_override(**_HOSTS)
+class HostRoutingTests(TestCase):
+    def get(self, host, path):
+        return self.client.get(path, HTTP_HOST=host)
+
+    def test_each_host_serves_its_own_portal(self):
+        r = self.get('matbaza.uz', '/')
+        self.assertEqual((r.status_code, r['X-Portal']), (200, 'buyer'))
+        r = self.get('seller.matbaza.uz', '/')                    # sotuvchi paneli: kirmagan odam login sahifasiga
+        self.assertEqual(r['X-Portal'], 'seller')
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(r['Location'].startswith('/seller/login/'))
+        r = self.get('seller.matbaza.uz', '/login/')              # toza manzil ham sotuvchi kirishiga olib boradi
+        self.assertEqual((r.status_code, r['X-Portal']), (200, 'seller'))
+        self.assertEqual(self.get('seller.matbaza.uz', '/seller/login/').status_code, 200)
+        r = self.get('admin.matbaza.uz', '/')
+        self.assertEqual((r.status_code, r['X-Portal']), (302, 'admin'))
+        self.assertTrue(r['Location'].startswith('/panel/login/'))
+        self.assertEqual(self.get('admin.matbaza.uz', '/login/').status_code, 200)
+
+    def test_main_host_redirects_portal_paths_to_subdomains(self):
+        r = self.get('matbaza.uz', '/seller/login/')
+        self.assertEqual((r.status_code, r['Location']), (302, 'http://seller.matbaza.uz/login/'))
+        r = self.client.get('/panel/?x=1', HTTP_HOST='matbaza.uz')
+        self.assertEqual(r['Location'], 'http://admin.matbaza.uz/?x=1')
+        r = self.client.post('/seller/login/', {}, HTTP_HOST='matbaza.uz')         # POST yo'naltirilmaydi
+        self.assertNotIn('seller.matbaza.uz', r.get('Location', ''))
+
+    def test_shared_paths_work_on_every_host(self):
+        for host in ('matbaza.uz', 'seller.matbaza.uz', 'admin.matbaza.uz'):
+            self.assertEqual(self.get(host, '/accounts/password/reset/').status_code, 200, host)   # parolni tiklash
+            self.assertEqual(self.get(host, '/p/about/').status_code, 200, host)                   # statik sahifalar
+        self.assertIn(self.get('admin.matbaza.uz', '/admin/').status_code, (200, 302))             # Django admin 404 bermasin
+        self.assertNotEqual(self.get('admin.matbaza.uz', '/admin/').status_code, 404)
+
+    def test_cross_portal_links_are_absolute(self):
+        self.assertContains(self.get('matbaza.uz', '/'), 'http://seller.matbaza.uz/login/')
+        self.assertContains(self.get('matbaza.uz', '/login/'), 'http://seller.matbaza.uz/login/')
+        self.assertContains(self.get('seller.matbaza.uz', '/login/'), 'href="http://matbaza.uz/"')
+
+    def test_unknown_host_rejected(self):
+        self.assertEqual(self.get('evil.example.com', '/').status_code, 400)
+
+    @_override(SELLER_HOST='', ADMIN_HOST='', MAIN_HOST='')
+    def test_without_domains_nothing_changes(self):
+        r = self.get('testserver', '/seller/login/')
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.has_header('X-Portal'))
+        self.assertEqual(self.get('testserver', '/').status_code, 200)
+
+    @_override(SITE_DOMAIN='matbaza.uz')
+    def test_site_domain_follows_settings(self):
+        from django.apps import apps
+        from django.contrib.sites.models import Site
+        from .apps import set_site_domain
+        set_site_domain(sender=apps.get_app_config('main'))
+        self.assertEqual(Site.objects.get(pk=1).domain, 'matbaza.uz')
+
+    def test_base_domain_derives_all_hosts(self):
+        import importlib, os
+        from unittest import mock as _m
+        env = {'SECRET_KEY': 'x', 'DEBUG': 'True', 'BASE_DOMAIN': 'Matbaza.uz'}
+        with _m.patch.dict(os.environ, env):
+            import config.settings as cs
+            cs = importlib.reload(cs)
+            self.assertEqual((cs.MAIN_HOST, cs.SELLER_HOST, cs.ADMIN_HOST), ('matbaza.uz', 'seller.matbaza.uz', 'admin.matbaza.uz'))
+            self.assertIn('seller.matbaza.uz', cs.ALLOWED_HOSTS)
+            self.assertIn('https://admin.matbaza.uz', cs.CSRF_TRUSTED_ORIGINS)
+        importlib.reload(cs)

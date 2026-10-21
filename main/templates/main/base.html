@@ -61,7 +61,7 @@
             <span class="hidden sm:inline truncate">{% trans "Sifatli qurilish materiallari onlayn bozori" %}</span>
             <div class="flex items-center gap-3 ml-auto">
                 {% if not user.is_authenticated or user_role == 'buyer' %}
-                <a href="{% url 'seller_login' %}" class="hidden sm:inline hover:text-white transition">{% trans "Sotuvchilar uchun" %}</a>
+                <a href="{{ seller_login_url }}" class="hidden sm:inline hover:text-white transition">{% trans "Sotuvchilar uchun" %}</a>
                 {% endif %}
                 <form action="{% url 'set_language' %}" method="post" class="flex items-center font-bold rounded-md overflow-hidden border border-white/15">
                     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -211,7 +211,7 @@
                 <h4 class="text-white font-semibold mb-2">{% trans "Havolalar" %}</h4>
                 <ul class="text-sm space-y-1">
                     <li><a href="{% url 'marketplace' %}" class="hover:text-white transition">{% trans "Bozor" %}</a></li>
-                    <li><a href="{% url 'seller_login' %}" class="hover:text-white transition">{% trans "Sotuvchi bo'lish" %}</a></li>
+                    <li><a href="{{ seller_login_url }}" class="hover:text-white transition">{% trans "Sotuvchi bo'lish" %}</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'profile' %}" class="hover:text-white transition">{% trans "Profil" %}</a></li>
                         {% if user.is_superuser %}

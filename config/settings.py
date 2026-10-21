@@ -48,10 +48,22 @@ else:
 
 ADMIN_URL = os.getenv('ADMIN_URL', 'admin/').strip('/') + '/'
 
-# Ixtiyoriy: alohida domenlar (masalan seller.example.uz / admin.example.uz).
-# Bo'sh qoldirilsa portallar asosiy domenda /seller/ va /panel/ da ishlaydi.
-SELLER_HOST = os.getenv('SELLER_HOST', '').strip()
-ADMIN_HOST = os.getenv('ADMIN_HOST', '').strip()
+# Subdomenli portallar. Eng oson yo'l: bitta BASE_DOMAIN (masalan matbaza.uz) berish:
+#   matbaza.uz -> xaridorlar, seller.matbaza.uz -> sotuvchilar, admin.matbaza.uz -> admin.
+# Kerak bo'lsa SELLER_HOST / ADMIN_HOST / MAIN_HOST bilan alohida o'zgartirish mumkin.
+# Hech biri berilmasa portallar bitta domenda /seller/ va /panel/ da ishlaydi.
+BASE_DOMAIN = os.getenv('BASE_DOMAIN', '').strip().lower()
+MAIN_HOST = os.getenv('MAIN_HOST', BASE_DOMAIN).strip()
+SELLER_HOST = os.getenv('SELLER_HOST', 'seller.' + BASE_DOMAIN if BASE_DOMAIN else '').strip()
+ADMIN_HOST = os.getenv('ADMIN_HOST', 'admin.' + BASE_DOMAIN if BASE_DOMAIN else '').strip()
+
+# Portal domenlari ALLOWED_HOSTS ga o'zi qo'shiladi (unutib qoldirilsa 400 xatosi chiqmasligi uchun)
+_portal_hosts = [h for h in (MAIN_HOST, 'www.' + MAIN_HOST if MAIN_HOST else '', SELLER_HOST, ADMIN_HOST) if h]
+ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [h for h in _portal_hosts if h not in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()] + [
+    'https://' + h for h in _portal_hosts]
+# Email havolalaridagi domen (django.contrib.sites). Migratsiyadan keyin avtomatik yangilanadi.
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', MAIN_HOST).strip()
 
 
 # Application definition

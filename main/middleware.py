@@ -10,6 +10,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import resolve, Resolver404
 
+from .hosts import host_url, portal_of, routing_enabled
 from .roles import get_role, home_url, SELLER, ADMIN
 
 BUYER_ONLY_URL_NAMES = {
@@ -19,30 +20,39 @@ BUYER_ONLY_URL_NAMES = {
     'notifications',
 }
 
-# Domen rejimida prefiks qo'shilmaydigan yo'llar
-_SHARED_PREFIXES = ('/static/', '/media/', '/i18n/', '/api/ai/', '/notification/read/')
+def _shared_prefixes():
+    """Domen rejimida portal prefiksi QO'SHILMAYDIGAN yo'llar (hamma domenda bir xil ishlaydi)."""
+    return ('/static/', '/media/', '/i18n/', '/api/ai/', '/notification/read/',
+            '/accounts/', '/p/', '/home/', '/' + settings.ADMIN_URL)
 
 
 class PortalHostMiddleware:
+    """seller.<domen> -> /seller/..., admin.<domen> -> /panel/... Asosiy domendagi /seller va /panel
+    yo'llari tegishli subdomenga yo'naltiriladi. Javobga X-Portal sarlavhasi qo'shiladi (diagnostika uchun)."""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        seller_host = getattr(settings, 'SELLER_HOST', '')
-        admin_host = getattr(settings, 'ADMIN_HOST', '')
-        if seller_host or admin_host:
-            host = request.get_host().split(':')[0].lower()
-            prefix = None
-            if seller_host and host == seller_host.lower():
-                prefix = '/seller'
-            elif admin_host and host == admin_host.lower():
-                prefix = '/panel'
-            if prefix:
-                path = request.path_info
-                already = path == prefix or path.startswith(prefix + '/')
-                if not already and not path.startswith(_SHARED_PREFIXES):
-                    request.path_info = prefix + path
-        return self.get_response(request)
+        if not routing_enabled():
+            return self.get_response(request)
+        portal = portal_of(request)
+        request.portal = portal
+        path = request.path_info
+        shared = path.startswith(_shared_prefixes())
+        prefix = {'seller': '/seller', 'admin': '/panel'}.get(portal)
+        if prefix:
+            if not shared and not (path == prefix or path.startswith(prefix + '/')):
+                request.path_info = prefix + path
+        elif request.method in ('GET', 'HEAD') and not shared:
+            for pfx, target in (('/seller', settings.SELLER_HOST), ('/panel', settings.ADMIN_HOST)):
+                if target and (path == pfx or path.startswith(pfx + '/')):
+                    url = host_url(request, target, path[len(pfx):] or '/')
+                    qs = request.META.get('QUERY_STRING')
+                    return redirect(url + ('?' + qs if qs else ''))
+        response = self.get_response(request)
+        response['X-Portal'] = portal
+        return response
 
 
 class RoleSeparationMiddleware:

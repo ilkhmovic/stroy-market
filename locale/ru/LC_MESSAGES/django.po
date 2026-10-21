@@ -1623,3 +1623,16 @@ msgid ""
 "o'zgarmaydi."
 msgstr ""
 "Если вы не запрашивали это, проигнорируйте письмо: пароль не изменится."
+
+msgid "Email orqali ro'yxatdan o'tish"
+msgstr "Регистрация по email"
+
+msgid ""
+"Google email allaqachon akkauntga tegishli bo'lsa, parol so'ralmasdan shu "
+"akkauntga kiriladi."
+msgstr ""
+"Если этот email Google уже привязан к аккаунту, вход в него будет выполнен "
+"без запроса пароля."
+
+msgid "Google orqali kirish / ro'yxatdan o'tish"
+msgstr "Вход / регистрация через Google"

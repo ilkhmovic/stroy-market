@@ -99,3 +99,11 @@ devor, shtukaturka, bo'yoq, plitka, laminat, poydevor, tom, to'siq). Qolgan obye
 - "Biz haqimizda", yetkazib berish, qaytarish, shartlar, maxfiylik, savol-javob: `/admin/` dagi "Sahifalar" (uch tilda).
 - Footerdagi telefon/email: `SUPPORT_PHONE`, `SUPPORT_EMAIL` (.env). Bo'sh bo'lsa ko'rsatilmaydi.
 - Rate limit fayl keshida (`.cache/`, `CACHE_DIR` bilan o'zgartiriladi): bir nechta ishchi jarayon uchun umumiy.
+
+## Subdomenlar (seller.<domen>, admin.<domen>)
+1. DNS: `matbaza.uz`, `seller.matbaza.uz`, `admin.matbaza.uz` uchun A (yoki CNAME) yozuvlari **bitta serverga/ilovaga** qaratilsin.
+2. Hosting/veb-server har uch domenni **shu bitta Django ilovasiga** yo'naltirsin (Nginx `server_name` yoki hostingdagi domen sozlamasi).
+   Subdomenni alohida "sayt" qilib, asosiy domenga redirect (yo'naltirish) qo'ymang.
+3. `.env`: `BASE_DOMAIN=matbaza.uz` (SSL sertifikat har uch domenni qamrab olsin, masalan wildcard `*.matbaza.uz`).
+4. Tekshirish: `curl -I https://seller.matbaza.uz/` javobida `X-Portal: seller` sarlavhasi bo'lishi kerak (admin uchun `admin`).
+   Agar `Location: https://matbaza.uz...` chiqsa va `X-Portal` yo'q bo'lsa, yo'naltirishni Django emas, hosting/DNS qilyapti.

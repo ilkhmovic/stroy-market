@@ -1622,3 +1622,16 @@ msgid ""
 "o'zgarmaydi."
 msgstr ""
 "If you didn't request this, ignore this email: your password won't change."
+
+msgid "Email orqali ro'yxatdan o'tish"
+msgstr "Sign up with email"
+
+msgid ""
+"Google email allaqachon akkauntga tegishli bo'lsa, parol so'ralmasdan shu "
+"akkauntga kiriladi."
+msgstr ""
+"If your Google email already belongs to an account, you will be signed in to"
+" it without a password."
+
+msgid "Google orqali kirish / ro'yxatdan o'tish"
+msgstr "Sign in / sign up with Google"
