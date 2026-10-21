@@ -240,9 +240,9 @@ EMAIL_BACKEND = (
 
 # Gemini AI API Key
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-GEMINI_CHAT_MODEL = os.getenv('GEMINI_CHAT_MODEL', 'gemini-3.8-flash')
-GEMINI_CHAT_FALLBACK_MODEL = os.getenv('GEMINI_CHAT_FALLBACK_MODEL', 'gemini-3.5-flash-lite')
-GEMINI_PROJECT_MODEL = os.getenv('GEMINI_PROJECT_MODEL', 'gemini-3.8-flash')
+GEMINI_CHAT_MODEL = os.getenv('GEMINI_CHAT_MODEL', 'gemini-3.5-flash')
+GEMINI_CHAT_FALLBACK_MODEL = os.getenv('GEMINI_CHAT_FALLBACK_MODEL', 'gemini-3.1-flash-lite')
+GEMINI_PROJECT_MODEL = os.getenv('GEMINI_PROJECT_MODEL', 'gemini-3.5-flash')
 
 # Nasiya arizalarini menejerga Telegram orqali yuborish (ixtiyoriy)
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')

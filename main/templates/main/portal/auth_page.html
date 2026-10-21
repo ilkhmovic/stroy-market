@@ -17,6 +17,7 @@
             {% if subtitle %}<p class="text-center text-gray-500 text-sm mb-5">{{ subtitle }}</p>{% endif %}
             {% include 'main/_auth_form.html' %}
             <div class="mt-5 text-center text-sm text-gray-600 space-y-2">
+                {% if show_forgot %}<p><a href="{% url 'account_reset_password' %}" class="text-blue-600 hover:underline">{% trans "Parolni unutdingizmi?" %}</a></p>{% endif %}
                 {% if alt_url %}<p>{{ alt_text }} <a href="{{ alt_url }}" class="text-blue-600 ml-1 hover:underline">{{ alt_label }}</a></p>{% endif %}
                 {% if show_buyer_link %}<p class="pt-3 border-t border-gray-100"><a href="{% url 'marketplace' %}" class="text-gray-500 hover:underline">← {% trans "Xaridor saytiga qaytish" %}</a></p>{% endif %}
             </div>

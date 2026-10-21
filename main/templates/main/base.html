@@ -146,6 +146,7 @@
                                 </svg>
                                {% trans "Profilim" %}
                             </a>
+                            <a href="{% if user.has_usable_password %}{% url 'account_change_password' %}{% else %}{% url 'account_set_password' %}{% endif %}" class="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">{% if user.has_usable_password %}{% trans "Parolni o'zgartirish" %}{% else %}{% trans "Parol o'rnatish" %}{% endif %}</a>
                             
                             <hr class="border-gray-100">
                             <form action="{% url 'logout' %}" method="post">
@@ -435,6 +436,14 @@
         if (show) scrollMessages();
     }
 
+    const ANORA_I18N = {
+        cartAdding: '{% trans "Tanlangan mahsulotlar savatga qo'shilmoqda. Natijani yuqoridagi kartada ko'ring." as t1 %}{{ t1|escapejs }}',
+        needEstimate: '{% trans "Avval smeta yuboring yoki o'lchamlarni yozing (masalan: hovuz 6x3 m, chuqurligi 1,5 m). Shundan keyin «savatga qo'sh» desangiz, mahsulotlarni savatga yig'ib beraman." as t2 %}{{ t2|escapejs }}'
+    };
+    let anoraLastProject = null;
+    function isAnoraCartIntent(message) {
+        return /(savat|korzin|корзин|добав|olib\s*ber|yig['’‘ʻ]?ib\s*ber|qo['’‘ʻ]?sh(?:ib)?\s*ber|add\s+(?:it\s+|them\s+|all\s+)?to\s+(?:the\s+)?cart|\bcart\b)/i.test(message || '');
+    }
     function anoraCsrfToken() {
         const cookie = document.cookie.split(';').map(x => x.trim()).find(x => x.startsWith('csrftoken='));
         return document.querySelector('[name=csrfmiddlewaretoken]')?.value || (cookie ? decodeURIComponent(cookie.slice('csrftoken='.length)) : '{{ csrf_token }}');
@@ -453,7 +462,7 @@
 
     function isAnoraProjectRequest(message, file) {
         if (file) return true;
-        return /(?:smeta|smetani|hisobla|hisob-kitob|qancha kerak|material(?:lar)? kerak|qurilish(?: loyihasi)?|hovuz|basseyn|beton|sement|pol quy|maydonni beton|poydevor|devor qur|project estimate|bill of quantities|pool|concrete slab|\bm[²2]\b|\bm[³3]\b|\d+(?:[.,]\d+)?\s*[x×*]\s*\d+(?:[.,]\d+)?)/i.test(message || '');
+        return /(?:smeta|smetani|hisobla|hisob-kitob|qancha kerak|material(?:lar)? kerak|qurilish(?: loyihasi)?|hovuz|basseyn|beton|sement|pol quy|maydonni beton|poydevor|devor qur|смет|рассчит|сколько\s+нужно|бассейн|бетон|цемент|стяжк|фундамент|штукатур|кирпич|забор|кровл|project estimate|bill of quantities|how much|pool|concrete slab|screed|foundation|\bm[²2]\b|\bm[³3]\b|\d+(?:[.,]\d+)?\s*[x×*]\s*\d+(?:[.,]\d+)?)/i.test(message || '');
     }
 
     function anoraRenderProject(data) {
@@ -498,7 +507,7 @@
                 add.textContent='Savatni ochish'; add.onclick=()=>window.location.href=result.cart_url;
             } catch(error) { total.textContent=error.message||'Savatga qo‘shib bo‘lmadi.'; add.disabled=false; add.textContent='Tanlangan mahsulotlarni savatga qo‘shish'; }
         });
-        card.appendChild(add); container.appendChild(card); scrollMessages();
+        card.appendChild(add); container.appendChild(card); anoraLastProject = {card, add}; scrollMessages();
     }
 
     async function sendAnora(event) {
@@ -525,7 +534,14 @@
         sendButton.disabled = true;
         try {
             const csrfToken = anoraCsrfToken();
-            if (isAnoraProjectRequest(message, file)) {
+            if (!file && isAnoraCartIntent(message) && anoraLastProject && document.body.contains(anoraLastProject.card) && !anoraLastProject.add.disabled) {
+                showTyping(false);
+                anoraLastProject.add.click();     // kartadagi tugma bilan bir xil mantiq
+                addMessage(ANORA_I18N.cartAdding, false);
+            } else if (!file && isAnoraCartIntent(message) && !isAnoraProjectRequest(message, null)) {
+                showTyping(false);
+                addMessage(ANORA_I18N.needEstimate, false);
+            } else if (isAnoraProjectRequest(message, file)) {
                 const body = new FormData();
                 body.append('message', message);
                 if (file) body.append('estimate', file);

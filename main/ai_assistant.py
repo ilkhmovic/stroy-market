@@ -303,22 +303,21 @@ Foydalanuvchi MEHMON (tizimga kirmagan). Unga quyidagilar bo'yicha yordam ber:
         # Try models in order of preference
         # Prefer currently supported Gemini models; keep a lighter fallback for transient load.
         models_to_try = [
-            getattr(settings, 'GEMINI_CHAT_MODEL', 'gemini-3.8-flash'),
-            getattr(settings, 'GEMINI_CHAT_FALLBACK_MODEL', 'gemini-3.5-flash-lite'),
+            getattr(settings, 'GEMINI_CHAT_MODEL', 'gemini-3.5-flash'),
+            getattr(settings, 'GEMINI_CHAT_FALLBACK_MODEL', 'gemini-3.1-flash-lite'),
         ]
         last_error = None
 
         for model_name in models_to_try:
             try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=contents,
-                    config={
-                        "system_instruction": full_system,
-                        "temperature": 0.7,
-                        "max_output_tokens": 1024,
-                    }
-                )
+                from . import gemini
+                response = gemini.call(model_name, contents, {
+                    "system_instruction": full_system,
+                    "temperature": 0.7,
+                    "max_output_tokens": 2048,
+                }, timeout=30, level='low')
+                if not (response.text or '').strip():
+                    raise ValueError('Gemini bo\'sh javob qaytardi')
                 return {
                     "success": True,
                     "response": response.text

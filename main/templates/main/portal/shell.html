@@ -58,6 +58,7 @@
                     <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center font-bold text-sm">{{ user.username|first|upper }}</div>
                     <span class="text-sm truncate">{{ user.username }}</span>
                 </div>
+                <a href="""{% if user.has_usable_password %}{% url 'account_change_password' %}{% else %}{% url 'account_set_password' %}{% endif %}""" class="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition">{% if user.has_usable_password %}{% trans "Parolni o'zgartirish" %}{% else %}{% trans "Parol o'rnatish" %}{% endif %}</a>
                 <form action="{% block logout_url %}{% endblock %}" method="post">{% csrf_token %}
                     <button type="submit" class="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-red-600 transition">{% trans "Chiqish" %}</button>
                 </form>

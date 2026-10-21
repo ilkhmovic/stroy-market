@@ -43,27 +43,57 @@ def sniff_mime(head):
     return None
 
 
-def analyze_project(message, upload=None, language='uz'):
-    """Ask Gemini to extract materials from text and an optional image/PDF."""
-    from google import genai
-    from google.genai import types
+def _prepare_upload(upload):
+    """Rasmni kichraytiradi (tezroq yuboriladi va tahlil qilinadi); PDF o'zgarishsiz."""
+    data, mime = upload.read(), upload.content_type
+    if not mime.startswith('image/'):
+        return data, mime
+    try:
+        import io
+        from PIL import Image
+        img = Image.open(io.BytesIO(data))
+        if max(img.size) > 2000 or len(data) > 1_500_000:
+            img.thumbnail((2000, 2000))
+            buf = io.BytesIO()
+            img.convert('RGB').save(buf, 'JPEG', quality=85)
+            return buf.getvalue(), 'image/jpeg'
+    except Exception:
+        pass
+    return data, mime
 
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+def _parse(raw):
+    raw = re.sub(r'^```(?:json)?\s*|\s*```$', '', (raw or '{}').strip(), flags=re.I)
+    data = json.loads(raw)
+    if not isinstance(data, dict) or not isinstance(data.get('items', []), list):
+        raise ValueError('Gemini returned an invalid project estimate.')
+    data.setdefault('items', [])
+    return data
+
+
+def analyze_project(message, upload=None, language='uz'):
+    """Matn va (ixtiyoriy) rasm/PDF dan materiallar/ish turlarini ajratadi. Model xato bersa, zaxira model sinaladi."""
+    from google.genai import types
+    from . import gemini
+
     lang_name = {'ru': 'Russian', 'en': 'English'}.get(language, 'Uzbek')
     prompt = PROJECT_PROMPT.replace('{language}', lang_name) + "\n\nUser's project notes/dimensions:\n" + (message or "No extra notes.")
     parts = [types.Part.from_text(text=prompt)]
     if upload:
-        parts.insert(0, types.Part.from_bytes(data=upload.read(), mime_type=upload.content_type))
-    response = client.models.generate_content(
-        model=getattr(settings, 'GEMINI_PROJECT_MODEL', 'gemini-3.8-flash'),
-        contents=[types.Content(role='user', parts=parts)],
-        config={"response_mime_type": "application/json", "temperature": 0.1, "max_output_tokens": 4096},
-    )
-    raw = response.text or '{}'
-    raw = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw.strip(), flags=re.I)
-    data = json.loads(raw)
-    if not isinstance(data, dict) or not isinstance(data.get('items', []), list):
-        raise ValueError('Gemini returned an invalid project estimate.')
+        data, mime = _prepare_upload(upload)
+        parts.insert(0, types.Part.from_bytes(data=data, mime_type=mime))
+    contents = [types.Content(role='user', parts=parts)]
+    config = {"response_mime_type": "application/json", "temperature": 0.1, "max_output_tokens": 8192}
+    last_error = None
+    for model in gemini.models_for('GEMINI_PROJECT_MODEL', 'GEMINI_CHAT_FALLBACK_MODEL'):
+        try:
+            data = _parse(gemini.call(model, contents, config, timeout=45, level='low').text)
+            break
+        except Exception as exc:                      # tarmoq, noto'g'ri model nomi, kesilgan JSON...
+            last_error = exc
+            logging.getLogger(__name__).warning("Smeta tahlili: %s xatosi: %s", model, exc)
+    else:
+        raise last_error or RuntimeError('Gemini modeli sozlanmagan')
     return {
         'project_type': str(data.get('project_type', 'Loyiha'))[:160],
         'assumptions': [str(x)[:500] for x in (data.get('assumptions') if isinstance(data.get('assumptions'), list) else [])[:12]],

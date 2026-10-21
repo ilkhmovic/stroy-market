@@ -98,6 +98,7 @@ class _PortalLogin(LoginView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['show_forgot'] = True
         if self.request.method == 'GET' and self.request.GET.get('verified') == '1':
             messages.success(self.request, gettext("Email tasdiqlandi! Endi tizimga kirishingiz mumkin."))
         ctx.update({

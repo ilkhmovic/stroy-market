@@ -667,3 +667,79 @@ class EstimatorTests(TestCase):
         real = SimpleUploadedFile('smeta.pdf', b'%PDF-1.4 ...', content_type='application/pdf')
         with mock.patch('main.ai_project.analyze_project', return_value={'project_type': 'x', 'assumptions': [], 'items': [], 'works': []}):
             self.assertEqual(self.client.post(reverse('ai_project_estimate'), {'message': 'x', 'estimate': real}).status_code, 200)
+
+
+class GeminiAndPasswordTests(TestCase):
+    def test_thinking_config_per_model_family(self):
+        from .gemini import thinking_config
+        c3 = thinking_config('gemini-3.5-flash')
+        self.assertEqual(c3.thinking_level.name, 'LOW')
+        self.assertIsNone(c3.thinking_budget)                 # ikkalasini birga yuborib bo'lmaydi
+        c25 = thinking_config('gemini-2.5-flash')
+        self.assertEqual(c25.thinking_budget, 0)
+        self.assertIsNone(c25.thinking_level)
+        self.assertIsNone(thinking_config('gemini-2.5-pro'))   # Pro'da thinking o'chirib bo'lmaydi
+
+    def test_default_models_are_real_ids(self):
+        from django.conf import settings
+        for name in ('GEMINI_CHAT_MODEL', 'GEMINI_CHAT_FALLBACK_MODEL', 'GEMINI_PROJECT_MODEL'):
+            self.assertNotIn('3.8', getattr(settings, name))
+
+    def test_project_analysis_falls_back_to_second_model(self):
+        from . import ai_project
+        ok = mock.Mock(text='{"project_type": "Pol", "items": [], "works": [{"type": "slab", "params": {"area_m2": 20}}]}')
+        calls = []
+
+        def fake_call(model, contents, config, timeout=45, level='low'):
+            calls.append(model)
+            if len(calls) == 1:
+                raise RuntimeError('404 model topilmadi')
+            return ok
+        with self.settings(GEMINI_PROJECT_MODEL='birinchi', GEMINI_CHAT_FALLBACK_MODEL='ikkinchi'), \
+                mock.patch('main.gemini.call', fake_call):
+            data = ai_project.analyze_project('20 m2 pol', None, 'uz')
+        self.assertEqual(calls, ['birinchi', 'ikkinchi'])
+        self.assertEqual(data['works'][0]['type'], 'slab')
+
+    def test_truncated_json_also_triggers_fallback(self):
+        from . import ai_project
+        bad, good = mock.Mock(text='{"project_type": "X", "items": ['), mock.Mock(text='{"items": []}')
+        seq = iter([bad, good])
+        with self.settings(GEMINI_PROJECT_MODEL='a', GEMINI_CHAT_FALLBACK_MODEL='b'), \
+                mock.patch('main.gemini.call', lambda *a, **k: next(seq)):
+            self.assertEqual(ai_project.analyze_project('x', None, 'uz')['items'], [])
+
+    def test_cart_intent_and_multilingual_routing_present_in_widget(self):
+        html = self.client.get(reverse('marketplace')).content.decode()
+        self.assertIn('isAnoraCartIntent', html)
+        self.assertIn('anoraLastProject.add.click()', html)
+        self.assertIn('бассейн', html)
+
+    def test_forgot_password_link_on_all_login_pages(self):
+        from django.urls import reverse as r
+        for name in ('login', 'seller_login', 'admin_login'):
+            self.assertContains(self.client.get(r(name)), r('account_reset_password'))
+        self.assertEqual(self.client.get(r('account_reset_password')).status_code, 200)
+
+    def test_password_reset_full_flow(self):
+        import re as _re
+        from django.core import mail
+        User.objects.create_user('pr1', 'pr1@example.com', 'old-pass-123')
+        mail.outbox.clear()
+        self.client.post(reverse('account_reset_password'), {'email': 'pr1@example.com'})
+        self.assertEqual(len(mail.outbox), 1)
+        link = _re.search(r'https?://testserver(/accounts/password/reset/key/\S+)', mail.outbox[0].body).group(1)
+        r = self.client.get(link, follow=True)
+        final = r.redirect_chain[-1][0] if r.redirect_chain else link
+        self.client.post(final, {'password1': 'Brand-new-9xZq', 'password2': 'Brand-new-9xZq'})
+        self.assertTrue(self.client.login(username='pr1', password='Brand-new-9xZq'))
+
+    def test_change_or_set_password_link_inside_account(self):
+        u = User.objects.create_user('pc1', 'pc1@example.com', 'old-pass-123')
+        self.client.login(username='pc1', password='old-pass-123')
+        self.assertContains(self.client.get(reverse('marketplace')), reverse('account_change_password'))
+        self.assertEqual(self.client.get(reverse('account_change_password')).status_code, 200)
+        u.set_unusable_password(); u.save()                      # masalan Google orqali kirgan, paroli yo'q
+        self.client.force_login(u)
+        self.assertContains(self.client.get(reverse('marketplace')), reverse('account_set_password'))
+        self.assertEqual(self.client.get(reverse('account_set_password')).status_code, 200)

@@ -81,6 +81,7 @@
                     {% trans "Saqlash" %}
                 </button>
             </form>
+            <p class="mt-4 text-sm"><a href="{% if user.has_usable_password %}{% url 'account_change_password' %}{% else %}{% url 'account_set_password' %}{% endif %}" class="text-blue-600 hover:underline">{% if user.has_usable_password %}{% trans "Parolni o'zgartirish" %}{% else %}{% trans "Parol o'rnatish" %}{% endif %}</a></p>
         </div>
     </div>
 </div>
