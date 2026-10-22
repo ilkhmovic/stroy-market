@@ -146,8 +146,6 @@
                                 </svg>
                                {% trans "Profilim" %}
                             </a>
-                            <a href="{% if user.has_usable_password %}{% url 'account_change_password' %}{% else %}{% url 'account_set_password' %}{% endif %}" class="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">{% if user.has_usable_password %}{% trans "Parolni o'zgartirish" %}{% else %}{% trans "Parol o'rnatish" %}{% endif %}</a>
-                            
                             <hr class="border-gray-100">
                             <form action="{% url 'logout' %}" method="post">
                                 {% csrf_token %}

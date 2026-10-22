@@ -1,5 +1,6 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
+{% load installments_tags %}
 {% block title %}{% trans "Checkout" %}{% endblock %}
 {% block content %}
 
@@ -47,7 +48,7 @@
             <!-- Payment Method -->
             <div class="border-b border-gray-200 pb-6">
                 <h2 class="text-lg font-bold text-gray-900 mb-4">{% trans "To'lov turi" %}</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500">
                         <input type="radio" name="payment_method" value="card" {% if selected_payment == 'card' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <div class="ml-3">
@@ -68,8 +69,27 @@
                             <p class="text-xs text-gray-500">{% trans "Bo'lib to'lash" %}</p>
                         </div>
                     </label>
+                    {% if wallet_cards %}
+                    <label class="relative flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition">
+                        <input type="radio" name="payment_method" value="wallet" {% if selected_payment == 'wallet' %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <div class="ml-3">
+                            <p class="text-sm font-bold text-gray-900">{% trans "Karta hisobidan to'lash" %}</p>
+                            <p class="text-xs text-gray-500">{% trans "Hisobingizdagi pul bilan" %}</p>
+                        </div>
+                    </label>
+                    {% endif %}
                 </div>
                 
+                {% if wallet_cards %}
+                <div id="wallet-block" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl space-y-2 {% if selected_payment != 'wallet' %}hidden{% endif %}">
+                    <label class="block text-xs font-bold text-gray-700">{% trans "Qaysi karta hisobidan to'laysiz?" %}</label>
+                    <select name="wallet_card" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm">
+                        {% for c in wallet_cards %}<option value="{{ c.pk }}">{{ c.get_brand_display }} ****{{ c.last4 }} &mdash; {{ c.balance|floatformat:0 }} {% trans "so'm" %}</option>{% endfor %}
+                    </select>
+                    <p class="text-[11px] text-green-800">{% trans "Hisobdagi mablag' buyurtma summasiga yetmasa, buyurtma yaratilmaydi." %}</p>
+                </div>
+                {% endif %}
+
                 <!-- Contract Info (Visible for Cash) -->
                 <div id="cash-contract" class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 hidden">
                     <p class="font-bold mb-1">{% trans "Naqd pulda to'lash shartnomasi:" %}</p>
@@ -101,6 +121,12 @@
                             <input type="tel" name="nasiya-phone" maxlength="20" data-nasiya-required value="{{ nasiya_form.phone.value|default_if_none:'' }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="+998 90 123 45 67">
                         </div>
+                        {% if partners %}
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Nasiya hamkori va muddat *" %}</label>
+                            {% installment_calculator get_total_price partners=partners form_prefix='nasiya-' %}
+                        </div>
+                        {% else %}
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Muddat *" %}</label>
                             <select name="nasiya-term_months" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
@@ -109,6 +135,7 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        {% endif %}
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">{% trans "Oylik daromad (ixtiyoriy)" %}</label>
                             <input type="number" name="nasiya-monthly_income" min="0" value="{{ nasiya_form.monthly_income.value|default_if_none:'' }}"
@@ -129,6 +156,8 @@
                     radio.addEventListener('change', (e) => {
                         const contract = document.getElementById('cash-contract');
                         const nasiya = document.getElementById('nasiya-block');
+                        const wallet = document.getElementById('wallet-block');
+                        if (wallet) wallet.classList.toggle('hidden', e.target.value !== 'wallet');
                         contract.classList.toggle('hidden', e.target.value !== 'cash');
                         nasiya.classList.toggle('hidden', e.target.value !== 'nasiya');
                         // Nasiya maydonlari faqat nasiya tanlanganda majburiy

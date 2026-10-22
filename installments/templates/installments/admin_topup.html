@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<p>Mijoz: <b>{{ card.user }}</b> &middot; Karta: {{ card }} &middot; Balans: <b>{{ card.balance }}</b> so'm</p>
+<form method="post">{% csrf_token %}
+  <p><label>Summa (so'm): <input type="number" name="amount" min="1" step="1" required></label></p>
+  <p><label>Izoh: <input type="text" name="note" maxlength="200"></label></p>
+  <input type="submit" value="Hisobni to'ldirish" class="default">
+  <a href="{% url 'admin:installments_walletcard_changelist' %}">Bekor qilish</a>
+</form>
+{% endblock %}

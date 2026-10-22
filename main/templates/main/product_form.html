@@ -1,5 +1,6 @@
 {% extends 'main/seller/seller_base.html' %}
 {% load i18n %}
+{% load installments_tags %}
 {% block content %}
 <div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
     <div class="flex items-center gap-3 mb-6">
@@ -80,6 +81,9 @@
                 </div>
             {% endif %}
             <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+        </div>
+        <div class="mb-6">
+            {% product_partner_picker product %}
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl   text-xs shadow-sm shadow-blue-100 hover:bg-blue-700 hover:translate-y-[-2px] transition-all">
             {% if edit %}{% trans "Saqlash" %}{% else %}{% trans "Mahsulotni qo'shish" %}{% endif %}

@@ -1,5 +1,6 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
+{% load installments_tags %}
 {% block title %}{{ product.display_name }}{% endblock %}
 {% block content %}
 
@@ -42,6 +43,8 @@
             <span class="text-4xl font-extrabold text-blue-700">{{ product.price|floatformat:0 }}</span>
             <span class="text-lg text-gray-500">{% trans "so'm" %}</span>
         </div>
+
+        {% installment_calculator product.price product=product %}
 
         <!-- Stock -->
         {% if product.stock > 0 %}

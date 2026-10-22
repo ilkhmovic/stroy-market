@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'main',   # allauth'dan OLDIN bo'lishi shart: shablonlarni (allauth/...) o'zgartira oladi
+    'installments',   # nasiya hamkorlari, mijoz kartalari
     'allauth',
     'allauth.account',
     'allauth.socialaccount',

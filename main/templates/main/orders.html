@@ -1,89 +1,149 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
-{% block title %}{% trans "Mening buyurtmalarim" %}{% endblock %}
+{% block title %}{% trans "Buyurtmalarim" %}{% endblock %}
 {% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-<div class="mb-6">
-    <a href="{% url 'marketplace' %}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        {% trans "Bozorga qaytish" %}
-    </a>
-</div>
+    <div class="lg:col-span-1">
+        {% include 'main/_buyer_sidebar.html' with active='orders' %}
+    </div>
 
-<h1 class="text-2xl font-extrabold text-gray-900 mb-6">{% trans "Mening buyurtmalarim" %}</h1>
+    <div class="lg:col-span-3">
+        <!-- Tablar -->
+        <div class="flex flex-wrap items-center gap-2 mb-5">
+            <a href="{% url 'orders' %}" class="rounded-full px-5 py-2.5 text-base font-medium transition {% if tab == 'all' %}bg-gray-900 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">{% trans "Barcha buyurtmalar" %}</a>
+            <a href="{% url 'orders' %}?tab=unpaid" class="rounded-full px-5 py-2.5 text-base font-medium transition {% if tab == 'unpaid' %}bg-gray-900 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">{% trans "To'lov qilinmagan" %}</a>
+            <a href="{% url 'orders' %}?tab=active" class="rounded-full px-5 py-2.5 text-base font-medium transition {% if tab == 'active' %}bg-gray-900 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">{% trans "Faol" %}</a>
+        </div>
 
-{% if orders %}
-<div class="grid grid-cols-1 gap-6">
-    {% for order in orders %}
-    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-        <div class="p-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-900">{% trans "Buyurtma #" %}{{ order.pk }}</h2>
-                    <p class="text-xs text-gray-400 font-medium   mt-1">{{ order.created_at|date:"d.m.Y H:i" }}</p>
-                </div>
-                <div class="flex items-center gap-6">
-                    <div class="text-right">
-                        <p class="text-[10px] text-gray-400 font-bold  tracking-tight">{% trans "Umumiy summa" %}</p>
-                        <p class="text-xl font-bold text-blue-900">{{ order.get_total_price|floatformat:0 }} <span class="text-xs">{% trans "SO'M" %}</span></p>
+        {% if orders %}
+        <div class="space-y-5">
+            {% for order in orders %}
+            {% with items=order.items.all total=order.get_total_price %}
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+
+                <!-- Sarlavha -->
+                <div class="p-5 sm:p-6 flex flex-wrap items-start justify-between gap-4 border-b border-gray-200">
+                    <div>
+                        <span class="inline-block rounded px-2.5 py-1 text-xs font-semibold uppercase tracking-wide
+                            {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
+                            {% elif order.status == 'shipping' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-200 text-gray-700{% endif %}">{{ order.get_status_display }}</span>
+                        <div class="mt-2 flex items-center gap-2">
+                            <h2 class="text-xl font-bold text-gray-900">{% trans "Buyurtma" %} №{{ order.pk }}</h2>
+                            <button type="button" data-copy="{{ order.pk }}" title="{% trans 'Nusxalash' %}" class="text-purple-600 hover:text-purple-800">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">{{ order.created_at|date:"j E Y, H:i" }}</p>
                     </div>
-                    <a href="{% url 'order_detail' order.pk %}" class="h-12 w-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all duration-300">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+
+                    <div class="flex flex-col items-stretch gap-2">
+                        {% if order.status == 'delivered' %}
+                        <a href="{% url 'order_detail' order.pk %}" class="rounded-2xl bg-gray-200 px-6 py-3 text-center text-base font-medium text-gray-900 hover:bg-gray-300 transition">{% trans "Tovarlarni baholash" %}</a>
+                        {% elif not order.wallet_paid and order.status != 'cancelled' %}
+                            {% if cards %}
+                            <form method="post" action="{% url 'installments:pay_order' %}" class="flex items-center gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="order_id" value="{{ order.pk }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <select name="card_id" class="rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm">
+                                    {% for c in cards %}<option value="{{ c.pk }}">{{ c.get_brand_display }} ****{{ c.last4 }} ({{ c.balance|floatformat:0 }})</option>{% endfor %}
+                                </select>
+                                <button class="rounded-2xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition">{% trans "Hisobdan to'lash" %}</button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'installments:cards' %}" class="rounded-2xl bg-gray-200 px-6 py-3 text-center text-sm font-medium text-gray-900 hover:bg-gray-300 transition">{% trans "Karta qo'shish" %}</a>
+                            {% endif %}
+                        {% elif order.wallet_paid %}
+                        <span class="rounded-2xl bg-green-50 px-5 py-2.5 text-center text-sm font-semibold text-green-700">{% trans "Karta hisobidan to'langan" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Asosiy qism -->
+                <div class="p-5 sm:p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-3">
+                        {% if order.status == 'delivered' %}{{ order.updated_at|date:"j E" }} {% trans "yetkazildi" %}
+                        {% elif order.status == 'shipping' %}{% trans "Yetkazilmoqda" %}
+                        {% elif order.status == 'cancelled' %}{% trans "Bekor qilingan" %}
+                        {% else %}{{ order.get_status_display }}{% endif %}
+                    </h3>
+
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        {% for item in items|slice:":5" %}
+                        <div class="h-[72px] w-[72px] rounded-lg overflow-hidden bg-gray-100 border border-gray-100 flex items-center justify-center">
+                            {% if item.product and item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" class="h-full w-full object-cover">
+                            {% else %}<svg class="h-7 w-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm text-gray-500 mb-5">{{ items|length }} {% trans "ta tovar" %} &middot; {{ total|floatformat:0 }} {% trans "so'm" %}</p>
+
+                    <dl class="grid grid-cols-1 sm:grid-cols-[170px_1fr] gap-x-6 gap-y-3 text-base">
+                        <dt class="text-gray-500">{% trans "Topshirish manziliga:" %}</dt>
+                        <dd class="text-gray-900">{{ order.address }}</dd>
+                        <dt class="text-gray-500">{% trans "Buyurtmani qabul qiluvchi" %}</dt>
+                        <dd class="text-gray-900">{{ order.user.get_full_name|default:order.user.username }}{% if order.user.phone %}<br>{{ order.user.phone }}{% endif %}</dd>
+                        <dt class="text-gray-500">{% trans "Jami" %}</dt>
+                        <dd class="text-gray-900">
+                            {{ total|floatformat:0 }} {% trans "so'm" %}
+                            <details class="mt-1 group">
+                                <summary class="cursor-pointer list-none text-purple-600 hover:text-purple-800 inline-flex items-center gap-1">{% trans "Batafsil" %}
+                                    <svg class="h-4 w-4 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary>
+                                <div class="mt-2 space-y-1 text-sm text-gray-600">
+                                    <p>{% trans "To'lov turi" %}: {{ order.get_payment_method_display }}{% if order.wallet_paid %} ({% trans "karta hisobidan" %}){% endif %}</p>
+                                    {% if order.penalty_amount %}<p>{% trans "Jarima" %}: {{ order.penalty_amount|floatformat:0 }} {% trans "so'm" %}</p>{% endif %}
+                                    {% if order.note %}<p>{% trans "Izoh" %}: {{ order.note }}</p>{% endif %}
+                                </div>
+                            </details>
+                        </dd>
+                    </dl>
+
+                    <a href="{% url 'order_detail' order.pk %}" class="mt-5 inline-flex items-center gap-2 text-base font-medium text-purple-600 hover:text-purple-800">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5 7V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14l2-1.5L8 19l2-1.5 2 1.5 2-1.5 2 1.5 2-1.5 2 1.5z"/></svg>
+                        {% trans "Elektron chek" %}
                     </a>
                 </div>
-            </div>
 
-            <!-- Item Status Summary -->
-            <div class="bg-gray-50 rounded-2xl p-4 space-y-3">
-                {% for item in order.items.all %}
-                <div class="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-50">
-                            {% if item.product.image %}
-                                <img src="{{ item.product.image.url }}" class="w-full h-full object-cover">
-                            {% else %}
-                                <div class="w-full h-full flex items-center justify-center text-blue-200">
-                                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
-                                </div>
-                            {% endif %}
+                <!-- Mahsulotlar ro'yxati -->
+                <details class="group border-t border-gray-200">
+                    <summary class="flex cursor-pointer list-none items-center justify-between px-5 sm:px-6 py-4 text-base font-semibold text-gray-900">
+                        {{ items|length }} {% trans "mahsulot" %}
+                        <svg class="h-5 w-5 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </summary>
+                    <div class="divide-y divide-gray-100 px-5 sm:px-6 pb-3">
+                        {% for item in items %}
+                        <div class="flex items-center justify-between gap-3 py-3">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 truncate">{{ item.product_name }}</p>
+                                <p class="text-xs text-gray-500">{{ item.quantity }} &times; {{ item.price|floatformat:0 }} {% trans "so'm" %}{% if item.product.store %} &middot; {{ item.product.store.name }}{% endif %}</p>
+                            </div>
+                            <span class="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold
+                                {% if item.status == 'pending' %}bg-yellow-50 text-yellow-700{% elif item.status == 'shipped' %}bg-blue-50 text-blue-700{% elif item.status == 'delivered' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-700{% endif %}">{{ item.get_status_display }}</span>
                         </div>
-                        <div>
-                            <p class="text-xs font-bold text-gray-900">{{ item.product_name }}</p>
-                            <p class="text-[10px] text-gray-400 font-medium ">{% trans "Do'kon:" %} {{ item.product.store.name|default:"Noma'lum" }}</p>
-                        </div>
+                        {% endfor %}
                     </div>
-                    <span class="text-[10px] font-bold  px-2 py-0.5 rounded-full
-                        {% if item.status == 'pending' %}bg-yellow-50 text-yellow-600
-                        {% elif item.status == 'shipped' %}bg-blue-50 text-blue-600
-                        {% elif item.status == 'delivered' %}bg-green-50 text-green-600
-                        {% else %}bg-red-50 text-red-600{% endif %}">
-                        {{ item.get_status_display }}
-                    </span>
-                </div>
-                {% endfor %}
+                </details>
             </div>
+            {% endwith %}
+            {% endfor %}
         </div>
-        <div class="px-6 py-4 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between">
-            <p class="text-xs text-gray-500 flex items-center gap-1.5">
-                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                {{ order.address|truncatechars:50 }}
-            </p>
-            <span class="text-[10px] font-bold text-gray-400  ">{{ order.items.count }} MAHSuLOT</span>
+        {% else %}
+        <div class="bg-white rounded-xl border border-gray-200 text-center py-20">
+            <h2 class="text-xl font-bold text-gray-400 mb-2">{% trans "Buyurtmalar yo'q" %}</h2>
+            <p class="text-sm text-gray-400 mb-5">{% if tab == 'all' %}{% trans "Hali buyurtma bermadingiz" %}{% else %}{% trans "Bu bo'limda buyurtma yo'q" %}{% endif %}</p>
+            <a href="{% url 'marketplace' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition text-sm">{% trans "Bozorni ko'ring" %}</a>
         </div>
+        {% endif %}
     </div>
-    {% endfor %}
 </div>
-{% else %}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 text-center py-24">
-    <svg class="h-20 w-20 mx-auto text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-    </svg>
-    <h2 class="text-xl font-bold text-gray-400 mb-2">{% trans "Buyurtmalar yo'q" %}</h2>
-    <p class="text-sm text-gray-400 mb-5">{% trans "Hali buyurtma bermadingiz" %}</p>
-    <a href="{% url 'marketplace' %}" class="inline-block bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition text-sm">
-        {% trans "Bozorni ko'ring" %}
-    </a>
-</div>
-{% endif %}
-
+<script>
+document.querySelectorAll('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+        if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy);
+    });
+});
+</script>
 {% endblock %}

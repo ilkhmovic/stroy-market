@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
 
 urlpatterns = [
@@ -69,4 +69,7 @@ urlpatterns = [
     path('api/ai/chat/', views.ai_chat, name='ai_chat'),
     path('api/ai/project/estimate/', views.ai_project_estimate, name='ai_project_estimate'),
     path('api/ai/project/add-to-cart/', views.ai_project_add_cart, name='ai_project_add_cart'),
+
+    # ══════════ Nasiya hamkorlari, kartalar, sotuvchi Excel ══════════
+    path('', include('installments.urls')),
 ]

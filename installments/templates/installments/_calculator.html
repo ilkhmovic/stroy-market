@@ -1,0 +1,63 @@
+{% if offers %}{% with data_id="inst-data-"|add:uid %}
+<div id="inst-{{ uid }}" class="my-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4" data-amount="{{ amount|stringformat:'s' }}">
+  <p class="text-sm font-bold text-gray-800 mb-3">Nasiyaga olish</p>
+  <div class="flex flex-wrap gap-2" data-role="partners">
+    {% for o in offers %}
+    <label class="cursor-pointer">
+      <input type="radio" name="inst_partner_{{ uid }}" value="{{ o.id }}" class="peer sr-only" {% if forloop.first %}checked{% endif %}>
+      <span class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-200">
+        {% if o.logo %}<img src="{{ o.logo }}" alt="" class="h-6 w-auto max-w-[64px] object-contain">{% endif %}{{ o.name }}
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+  <div class="mt-3 flex flex-wrap gap-2" data-role="months"></div>
+  <p class="mt-3 text-sm text-gray-700" data-role="result"></p>
+  {% if form_prefix %}
+  <input type="hidden" name="{{ form_prefix }}partner" data-role="f-partner">
+  <input type="hidden" name="{{ form_prefix }}months" data-role="f-months">
+  {% endif %}
+  {{ offers|json_script:data_id }}
+</div>
+<script>
+(function () {
+  var root = document.getElementById("inst-{{ uid }}");
+  var offers = JSON.parse(document.getElementById("{{ data_id }}").textContent);
+  var monthsBox = root.querySelector('[data-role="months"]');
+  var result = root.querySelector('[data-role="result"]');
+  var fP = root.querySelector('[data-role="f-partner"]');
+  var fM = root.querySelector('[data-role="f-months"]');
+  var month = null;
+  function fmt(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+  function partner() {
+    var r = root.querySelector('input[name="inst_partner_{{ uid }}"]:checked');
+    return offers.filter(function (o) { return String(o.id) === (r && r.value); })[0] || offers[0];
+  }
+  function render() {
+    var o = partner(), amount = parseFloat(root.dataset.amount) || 0;
+    if (!o.plans.some(function (p) { return p.months === month; })) month = o.plans[0].months;
+    monthsBox.innerHTML = "";
+    o.plans.forEach(function (p) {
+      var l = document.createElement("label"); l.className = "cursor-pointer";
+      var i = document.createElement("input"); i.type = "radio"; i.className = "peer sr-only";
+      i.name = "inst_months_{{ uid }}"; i.value = p.months; i.checked = p.months === month;
+      i.addEventListener("change", function () { month = p.months; render(); });
+      var s = document.createElement("span");
+      s.className = "block rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white";
+      s.textContent = p.months + " oy";
+      l.appendChild(i); l.appendChild(s); monthsBox.appendChild(l);
+    });
+    var plan = o.plans.filter(function (p) { return p.months === month; })[0];
+    var total = Math.round(amount * (100 + plan.percent) / 100);
+    var monthly = Math.round(total / plan.months);
+    result.innerHTML = "<b></b> orqali <b>" + plan.months + " oyga</b> olsangiz: oyiga <b>" + fmt(monthly) +
+      " so'm</b>, jami <b>" + fmt(total) + " so'm</b>" + (plan.percent > 0 ? " (ustama " + plan.percent + "%)" : "") + ".";
+    result.querySelector("b").textContent = o.name;
+    if (fP) { fP.value = o.id; fM.value = plan.months; }
+  }
+  root.querySelectorAll('input[name="inst_partner_{{ uid }}"]').forEach(function (r) { r.addEventListener("change", render); });
+  root.addEventListener("installment:amount", function (e) { root.dataset.amount = e.detail; render(); });
+  render();
+})();
+</script>
+{% endwith %}{% endif %}

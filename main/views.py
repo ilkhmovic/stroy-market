@@ -24,6 +24,8 @@ from .http_utils import safe_redirect
 from .stock import restore_item_stock_once, InsufficientStock
 from .ai_limits import rate_limited, sanitize_history, TEXT_MAX
 from .roles import seller_required, admin_required, home_url, get_role, BUYER, SELLER, ADMIN
+from installments import services as inst_services
+from installments.services import CardError
 
 logger = logging.getLogger(__name__)
 MAX_CART_QTY = 10000
@@ -360,6 +362,7 @@ def add_product(request):
             product = form.save(commit=False)
             product.store = request.user.store
             product.save()
+            inst_services.save_product_partners(request, product)
             messages.success(request, f"'{product.name}' muvaffaqiyatli qo'shildi!")
             return redirect('seller_dashboard')
     else:
@@ -374,6 +377,7 @@ def edit_product(request, pk):
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
+            inst_services.save_product_partners(request, product)
             messages.success(request, f"'{product.name}' muvaffaqiyatli tahrirlandi.")
             return redirect('seller_dashboard')
     else:
@@ -501,13 +505,18 @@ def checkout(request):
     if not items.exists():
         messages.error(request, gettext("Savatda mahsulot yo'q!"))
         return redirect('cart')
+
+    # Savatdagi hamma mahsulot uchun umumiy nasiya hamkorlari va mijoz kartalari
+    partners = list(inst_services.partners_for_products([i.product_id for i in items]))
+    wallet_cards = list(request.user.wallet_cards.all())
     
     if request.method == 'POST':
         address = request.POST.get('address', '').strip()
         note = request.POST.get('note', '').strip()
         payment_method = request.POST.get('payment_method', 'card')
 
-        nasiya_form = NasiyaApplicationForm(request.POST, prefix='nasiya')
+        nasiya_form = NasiyaApplicationForm(request.POST, prefix='nasiya', partners=partners)
+        wallet_card_id = request.POST.get('wallet_card')
 
         def _checkout_error(msg):
             messages.error(request, msg)
@@ -518,13 +527,18 @@ def checkout(request):
                 'nasiya_form': nasiya_form,
                 'user_address': address,
                 'selected_payment': payment_method,
+                'partners': partners,
+                'wallet_cards': wallet_cards,
             })
 
-        if payment_method not in ('card', 'cash', 'nasiya'):
+        if payment_method not in ('card', 'cash', 'nasiya', 'wallet'):
             return _checkout_error(gettext("To'lov turi noto'g'ri tanlangan!"))
 
         if not address:
             return _checkout_error(gettext("Yetkazib berish manzilini kiriting!"))
+
+        if payment_method == 'wallet' and not wallet_cards:
+            return _checkout_error(gettext("Avval profilingizda karta qo'shing."))
 
         # Nasiya tanlansa, ariza ma'lumotlari to'g'ri to'ldirilishi shart
         if payment_method == 'nasiya' and not nasiya_form.is_valid():
@@ -546,7 +560,8 @@ def checkout(request):
                     user=request.user,
                     address=address,
                     note=note,
-                    payment_method=payment_method,
+                    # 'wallet' alohida tur emas: karta hisobidan to'lov CardTransaction'da yoziladi
+                    payment_method='card' if payment_method == 'wallet' else payment_method,
                     status='pending'
                 )
                 for item, product in locked_rows:
@@ -561,6 +576,10 @@ def checkout(request):
                         stock=F('stock') - item.quantity
                     )
 
+                if payment_method == 'wallet':
+                    # Mablag' yetmasa CardError ko'tariladi va butun buyurtma bekor qilinadi (rollback)
+                    inst_services.pay_order(request.user, wallet_card_id, order.pk)
+
                 cart.items.all().delete()
 
                 application = None
@@ -568,6 +587,7 @@ def checkout(request):
                     application = nasiya_form.save(commit=False)
                     application.order = order
                     application.save()
+                    nasiya_form.save_choice(application)
 
                 order_id = order.pk
                 app_id = application.pk if application else None
@@ -586,6 +606,8 @@ def checkout(request):
                     _notify_after_commit()
                 else:
                     transaction.on_commit(_notify_after_commit)
+        except CardError as exc:
+            return _checkout_error(str(exc))
         except InsufficientStock as exc:
             return _checkout_error(
                 gettext("%(name)s: omborda faqat %(stock)s qolgan. Buyurtma yaratilmadi.") % {
@@ -608,8 +630,11 @@ def checkout(request):
         'items': items,
         'get_total_price': cart.get_total_price(),
         'user_address': request.user.address,
+        'partners': partners,
+        'wallet_cards': wallet_cards,
         'nasiya_form': NasiyaApplicationForm(
             prefix='nasiya',
+            partners=partners,
             initial={
                 'full_name': request.user.get_full_name(),
                 'phone': request.user.phone,
@@ -624,8 +649,19 @@ def orders(request):
     if request.user.is_seller:
         return redirect('marketplace')
     
-    user_orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-created_at')
-    return render(request, 'main/orders.html', {'orders': user_orders})
+    tab = request.GET.get('tab', 'all')
+    qs = inst_services.wallet_paid_annotation(Order.objects.filter(user=request.user))
+    if tab == 'unpaid':
+        qs = qs.filter(wallet_paid=False).exclude(status__in=['cancelled', 'delivered'])
+    elif tab == 'active':
+        qs = qs.filter(status__in=['pending', 'confirmed', 'shipping'])
+    else:
+        tab = 'all'
+    qs = qs.prefetch_related('items__product__store').select_related('user').order_by('-created_at')
+    return render(request, 'main/orders.html', {
+        'orders': qs, 'tab': tab,
+        'cards': request.user.wallet_cards.all(),
+    })
 
 
 @login_required

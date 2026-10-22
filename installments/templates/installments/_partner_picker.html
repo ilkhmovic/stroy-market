@@ -1,0 +1,17 @@
+{% if items %}
+<div class="rounded-xl border border-gray-200 p-4">
+  <p class="text-sm font-bold text-gray-800 mb-1">Nasiya hamkorlari</p>
+  <p class="text-xs text-gray-500 mb-3">Bu mahsulot uchun qaysi platforma bilan nasiya shartnomangiz bor bo'lsa, belgilang.</p>
+  <input type="hidden" name="installment_partners_present" value="1">
+  <div class="space-y-2">
+    {% for it in items %}
+    <label class="flex items-center gap-3 rounded-lg border border-gray-100 p-2 cursor-pointer">
+      <input type="checkbox" name="installment_partners" value="{{ it.partner.pk }}" {% if it.checked %}checked{% endif %} class="h-4 w-4">
+      {% if it.partner.logo %}<img src="{{ it.partner.logo.url }}" alt="" class="h-6 w-auto max-w-[64px] object-contain">{% endif %}
+      <span class="text-sm font-semibold text-gray-800">{{ it.partner.name }}</span>
+      <span class="text-xs text-gray-400">{% for pl in it.plans %}{{ pl.months }} oy ({{ pl.markup_percent }}%){% if not forloop.last %}, {% endif %}{% endfor %}</span>
+    </label>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

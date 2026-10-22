@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.cache import cache
 from django.utils.translation import gettext
 from .models import User, Store, Product, Review, Category, Order, Notification, Brand, Region, NasiyaApplication
+from installments.models import InstallmentPartner
 
 
 def _email_taken(email):
@@ -204,10 +205,47 @@ class RegionForm(forms.ModelForm):
 
 
 class NasiyaApplicationForm(forms.ModelForm):
-    """Checkoutda 'Nasiya' tanlanganda to'ldiriladi (prefix='nasiya')."""
+    """Checkoutda 'Nasiya' tanlanganda to'ldiriladi (prefix='nasiya').
+    `partners` berilsa, mijoz hamkor va muddatni shu hamkorlardan tanlaydi (muddat hamkor rejasidan olinadi).
+    Hamkor yo'q bo'lsa, eski 3/6/12 oylik tanlov ishlaydi."""
+    partner = forms.ModelChoiceField(queryset=InstallmentPartner.objects.none(), required=False)
+    months = forms.IntegerField(required=False, min_value=1, max_value=60)
+    term_months = forms.TypedChoiceField(
+        choices=NasiyaApplication.TERM_CHOICES, coerce=int, required=False, empty_value=None, initial=6,
+        label=_("Muddat"))
+
     class Meta:
         model = NasiyaApplication
-        fields = ['full_name', 'phone', 'term_months', 'monthly_income', 'workplace']
+        fields = ['full_name', 'phone', 'monthly_income', 'workplace']
+
+    def __init__(self, *args, partners=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.partners = list(partners or [])
+        self.plan = None
+        self.fields['partner'].queryset = InstallmentPartner.objects.filter(pk__in=[p.pk for p in self.partners])
+
+    def clean(self):
+        data = super().clean()
+        if self.partners:
+            partner, months = data.get('partner'), data.get('months')
+            plan = partner.plans.filter(is_active=True, months=months).first() if partner and months else None
+            if plan is None:
+                self.add_error(None, _("Nasiya hamkori va muddatni tanlang."))
+            self.plan = plan
+        return data
+
+    def save(self, commit=True):
+        app = super().save(commit=False)
+        app.term_months = self.plan.months if self.plan else (self.cleaned_data.get('term_months') or 6)
+        if commit:
+            app.save()
+        return app
+
+    def save_choice(self, application):
+        """Tanlangan hamkor va ustamani arizaga bog'lab saqlaydi (sotuvchi Excel'i uchun)."""
+        if self.plan:
+            from installments.services import record_choice
+            record_choice(application, self.plan.partner, self.plan.months)
 
     def clean_full_name(self):
         name = ' '.join(self.cleaned_data['full_name'].split())
