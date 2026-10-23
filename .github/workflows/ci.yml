@@ -1,0 +1,44 @@
+name: Django CI
+
+on:
+  push:
+    branches: [main, week-1-audit]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-only-not-a-production-secret
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: ""
+      GEMINI_API_KEY: ""
+      TELEGRAM_BOT_TOKEN: ""
+      TELEGRAM_MANAGER_CHAT_ID: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Django system check
+        run: python manage.py check
+      - name: Deployment checks (warnings are reviewed, not suppressed)
+        run: python manage.py check --deploy
+      - name: Verify migration files are up to date
+        run: python manage.py makemigrations --check --dry-run
+      - name: Verify migration graph
+        run: python manage.py migrate --check
+      - name: Run tests
+        run: python manage.py test
+      - name: Install dependency auditor
+        run: python -m pip install pip-audit
+      - name: Audit dependencies
+        run: python -m pip_audit -r requirements.txt
