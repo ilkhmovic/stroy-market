@@ -97,7 +97,10 @@
                                     {% if item.buyer_confirmed %}
                                     <span class="text-[10px] font-bold   px-3 py-1 rounded-full bg-blue-900 text-white shadow-lg shadow-blue-100">{% trans "Xaridor tasdiqladi" %}</span>
                                     {% elif item.status == 'pending' %}
-                                    <a href="{% url 'cancel_order_item' item.pk %}" onclick="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')" class="text-[9px] font-bold   px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">{% trans "Bekor qilish" %}</a>
+                                    <form method="post" action="{% url 'cancel_order_item' item.pk %}" onsubmit="return confirm('Ushbu mahsulotni bekor qilmoqchimisiz?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-[9px] font-bold px-3 py-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition shadow-lg shadow-red-100">{% trans "Bekor qilish" %}</button>
+                                    </form>
                                     {% endif %}
                                 </div>
                             </div>
@@ -175,18 +178,14 @@
                 {% if order.items.all %}
                     {# Check if there are any pending items to show the bulk cancel button #}
                     <div class="mt-8">
-                        <button onclick="confirmCancel()" class="w-full py-4 bg-red-50 text-red-600 font-bold text-[10px]   rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
+                        <form method="post" action="{% url 'cancel_order' order.pk %}" onsubmit="return confirm('Kutilayotgan barcha mahsulotlarni bekor qilmoqchimisiz? Agar buyurtma naqd pulda bo\'lsa, jarima qo\'llanilishi mumkin.');">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full py-4 bg-red-50 text-red-600 font-bold text-[10px] rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
                             {% trans "Kutilayotganlarni bekor qilish" %}
                         </button>
+                    </form>
                     </div>
                 {% endif %}
-            <script>
-                function confirmCancel() {
-                    if (confirm('Kutilayotgan barcha mahsulotlarni bekor qilmoqchimisiz? Agar buyurtma naqd pulda bo\'lsa, jarima qo\'llanilishi mumkin.')) {
-                        window.location.href = "{% url 'cancel_order' order.pk %}";
-                    }
-                }
-            </script>
             {% endif %}
 
             <!-- Mini Timeline -->
