@@ -694,6 +694,7 @@ def order_detail(request, order_id):
 
 
 @login_required
+@require_POST
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
     # Allow cancellation if entire order is pending OR if it's confirmed but has pending items
@@ -734,6 +735,7 @@ def cancel_order(request, order_id):
 
 
 @login_required
+@require_POST
 def cancel_order_item(request, item_id):
     item = get_object_or_404(OrderItem, pk=item_id, order__user=request.user)
     if item.status == 'pending':
