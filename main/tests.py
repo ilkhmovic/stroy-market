@@ -179,18 +179,18 @@ class StockAndOrderSecurityTests(TestCase):
         self.assertEqual(self.product.stock, 3)
 
         # Cancel order
-        self.client.get(reverse('cancel_order', args=[order.pk]))
+        self.client.post(reverse('cancel_order', args=[order.pk]))
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
 
         # Cancel order again - stock must NOT increase again
-        self.client.get(reverse('cancel_order', args=[order.pk]))
+        self.client.post(reverse('cancel_order', args=[order.pk]))
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
 
         # Cancel item individually - stock must NOT increase again
         item = order.items.first()
-        self.client.get(reverse('cancel_order_item', args=[item.pk]))
+        self.client.post(reverse('cancel_order_item', args=[item.pk]))
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
 
@@ -820,3 +820,44 @@ class HostRoutingTests(TestCase):
             self.assertIn('seller.matbaza.uz', cs.ALLOWED_HOSTS)
             self.assertIn('https://admin.matbaza.uz', cs.CSRF_TRUSTED_ORIGINS)
         importlib.reload(cs)
+
+
+class CancellationHttpMethodTests(TestCase):
+    def setUp(self):
+        seller = User.objects.create_user('method_seller', password='test-pass', is_seller=True)
+        store = Store.objects.create(owner=seller, name='Method test store', status='active')
+        self.product = Product.objects.create(store=store, name='Test material', price='12.50', stock=8)
+        self.buyer = User.objects.create_user('method_buyer', password='test-pass')
+        self.order = Order.objects.create(user=self.buyer, address='Test address', payment_method='cash')
+        self.item = OrderItem.objects.create(
+            order=self.order, product=self.product, product_name=self.product.name,
+            price=self.product.price, quantity=2,
+        )
+        # Checkout normally decrements stock before the order item is created.
+        self.product.stock = 6
+        self.product.save(update_fields=['stock'])
+        self.client.force_login(self.buyer)
+
+    def test_order_cancellation_rejects_get_without_mutating_state(self):
+        response = self.client.get(reverse('cancel_order', args=[self.order.pk]))
+        self.assertEqual(response.status_code, 405)
+        self.product.refresh_from_db()
+        self.item.refresh_from_db()
+        self.assertEqual(self.product.stock, 6)
+        self.assertEqual(self.item.status, 'pending')
+
+    def test_item_cancellation_rejects_get_without_mutating_state(self):
+        response = self.client.get(reverse('cancel_order_item', args=[self.item.pk]))
+        self.assertEqual(response.status_code, 405)
+        self.product.refresh_from_db()
+        self.item.refresh_from_db()
+        self.assertEqual(self.product.stock, 6)
+        self.assertEqual(self.item.status, 'pending')
+
+    def test_other_buyer_cannot_cancel_order_or_item(self):
+        other = User.objects.create_user('method_other_buyer', password='test-pass')
+        self.client.force_login(other)
+        self.assertEqual(self.client.post(reverse('cancel_order', args=[self.order.pk])).status_code, 404)
+        self.assertEqual(self.client.post(reverse('cancel_order_item', args=[self.item.pk])).status_code, 404)
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 6)
