@@ -179,18 +179,18 @@ class StockAndOrderSecurityTests(TestCase):
         self.assertEqual(self.product.stock, 3)
 
         # Cancel order
-        self.client.get(reverse('cancel_order', args=[order.pk]))
+        self.client.post(reverse('cancel_order', args=[order.pk]))
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
 
         # Cancel order again - stock must NOT increase again
-        self.client.get(reverse('cancel_order', args=[order.pk]))
+        self.client.post(reverse('cancel_order', args=[order.pk]))
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
 
         # Cancel item individually - stock must NOT increase again
         item = order.items.first()
-        self.client.get(reverse('cancel_order_item', args=[item.pk]))
+        self.client.post(reverse('cancel_order_item', args=[item.pk]))
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 5)
 
